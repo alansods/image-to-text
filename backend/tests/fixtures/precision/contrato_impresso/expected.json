@@ -1,0 +1,708 @@
+{
+  "case": "contrato_impresso",
+  "input": "input.pdf",
+  "description": "Contrato escaneado: título centralizado, parágrafos justificados, negrito, lista, valores e assinatura.",
+  "handwriting": false,
+  "pages": [
+    {
+      "index": 0,
+      "w_pt": 595.44,
+      "h_pt": 841.92,
+      "blocks": [
+        {
+          "type": "heading",
+          "align": "center",
+          "rel_size": 1.36,
+          "words": [
+            {
+              "text": "CONTRATO",
+              "bold": true
+            },
+            {
+              "text": "DE",
+              "bold": true
+            },
+            {
+              "text": "PRESTAÇÃO",
+              "bold": true
+            },
+            {
+              "text": "DE",
+              "bold": true
+            },
+            {
+              "text": "SERVIÇOS",
+              "bold": true
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "align": "justify",
+          "words": [
+            {
+              "text": "Pelo"
+            },
+            {
+              "text": "presente"
+            },
+            {
+              "text": "instrumento"
+            },
+            {
+              "text": "particular,"
+            },
+            {
+              "text": "de"
+            },
+            {
+              "text": "um"
+            },
+            {
+              "text": "lado"
+            },
+            {
+              "text": "JOÃO",
+              "bold": true
+            },
+            {
+              "text": "PEREIRA",
+              "bold": true
+            },
+            {
+              "text": "DA",
+              "bold": true
+            },
+            {
+              "text": "SILVA,",
+              "bold": true
+            },
+            {
+              "text": "inscrito"
+            },
+            {
+              "text": "no"
+            },
+            {
+              "text": "CPF"
+            },
+            {
+              "text": "sob"
+            },
+            {
+              "text": "o"
+            },
+            {
+              "text": "nº"
+            },
+            {
+              "text": "000.111.222-33,"
+            },
+            {
+              "text": "residente"
+            },
+            {
+              "text": "na"
+            },
+            {
+              "text": "Rua"
+            },
+            {
+              "text": "das"
+            },
+            {
+              "text": "Acácias,"
+            },
+            {
+              "text": "214,"
+            },
+            {
+              "text": "doravante"
+            },
+            {
+              "text": "denominado"
+            },
+            {
+              "text": "CONTRATANTE,",
+              "bold": true
+            },
+            {
+              "text": "e"
+            },
+            {
+              "text": "de"
+            },
+            {
+              "text": "outro"
+            },
+            {
+              "text": "lado"
+            },
+            {
+              "text": "OFICINA",
+              "bold": true
+            },
+            {
+              "text": "GRÁFICA",
+              "bold": true
+            },
+            {
+              "text": "BOA",
+              "bold": true
+            },
+            {
+              "text": "VISTA",
+              "bold": true
+            },
+            {
+              "text": "LTDA.,",
+              "bold": true
+            },
+            {
+              "text": "inscrita"
+            },
+            {
+              "text": "no"
+            },
+            {
+              "text": "CNPJ"
+            },
+            {
+              "text": "sob"
+            },
+            {
+              "text": "o"
+            },
+            {
+              "text": "nº"
+            },
+            {
+              "text": "00.000.000/0001-91,"
+            },
+            {
+              "text": "doravante"
+            },
+            {
+              "text": "denominada"
+            },
+            {
+              "text": "CONTRATADA,",
+              "bold": true
+            },
+            {
+              "text": "têm"
+            },
+            {
+              "text": "entre"
+            },
+            {
+              "text": "si"
+            },
+            {
+              "text": "justo"
+            },
+            {
+              "text": "e"
+            },
+            {
+              "text": "contratado"
+            },
+            {
+              "text": "o"
+            },
+            {
+              "text": "seguinte:"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "align": "justify",
+          "words": [
+            {
+              "text": "Cláusula",
+              "bold": true
+            },
+            {
+              "text": "1ª",
+              "bold": true
+            },
+            {
+              "text": "—"
+            },
+            {
+              "text": "O"
+            },
+            {
+              "text": "objeto"
+            },
+            {
+              "text": "do"
+            },
+            {
+              "text": "presente"
+            },
+            {
+              "text": "contrato"
+            },
+            {
+              "text": "é"
+            },
+            {
+              "text": "a"
+            },
+            {
+              "text": "prestação"
+            },
+            {
+              "text": "de"
+            },
+            {
+              "text": "serviços"
+            },
+            {
+              "text": "de"
+            },
+            {
+              "text": "digitalização"
+            },
+            {
+              "text": "de"
+            },
+            {
+              "text": "acervo"
+            },
+            {
+              "text": "documental,"
+            },
+            {
+              "text": "conforme"
+            },
+            {
+              "text": "as"
+            },
+            {
+              "text": "condições"
+            },
+            {
+              "text": "abaixo:"
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "words": [
+            {
+              "text": "a)"
+            },
+            {
+              "text": "recebimento"
+            },
+            {
+              "text": "e"
+            },
+            {
+              "text": "triagem"
+            },
+            {
+              "text": "dos"
+            },
+            {
+              "text": "documentos;"
+            },
+            {
+              "text": "b)"
+            },
+            {
+              "text": "digitalização"
+            },
+            {
+              "text": "em"
+            },
+            {
+              "text": "alta"
+            },
+            {
+              "text": "resolução,"
+            },
+            {
+              "text": "com"
+            },
+            {
+              "text": "conferência"
+            },
+            {
+              "text": "página"
+            },
+            {
+              "text": "a"
+            },
+            {
+              "text": "página;"
+            },
+            {
+              "text": "c)"
+            },
+            {
+              "text": "entrega"
+            },
+            {
+              "text": "dos"
+            },
+            {
+              "text": "arquivos"
+            },
+            {
+              "text": "em"
+            },
+            {
+              "text": "até"
+            },
+            {
+              "text": "15"
+            },
+            {
+              "text": "(quinze)"
+            },
+            {
+              "text": "dias"
+            },
+            {
+              "text": "úteis."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "align": "justify",
+          "words": [
+            {
+              "text": "Cláusula",
+              "bold": true
+            },
+            {
+              "text": "2ª",
+              "bold": true
+            },
+            {
+              "text": "—"
+            },
+            {
+              "text": "Pelos"
+            },
+            {
+              "text": "serviços,"
+            },
+            {
+              "text": "o"
+            },
+            {
+              "text": "CONTRATANTE",
+              "bold": true
+            },
+            {
+              "text": "pagará"
+            },
+            {
+              "text": "à"
+            },
+            {
+              "text": "CONTRATADA",
+              "bold": true
+            },
+            {
+              "text": "o"
+            },
+            {
+              "text": "valor"
+            },
+            {
+              "text": "total"
+            },
+            {
+              "text": "de"
+            },
+            {
+              "text": "R$"
+            },
+            {
+              "text": "2.500,00"
+            },
+            {
+              "text": "(dois"
+            },
+            {
+              "text": "mil"
+            },
+            {
+              "text": "e"
+            },
+            {
+              "text": "quinhentos"
+            },
+            {
+              "text": "reais),"
+            },
+            {
+              "text": "em"
+            },
+            {
+              "text": "duas"
+            },
+            {
+              "text": "parcelas"
+            },
+            {
+              "text": "iguais"
+            },
+            {
+              "text": "de"
+            },
+            {
+              "text": "R$"
+            },
+            {
+              "text": "1.250,00,"
+            },
+            {
+              "text": "com"
+            },
+            {
+              "text": "vencimento"
+            },
+            {
+              "text": "em"
+            },
+            {
+              "text": "10/03/2026"
+            },
+            {
+              "text": "e"
+            },
+            {
+              "text": "10/04/2026."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "align": "justify",
+          "words": [
+            {
+              "text": "§"
+            },
+            {
+              "text": "1º"
+            },
+            {
+              "text": "—"
+            },
+            {
+              "text": "O"
+            },
+            {
+              "text": "atraso"
+            },
+            {
+              "text": "no"
+            },
+            {
+              "text": "pagamento"
+            },
+            {
+              "text": "implicará"
+            },
+            {
+              "text": "multa"
+            },
+            {
+              "text": "de"
+            },
+            {
+              "text": "2%"
+            },
+            {
+              "text": "(dois"
+            },
+            {
+              "text": "por"
+            },
+            {
+              "text": "cento)"
+            },
+            {
+              "text": "e"
+            },
+            {
+              "text": "juros"
+            },
+            {
+              "text": "de"
+            },
+            {
+              "text": "1%"
+            },
+            {
+              "text": "ao"
+            },
+            {
+              "text": "mês,"
+            },
+            {
+              "text": "calculados"
+            },
+            {
+              "text": "pro",
+              "italic": true
+            },
+            {
+              "text": "rata",
+              "italic": true
+            },
+            {
+              "text": "die.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "align": "justify",
+          "words": [
+            {
+              "text": "Cláusula",
+              "bold": true
+            },
+            {
+              "text": "3ª",
+              "bold": true
+            },
+            {
+              "text": "—"
+            },
+            {
+              "text": "Fica"
+            },
+            {
+              "text": "eleito"
+            },
+            {
+              "text": "o"
+            },
+            {
+              "text": "foro"
+            },
+            {
+              "text": "da"
+            },
+            {
+              "text": "Comarca"
+            },
+            {
+              "text": "de"
+            },
+            {
+              "text": "São"
+            },
+            {
+              "text": "Paulo"
+            },
+            {
+              "text": "para"
+            },
+            {
+              "text": "dirimir"
+            },
+            {
+              "text": "quaisquer"
+            },
+            {
+              "text": "dúvidas"
+            },
+            {
+              "text": "oriundas"
+            },
+            {
+              "text": "deste"
+            },
+            {
+              "text": "contrato,"
+            },
+            {
+              "text": "com"
+            },
+            {
+              "text": "renúncia"
+            },
+            {
+              "text": "a"
+            },
+            {
+              "text": "qualquer"
+            },
+            {
+              "text": "outro,"
+            },
+            {
+              "text": "por"
+            },
+            {
+              "text": "mais"
+            },
+            {
+              "text": "privilegiado"
+            },
+            {
+              "text": "que"
+            },
+            {
+              "text": "seja."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "align": "center",
+          "words": [
+            {
+              "text": "São"
+            },
+            {
+              "text": "Paulo,"
+            },
+            {
+              "text": "15"
+            },
+            {
+              "text": "de"
+            },
+            {
+              "text": "outubro"
+            },
+            {
+              "text": "de"
+            },
+            {
+              "text": "2026."
+            }
+          ]
+        },
+        {
+          "type": "figure",
+          "align": "center"
+        },
+        {
+          "type": "paragraph",
+          "align": "center",
+          "rel_size": 0.91,
+          "words": [
+            {
+              "text": "CONTRATANTE",
+              "bold": true
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,256 @@
+{
+  "case": "print_tela",
+  "input": "input.png",
+  "description": "Captura de tela pequena (~600 px de largura) com fonte pequena.",
+  "handwriting": false,
+  "pages": [
+    {
+      "index": 0,
+      "w_pt": 841.89,
+      "h_pt": 595.28,
+      "blocks": [
+        {
+          "type": "heading",
+          "rel_size": 1.44,
+          "words": [
+            {
+              "text": "Pedido",
+              "bold": true
+            },
+            {
+              "text": "confirmado",
+              "bold": true
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "words": [
+            {
+              "text": "Olá,"
+            },
+            {
+              "text": "Ana!"
+            },
+            {
+              "text": "Recebemos"
+            },
+            {
+              "text": "o"
+            },
+            {
+              "text": "seu"
+            },
+            {
+              "text": "pedido"
+            },
+            {
+              "text": "nº"
+            },
+            {
+              "text": "58213"
+            },
+            {
+              "text": "em"
+            },
+            {
+              "text": "14/10/2026"
+            },
+            {
+              "text": "às"
+            },
+            {
+              "text": "16:42."
+            },
+            {
+              "text": "O"
+            },
+            {
+              "text": "pagamento"
+            },
+            {
+              "text": "de"
+            },
+            {
+              "text": "R$"
+            },
+            {
+              "text": "189,90"
+            },
+            {
+              "text": "foi"
+            },
+            {
+              "text": "aprovado"
+            },
+            {
+              "text": "e"
+            },
+            {
+              "text": "a"
+            },
+            {
+              "text": "entrega"
+            },
+            {
+              "text": "está"
+            },
+            {
+              "text": "prevista"
+            },
+            {
+              "text": "para"
+            },
+            {
+              "text": "21/10/2026."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "words": [
+            {
+              "text": "Itens"
+            },
+            {
+              "text": "do"
+            },
+            {
+              "text": "pedido:"
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "words": [
+            {
+              "text": "•"
+            },
+            {
+              "text": "1×"
+            },
+            {
+              "text": "Caderno"
+            },
+            {
+              "text": "universitário"
+            },
+            {
+              "text": "200"
+            },
+            {
+              "text": "folhas"
+            },
+            {
+              "text": "—"
+            },
+            {
+              "text": "R$"
+            },
+            {
+              "text": "42,90"
+            },
+            {
+              "text": "•"
+            },
+            {
+              "text": "2×"
+            },
+            {
+              "text": "Caneta"
+            },
+            {
+              "text": "gel"
+            },
+            {
+              "text": "0,5"
+            },
+            {
+              "text": "mm"
+            },
+            {
+              "text": "azul"
+            },
+            {
+              "text": "—"
+            },
+            {
+              "text": "R$"
+            },
+            {
+              "text": "17,00"
+            },
+            {
+              "text": "•"
+            },
+            {
+              "text": "1×"
+            },
+            {
+              "text": "Mochila"
+            },
+            {
+              "text": "escolar"
+            },
+            {
+              "text": "cinza"
+            },
+            {
+              "text": "—"
+            },
+            {
+              "text": "R$"
+            },
+            {
+              "text": "130,00"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "words": [
+            {
+              "text": "Acompanhe"
+            },
+            {
+              "text": "a"
+            },
+            {
+              "text": "entrega"
+            },
+            {
+              "text": "pelo"
+            },
+            {
+              "text": "código"
+            },
+            {
+              "text": "BR4471029."
+            },
+            {
+              "text": "Em"
+            },
+            {
+              "text": "caso"
+            },
+            {
+              "text": "de"
+            },
+            {
+              "text": "dúvida,"
+            },
+            {
+              "text": "responda"
+            },
+            {
+              "text": "esta"
+            },
+            {
+              "text": "mensagem."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

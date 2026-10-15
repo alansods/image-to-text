@@ -1,0 +1,17 @@
+Low-Cost Digitization of Paper Archives
+
+Resumo: este artigo descreve um processo simples para digitalizar arquivos em papel com equipamentos comuns.
+
+Introduction. Small offices keep thousands of pages in cabinets, and most of them were never converted into searchable files. Scanning alone is not enough: the text must be extracted, checked and stored in a format people can edit.
+
+We compared three workflows over a period of six weeks. Each workflow processed the same set of 1,200 pages, including contracts, invoices and handwritten notes. The results show that careful review of uncertain words matters more than the choice of scanner.
+
+Method. Every page was scanned at 300 dpi and read twice by independent recognizers. When the two readings disagreed, the word was flagged for a person to confirm. No page was edited by hand before the comparison.
+
+The total cost of the setup was below US$ 400, and the team needed less than one day of training to operate it.
+
+Figure 1. Pages processed per week in each workflow.
+
+Results. The double-reading workflow reduced character errors from 2.4% to 0.6% and took only 9% more time than a single reading. Most remaining errors involved similar shapes such as 1 and l, or 0 and O.
+
+Conclusion. A free and careful process is possible today, as long as people review what the machine is not sure about.

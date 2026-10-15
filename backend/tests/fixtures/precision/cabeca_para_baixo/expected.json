@@ -1,0 +1,303 @@
+{
+  "case": "cabeca_para_baixo",
+  "input": "input.jpg",
+  "description": "Comunicado escaneado de cabeça para baixo (180°).",
+  "handwriting": false,
+  "pages": [
+    {
+      "index": 0,
+      "w_pt": 595.28,
+      "h_pt": 841.89,
+      "blocks": [
+        {
+          "type": "heading",
+          "rel_size": 1.18,
+          "words": [
+            {
+              "text": "COMUNICADO",
+              "bold": true
+            },
+            {
+              "text": "INTERNO",
+              "bold": true
+            },
+            {
+              "text": "Nº",
+              "bold": true
+            },
+            {
+              "text": "18/2026",
+              "bold": true
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "words": [
+            {
+              "text": "Para:"
+            },
+            {
+              "text": "equipe"
+            },
+            {
+              "text": "de"
+            },
+            {
+              "text": "atendimento"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "words": [
+            {
+              "text": "Assunto:"
+            },
+            {
+              "text": "novo"
+            },
+            {
+              "text": "horário"
+            },
+            {
+              "text": "de"
+            },
+            {
+              "text": "funcionamento"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "align": "justify",
+          "words": [
+            {
+              "text": "A"
+            },
+            {
+              "text": "partir"
+            },
+            {
+              "text": "de"
+            },
+            {
+              "text": "3"
+            },
+            {
+              "text": "de"
+            },
+            {
+              "text": "novembro,"
+            },
+            {
+              "text": "o"
+            },
+            {
+              "text": "atendimento"
+            },
+            {
+              "text": "ao"
+            },
+            {
+              "text": "público"
+            },
+            {
+              "text": "passará"
+            },
+            {
+              "text": "a"
+            },
+            {
+              "text": "funcionar"
+            },
+            {
+              "text": "das"
+            },
+            {
+              "text": "8h"
+            },
+            {
+              "text": "às"
+            },
+            {
+              "text": "17h,"
+            },
+            {
+              "text": "de"
+            },
+            {
+              "text": "segunda"
+            },
+            {
+              "text": "a"
+            },
+            {
+              "text": "sexta-feira."
+            },
+            {
+              "text": "Aos"
+            },
+            {
+              "text": "sábados,"
+            },
+            {
+              "text": "o"
+            },
+            {
+              "text": "expediente"
+            },
+            {
+              "text": "será"
+            },
+            {
+              "text": "das"
+            },
+            {
+              "text": "9h"
+            },
+            {
+              "text": "às"
+            },
+            {
+              "text": "13h,"
+            },
+            {
+              "text": "apenas"
+            },
+            {
+              "text": "para"
+            },
+            {
+              "text": "retirada"
+            },
+            {
+              "text": "de"
+            },
+            {
+              "text": "documentos"
+            },
+            {
+              "text": "já"
+            },
+            {
+              "text": "agendada."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "align": "justify",
+          "words": [
+            {
+              "text": "Pedimos"
+            },
+            {
+              "text": "que"
+            },
+            {
+              "text": "todos"
+            },
+            {
+              "text": "atualizem"
+            },
+            {
+              "text": "os"
+            },
+            {
+              "text": "avisos"
+            },
+            {
+              "text": "afixados"
+            },
+            {
+              "text": "no"
+            },
+            {
+              "text": "balcão"
+            },
+            {
+              "text": "e"
+            },
+            {
+              "text": "confirmem"
+            },
+            {
+              "text": "a"
+            },
+            {
+              "text": "escala"
+            },
+            {
+              "text": "da"
+            },
+            {
+              "text": "semana"
+            },
+            {
+              "text": "com"
+            },
+            {
+              "text": "a"
+            },
+            {
+              "text": "coordenação"
+            },
+            {
+              "text": "até"
+            },
+            {
+              "text": "o"
+            },
+            {
+              "text": "dia"
+            },
+            {
+              "text": "30."
+            },
+            {
+              "text": "Dúvidas"
+            },
+            {
+              "text": "podem"
+            },
+            {
+              "text": "ser"
+            },
+            {
+              "text": "enviadas"
+            },
+            {
+              "text": "ao"
+            },
+            {
+              "text": "ramal"
+            },
+            {
+              "text": "2045."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "words": [
+            {
+              "text": "Atenciosamente,"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "words": [
+            {
+              "text": "Coordenação"
+            },
+            {
+              "text": "Administrativa"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,366 @@
+{
+  "case": "relatorio_tres_paginas",
+  "input": "input.pdf",
+  "description": "PDF de 3 páginas: capa com logotipo e ilustração, texto com cabeçalho e rodapé, página em branco.",
+  "handwriting": false,
+  "pages": [
+    {
+      "index": 0,
+      "w_pt": 595.44,
+      "h_pt": 841.92,
+      "blocks": [
+        {
+          "type": "figure"
+        },
+        {
+          "type": "figure",
+          "align": "center"
+        },
+        {
+          "type": "heading",
+          "align": "center",
+          "rel_size": 2.18,
+          "words": [
+            {
+              "text": "RELATÓRIO",
+              "bold": true
+            },
+            {
+              "text": "ANUAL",
+              "bold": true
+            },
+            {
+              "text": "2026",
+              "bold": true
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "align": "center",
+          "rel_size": 1.27,
+          "words": [
+            {
+              "text": "Programa"
+            },
+            {
+              "text": "de"
+            },
+            {
+              "text": "Preservação"
+            },
+            {
+              "text": "Documental"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "index": 1,
+      "w_pt": 595.44,
+      "h_pt": 841.92,
+      "blocks": [
+        {
+          "type": "header",
+          "align": "right",
+          "rel_size": 0.73,
+          "words": [
+            {
+              "text": "Relatório"
+            },
+            {
+              "text": "anual"
+            },
+            {
+              "text": "2026"
+            },
+            {
+              "text": "—"
+            },
+            {
+              "text": "Oficina"
+            },
+            {
+              "text": "Gráfica"
+            },
+            {
+              "text": "Boa"
+            },
+            {
+              "text": "Vista"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "rel_size": 1.27,
+          "words": [
+            {
+              "text": "1.",
+              "bold": true
+            },
+            {
+              "text": "Apresentação",
+              "bold": true
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "align": "justify",
+          "words": [
+            {
+              "text": "Em"
+            },
+            {
+              "text": "2026,"
+            },
+            {
+              "text": "o"
+            },
+            {
+              "text": "programa"
+            },
+            {
+              "text": "digitalizou"
+            },
+            {
+              "text": "48.300"
+            },
+            {
+              "text": "páginas"
+            },
+            {
+              "text": "de"
+            },
+            {
+              "text": "documentos"
+            },
+            {
+              "text": "históricos"
+            },
+            {
+              "text": "de"
+            },
+            {
+              "text": "quatro"
+            },
+            {
+              "text": "municípios."
+            },
+            {
+              "text": "Todo"
+            },
+            {
+              "text": "o"
+            },
+            {
+              "text": "material"
+            },
+            {
+              "text": "foi"
+            },
+            {
+              "text": "conferido"
+            },
+            {
+              "text": "por"
+            },
+            {
+              "text": "duas"
+            },
+            {
+              "text": "pessoas"
+            },
+            {
+              "text": "antes"
+            },
+            {
+              "text": "de"
+            },
+            {
+              "text": "ser"
+            },
+            {
+              "text": "publicado"
+            },
+            {
+              "text": "no"
+            },
+            {
+              "text": "acervo"
+            },
+            {
+              "text": "digital."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "words": [
+            {
+              "text": "As"
+            },
+            {
+              "text": "principais"
+            },
+            {
+              "text": "entregas"
+            },
+            {
+              "text": "do"
+            },
+            {
+              "text": "ano"
+            },
+            {
+              "text": "foram:"
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "words": [
+            {
+              "text": "•"
+            },
+            {
+              "text": "catálogo"
+            },
+            {
+              "text": "das"
+            },
+            {
+              "text": "atas"
+            },
+            {
+              "text": "da"
+            },
+            {
+              "text": "Câmara"
+            },
+            {
+              "text": "Municipal"
+            },
+            {
+              "text": "de"
+            },
+            {
+              "text": "1890"
+            },
+            {
+              "text": "a"
+            },
+            {
+              "text": "1950;"
+            },
+            {
+              "text": "•"
+            },
+            {
+              "text": "mapas"
+            },
+            {
+              "text": "cadastrais"
+            },
+            {
+              "text": "restaurados"
+            },
+            {
+              "text": "e"
+            },
+            {
+              "text": "digitalizados"
+            },
+            {
+              "text": "em"
+            },
+            {
+              "text": "alta"
+            },
+            {
+              "text": "resolução;"
+            },
+            {
+              "text": "•"
+            },
+            {
+              "text": "oficina"
+            },
+            {
+              "text": "de"
+            },
+            {
+              "text": "preservação"
+            },
+            {
+              "text": "para"
+            },
+            {
+              "text": "120"
+            },
+            {
+              "text": "servidores"
+            },
+            {
+              "text": "públicos."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "align": "justify",
+          "words": [
+            {
+              "text": "Os"
+            },
+            {
+              "text": "resultados"
+            },
+            {
+              "text": "detalhados"
+            },
+            {
+              "text": "por"
+            },
+            {
+              "text": "município"
+            },
+            {
+              "text": "estão"
+            },
+            {
+              "text": "nos"
+            },
+            {
+              "text": "anexos,"
+            },
+            {
+              "text": "publicados"
+            },
+            {
+              "text": "separadamente."
+            }
+          ]
+        },
+        {
+          "type": "footer",
+          "align": "center",
+          "rel_size": 0.82,
+          "words": [
+            {
+              "text": "2"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "index": 2,
+      "w_pt": 595.44,
+      "h_pt": 841.92,
+      "blank": true
+    }
+  ]
+}

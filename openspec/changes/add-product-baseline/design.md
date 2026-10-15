@@ -88,8 +88,13 @@ Next.js App Router com uma rota (`/`) e uma máquina de estados de tela (`upload
 - Alternativa: `next-intl` com rotas por idioma — descartada: só dois idiomas, sem rotas, e a troca precisa ser instantânea.
 - Alternativa: uma rota por tela (`/jobs/[id]`, `/review`, `/export`) — descartada: sem histórico nem conta, o identificador na URL não serve para nada além de criar estados órfãos ao recarregar.
 
-### D12. Conjunto de teste de precisão
-`backend/tests/fixtures/precision/` com pares imagem + gabarito (`.txt` com o texto e `.json` com ênfase, alinhamento e página de cada bloco): impresso, foto torta, tabela, duas colunas com figuras, capa com logotipo, manuscrito, PDF multipágina. Teste `@pytest.mark.precision` calcula CER/WER com `jiwer`, acerto de ênfase, e confere a paginação do DOCX/PDF gerado. Roda fora do ciclo rápido (é lento).
+### D12. Conjunto de teste de precisão (sintético)
+`backend/tests/fixtures/precision/` com pares entrada + gabarito (`expected.txt` com o texto em ordem de leitura e `expected.json` com páginas, blocos, alinhamento, ênfase por palavra e figuras): contrato impresso, contrato fotografado, tabela com mescla, duas colunas com figura (inglês), PDF de 3 páginas com capa e página em branco, print pequeno, página de cabeça para baixo, ênfase mista e manuscrito.
+- Gerados por código (`tests/fixtures/precision/generator/`, semente fixa): o documento é montado com ReportLab palavra a palavra (o gerador conhece posição, ênfase, alinhamento e página de tudo o que desenha), rasterizado com pypdfium2 a 300 DPI, salvo como PDF escaneado (só imagens) ou foto, e degradado com OpenCV (perspectiva, inclinação, rotação, sombra, ruído, JPEG). Fontes: as 14 fontes padrão do PDF (Times, Helvetica) — renderizadas pelo pdfium de forma idêntica em qualquer máquina — e Caveat (OFL) para o "manuscrito".
+- Os arquivos gerados são versionados, para os testes não dependerem do gerador.
+- Teste `@pytest.mark.precision` calcula CER/WER com `jiwer`, acerto de ênfase, número de páginas e de figuras; fica pulado até o pipeline existir (task 6.8). Roda fora do ciclo rápido (é lento).
+- ReportLab e jiwer são dependências só de desenvolvimento.
+- Alternativas: documentos reais anotados à mão — gabarito caro e sujeito a erro; desenhar com Pillow — justificação de texto e tabelas artesanais e pouco realistas.
 
 ## Risks / Trade-offs
 

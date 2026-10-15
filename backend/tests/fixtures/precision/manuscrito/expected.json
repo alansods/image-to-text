@@ -1,0 +1,166 @@
+{
+  "case": "manuscrito",
+  "input": "input.jpg",
+  "description": "Anotações em letra cursiva (fonte Caveat). Medido e reportado, sem bloquear.",
+  "handwriting": true,
+  "pages": [
+    {
+      "index": 0,
+      "w_pt": 595.28,
+      "h_pt": 841.89,
+      "blocks": [
+        {
+          "type": "heading",
+          "rel_size": 1.3,
+          "words": [
+            {
+              "text": "Lista"
+            },
+            {
+              "text": "da"
+            },
+            {
+              "text": "semana"
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "words": [
+            {
+              "text": "-"
+            },
+            {
+              "text": "pagar"
+            },
+            {
+              "text": "a"
+            },
+            {
+              "text": "conta"
+            },
+            {
+              "text": "de"
+            },
+            {
+              "text": "luz"
+            },
+            {
+              "text": "até"
+            },
+            {
+              "text": "sexta"
+            },
+            {
+              "text": "-"
+            },
+            {
+              "text": "levar"
+            },
+            {
+              "text": "o"
+            },
+            {
+              "text": "carro"
+            },
+            {
+              "text": "na"
+            },
+            {
+              "text": "revisão"
+            },
+            {
+              "text": "(km"
+            },
+            {
+              "text": "45.000)"
+            },
+            {
+              "text": "-"
+            },
+            {
+              "text": "comprar"
+            },
+            {
+              "text": "presente"
+            },
+            {
+              "text": "para"
+            },
+            {
+              "text": "a"
+            },
+            {
+              "text": "Júlia"
+            },
+            {
+              "text": "-"
+            },
+            {
+              "text": "ligar"
+            },
+            {
+              "text": "para"
+            },
+            {
+              "text": "o"
+            },
+            {
+              "text": "dentista"
+            },
+            {
+              "text": "às"
+            },
+            {
+              "text": "14h"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "words": [
+            {
+              "text": "Não"
+            },
+            {
+              "text": "esquecer:"
+            },
+            {
+              "text": "reunião"
+            },
+            {
+              "text": "do"
+            },
+            {
+              "text": "condomínio"
+            },
+            {
+              "text": "na"
+            },
+            {
+              "text": "quinta,"
+            },
+            {
+              "text": "às"
+            },
+            {
+              "text": "19h30,"
+            },
+            {
+              "text": "no"
+            },
+            {
+              "text": "salão"
+            },
+            {
+              "text": "de"
+            },
+            {
+              "text": "festas."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

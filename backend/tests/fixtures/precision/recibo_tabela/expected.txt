@@ -1,0 +1,11 @@
+RECIBO DE PRESTAÇÃO DE SERVIÇOS
+
+Recebemos de Maria Fernanda Costa a importância de R$ 1.234,56 referente aos serviços abaixo, prestados em setembro de 2026.
+
+Item	Descrição	Qtd.	Valor (R$)
+1	Digitalização de páginas	820	738,00
+2	Conferência e indexação	820	410,00
+3	Mídia de entrega	2	86,56
+Total	1.234,56
+
+Curitiba, 2 de outubro de 2026. Este recibo dá plena quitação dos valores acima.

@@ -1,0 +1,793 @@
+{
+  "case": "artigo_duas_colunas",
+  "input": "input.pdf",
+  "description": "Artigo em inglês em duas colunas, resumo em português, gráfico com legenda.",
+  "handwriting": false,
+  "pages": [
+    {
+      "index": 0,
+      "w_pt": 595.44,
+      "h_pt": 841.92,
+      "columns": 2,
+      "blocks": [
+        {
+          "type": "heading",
+          "align": "center",
+          "rel_size": 1.7,
+          "words": [
+            {
+              "text": "Low-Cost",
+              "bold": true
+            },
+            {
+              "text": "Digitization",
+              "bold": true
+            },
+            {
+              "text": "of",
+              "bold": true
+            },
+            {
+              "text": "Paper",
+              "bold": true
+            },
+            {
+              "text": "Archives",
+              "bold": true
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "align": "center",
+          "words": [
+            {
+              "text": "Resumo:",
+              "italic": true
+            },
+            {
+              "text": "este",
+              "italic": true
+            },
+            {
+              "text": "artigo",
+              "italic": true
+            },
+            {
+              "text": "descreve",
+              "italic": true
+            },
+            {
+              "text": "um",
+              "italic": true
+            },
+            {
+              "text": "processo",
+              "italic": true
+            },
+            {
+              "text": "simples",
+              "italic": true
+            },
+            {
+              "text": "para",
+              "italic": true
+            },
+            {
+              "text": "digitalizar",
+              "italic": true
+            },
+            {
+              "text": "arquivos",
+              "italic": true
+            },
+            {
+              "text": "em",
+              "italic": true
+            },
+            {
+              "text": "papel",
+              "italic": true
+            },
+            {
+              "text": "com",
+              "italic": true
+            },
+            {
+              "text": "equipamentos",
+              "italic": true
+            },
+            {
+              "text": "comuns.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "align": "justify",
+          "words": [
+            {
+              "text": "Introduction.",
+              "bold": true
+            },
+            {
+              "text": "Small"
+            },
+            {
+              "text": "offices"
+            },
+            {
+              "text": "keep"
+            },
+            {
+              "text": "thousands"
+            },
+            {
+              "text": "of"
+            },
+            {
+              "text": "pages"
+            },
+            {
+              "text": "in"
+            },
+            {
+              "text": "cabinets,"
+            },
+            {
+              "text": "and"
+            },
+            {
+              "text": "most"
+            },
+            {
+              "text": "of"
+            },
+            {
+              "text": "them"
+            },
+            {
+              "text": "were"
+            },
+            {
+              "text": "never"
+            },
+            {
+              "text": "converted"
+            },
+            {
+              "text": "into"
+            },
+            {
+              "text": "searchable"
+            },
+            {
+              "text": "files."
+            },
+            {
+              "text": "Scanning"
+            },
+            {
+              "text": "alone"
+            },
+            {
+              "text": "is"
+            },
+            {
+              "text": "not"
+            },
+            {
+              "text": "enough:"
+            },
+            {
+              "text": "the"
+            },
+            {
+              "text": "text"
+            },
+            {
+              "text": "must"
+            },
+            {
+              "text": "be"
+            },
+            {
+              "text": "extracted,"
+            },
+            {
+              "text": "checked"
+            },
+            {
+              "text": "and"
+            },
+            {
+              "text": "stored"
+            },
+            {
+              "text": "in"
+            },
+            {
+              "text": "a"
+            },
+            {
+              "text": "format"
+            },
+            {
+              "text": "people"
+            },
+            {
+              "text": "can"
+            },
+            {
+              "text": "edit."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "align": "justify",
+          "words": [
+            {
+              "text": "We"
+            },
+            {
+              "text": "compared"
+            },
+            {
+              "text": "three"
+            },
+            {
+              "text": "workflows"
+            },
+            {
+              "text": "over"
+            },
+            {
+              "text": "a"
+            },
+            {
+              "text": "period"
+            },
+            {
+              "text": "of"
+            },
+            {
+              "text": "six"
+            },
+            {
+              "text": "weeks."
+            },
+            {
+              "text": "Each"
+            },
+            {
+              "text": "workflow"
+            },
+            {
+              "text": "processed"
+            },
+            {
+              "text": "the"
+            },
+            {
+              "text": "same"
+            },
+            {
+              "text": "set"
+            },
+            {
+              "text": "of"
+            },
+            {
+              "text": "1,200"
+            },
+            {
+              "text": "pages,"
+            },
+            {
+              "text": "including"
+            },
+            {
+              "text": "contracts,"
+            },
+            {
+              "text": "invoices"
+            },
+            {
+              "text": "and"
+            },
+            {
+              "text": "handwritten"
+            },
+            {
+              "text": "notes."
+            },
+            {
+              "text": "The"
+            },
+            {
+              "text": "results"
+            },
+            {
+              "text": "show"
+            },
+            {
+              "text": "that"
+            },
+            {
+              "text": "careful",
+              "italic": true
+            },
+            {
+              "text": "review",
+              "italic": true
+            },
+            {
+              "text": "of",
+              "italic": true
+            },
+            {
+              "text": "uncertain",
+              "italic": true
+            },
+            {
+              "text": "words",
+              "italic": true
+            },
+            {
+              "text": "matters"
+            },
+            {
+              "text": "more"
+            },
+            {
+              "text": "than"
+            },
+            {
+              "text": "the"
+            },
+            {
+              "text": "choice"
+            },
+            {
+              "text": "of"
+            },
+            {
+              "text": "scanner."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "align": "justify",
+          "words": [
+            {
+              "text": "Method.",
+              "bold": true
+            },
+            {
+              "text": "Every"
+            },
+            {
+              "text": "page"
+            },
+            {
+              "text": "was"
+            },
+            {
+              "text": "scanned"
+            },
+            {
+              "text": "at"
+            },
+            {
+              "text": "300"
+            },
+            {
+              "text": "dpi"
+            },
+            {
+              "text": "and"
+            },
+            {
+              "text": "read"
+            },
+            {
+              "text": "twice"
+            },
+            {
+              "text": "by"
+            },
+            {
+              "text": "independent"
+            },
+            {
+              "text": "recognizers."
+            },
+            {
+              "text": "When"
+            },
+            {
+              "text": "the"
+            },
+            {
+              "text": "two"
+            },
+            {
+              "text": "readings"
+            },
+            {
+              "text": "disagreed,"
+            },
+            {
+              "text": "the"
+            },
+            {
+              "text": "word"
+            },
+            {
+              "text": "was"
+            },
+            {
+              "text": "flagged"
+            },
+            {
+              "text": "for"
+            },
+            {
+              "text": "a"
+            },
+            {
+              "text": "person"
+            },
+            {
+              "text": "to"
+            },
+            {
+              "text": "confirm."
+            },
+            {
+              "text": "No"
+            },
+            {
+              "text": "page"
+            },
+            {
+              "text": "was"
+            },
+            {
+              "text": "edited"
+            },
+            {
+              "text": "by"
+            },
+            {
+              "text": "hand"
+            },
+            {
+              "text": "before"
+            },
+            {
+              "text": "the"
+            },
+            {
+              "text": "comparison."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "align": "justify",
+          "words": [
+            {
+              "text": "The"
+            },
+            {
+              "text": "total"
+            },
+            {
+              "text": "cost"
+            },
+            {
+              "text": "of"
+            },
+            {
+              "text": "the"
+            },
+            {
+              "text": "setup"
+            },
+            {
+              "text": "was"
+            },
+            {
+              "text": "below"
+            },
+            {
+              "text": "US$"
+            },
+            {
+              "text": "400,"
+            },
+            {
+              "text": "and"
+            },
+            {
+              "text": "the"
+            },
+            {
+              "text": "team"
+            },
+            {
+              "text": "needed"
+            },
+            {
+              "text": "less"
+            },
+            {
+              "text": "than"
+            },
+            {
+              "text": "one"
+            },
+            {
+              "text": "day"
+            },
+            {
+              "text": "of"
+            },
+            {
+              "text": "training"
+            },
+            {
+              "text": "to"
+            },
+            {
+              "text": "operate"
+            },
+            {
+              "text": "it."
+            }
+          ]
+        },
+        {
+          "type": "figure",
+          "align": "center",
+          "column": 1
+        },
+        {
+          "type": "paragraph",
+          "align": "center",
+          "rel_size": 0.9,
+          "column": 1,
+          "words": [
+            {
+              "text": "Figure",
+              "italic": true
+            },
+            {
+              "text": "1.",
+              "italic": true
+            },
+            {
+              "text": "Pages",
+              "italic": true
+            },
+            {
+              "text": "processed",
+              "italic": true
+            },
+            {
+              "text": "per",
+              "italic": true
+            },
+            {
+              "text": "week",
+              "italic": true
+            },
+            {
+              "text": "in",
+              "italic": true
+            },
+            {
+              "text": "each",
+              "italic": true
+            },
+            {
+              "text": "workflow.",
+              "italic": true
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "align": "justify",
+          "column": 1,
+          "words": [
+            {
+              "text": "Results.",
+              "bold": true
+            },
+            {
+              "text": "The"
+            },
+            {
+              "text": "double-reading"
+            },
+            {
+              "text": "workflow"
+            },
+            {
+              "text": "reduced"
+            },
+            {
+              "text": "character"
+            },
+            {
+              "text": "errors"
+            },
+            {
+              "text": "from"
+            },
+            {
+              "text": "2.4%"
+            },
+            {
+              "text": "to"
+            },
+            {
+              "text": "0.6%"
+            },
+            {
+              "text": "and"
+            },
+            {
+              "text": "took"
+            },
+            {
+              "text": "only"
+            },
+            {
+              "text": "9%"
+            },
+            {
+              "text": "more"
+            },
+            {
+              "text": "time"
+            },
+            {
+              "text": "than"
+            },
+            {
+              "text": "a"
+            },
+            {
+              "text": "single"
+            },
+            {
+              "text": "reading."
+            },
+            {
+              "text": "Most"
+            },
+            {
+              "text": "remaining"
+            },
+            {
+              "text": "errors"
+            },
+            {
+              "text": "involved"
+            },
+            {
+              "text": "similar"
+            },
+            {
+              "text": "shapes"
+            },
+            {
+              "text": "such"
+            },
+            {
+              "text": "as"
+            },
+            {
+              "text": "1"
+            },
+            {
+              "text": "and"
+            },
+            {
+              "text": "l,"
+            },
+            {
+              "text": "or"
+            },
+            {
+              "text": "0"
+            },
+            {
+              "text": "and"
+            },
+            {
+              "text": "O."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "align": "justify",
+          "column": 1,
+          "words": [
+            {
+              "text": "Conclusion.",
+              "bold": true
+            },
+            {
+              "text": "A"
+            },
+            {
+              "text": "free"
+            },
+            {
+              "text": "and"
+            },
+            {
+              "text": "careful"
+            },
+            {
+              "text": "process"
+            },
+            {
+              "text": "is"
+            },
+            {
+              "text": "possible"
+            },
+            {
+              "text": "today,"
+            },
+            {
+              "text": "as"
+            },
+            {
+              "text": "long"
+            },
+            {
+              "text": "as"
+            },
+            {
+              "text": "people"
+            },
+            {
+              "text": "review"
+            },
+            {
+              "text": "what"
+            },
+            {
+              "text": "the"
+            },
+            {
+              "text": "machine"
+            },
+            {
+              "text": "is"
+            },
+            {
+              "text": "not"
+            },
+            {
+              "text": "sure"
+            },
+            {
+              "text": "about."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

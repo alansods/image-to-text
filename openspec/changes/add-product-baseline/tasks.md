@@ -5,7 +5,7 @@
 - [x] 1.1 Criar `backend/` (Python 3.12, `pyproject.toml`, ruff, mypy, pytest) com FastAPI e rota `GET /health`
 - [x] 1.2 Criar `frontend/` (Next.js App Router, TypeScript strict, Tailwind, shadcn/ui, Vitest, Playwright, ESLint) com fontes IBM Plex Sans/Mono e Source Serif 4
 - [x] 1.3 Criar `docker-compose.yml` (api + worker + redis) e `backend/Dockerfile` enxuto (modelos e LibreOffice entram nas tasks 5.1, 6.2 e 8.3)
-- [ ] 1.4 Montar o conjunto de teste `backend/tests/fixtures/precision/` (imagens + gabaritos de texto, ênfase e paginação) e o teste `@pytest.mark.precision` (D12)
+- [x] 1.4 Montar o conjunto de teste `backend/tests/fixtures/precision/` (imagens + gabaritos de texto, ênfase e paginação) e o teste `@pytest.mark.precision` (D12)
 
 ## 2. Formato interno
 

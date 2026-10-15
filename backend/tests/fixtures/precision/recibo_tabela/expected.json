@@ -1,0 +1,348 @@
+{
+  "case": "recibo_tabela",
+  "input": "input.pdf",
+  "description": "Recibo com tabela de 5×4, célula mesclada no total e carimbo.",
+  "handwriting": false,
+  "pages": [
+    {
+      "index": 0,
+      "w_pt": 595.44,
+      "h_pt": 841.92,
+      "blocks": [
+        {
+          "type": "heading",
+          "rel_size": 1.4,
+          "words": [
+            {
+              "text": "RECIBO",
+              "bold": true
+            },
+            {
+              "text": "DE",
+              "bold": true
+            },
+            {
+              "text": "PRESTAÇÃO",
+              "bold": true
+            },
+            {
+              "text": "DE",
+              "bold": true
+            },
+            {
+              "text": "SERVIÇOS",
+              "bold": true
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "words": [
+            {
+              "text": "Recebemos"
+            },
+            {
+              "text": "de"
+            },
+            {
+              "text": "Maria"
+            },
+            {
+              "text": "Fernanda"
+            },
+            {
+              "text": "Costa"
+            },
+            {
+              "text": "a"
+            },
+            {
+              "text": "importância"
+            },
+            {
+              "text": "de"
+            },
+            {
+              "text": "R$"
+            },
+            {
+              "text": "1.234,56"
+            },
+            {
+              "text": "referente"
+            },
+            {
+              "text": "aos"
+            },
+            {
+              "text": "serviços"
+            },
+            {
+              "text": "abaixo,"
+            },
+            {
+              "text": "prestados"
+            },
+            {
+              "text": "em"
+            },
+            {
+              "text": "setembro"
+            },
+            {
+              "text": "de"
+            },
+            {
+              "text": "2026."
+            }
+          ]
+        },
+        {
+          "type": "table",
+          "cells": [
+            {
+              "row": 0,
+              "col": 0,
+              "words": [
+                {
+                  "text": "Item",
+                  "bold": true
+                }
+              ]
+            },
+            {
+              "row": 0,
+              "col": 1,
+              "words": [
+                {
+                  "text": "Descrição",
+                  "bold": true
+                }
+              ]
+            },
+            {
+              "row": 0,
+              "col": 2,
+              "words": [
+                {
+                  "text": "Qtd.",
+                  "bold": true
+                }
+              ]
+            },
+            {
+              "row": 0,
+              "col": 3,
+              "words": [
+                {
+                  "text": "Valor",
+                  "bold": true
+                },
+                {
+                  "text": "(R$)",
+                  "bold": true
+                }
+              ]
+            },
+            {
+              "row": 1,
+              "col": 0,
+              "words": [
+                {
+                  "text": "1"
+                }
+              ]
+            },
+            {
+              "row": 1,
+              "col": 1,
+              "words": [
+                {
+                  "text": "Digitalização"
+                },
+                {
+                  "text": "de"
+                },
+                {
+                  "text": "páginas"
+                }
+              ]
+            },
+            {
+              "row": 1,
+              "col": 2,
+              "words": [
+                {
+                  "text": "820"
+                }
+              ]
+            },
+            {
+              "row": 1,
+              "col": 3,
+              "words": [
+                {
+                  "text": "738,00"
+                }
+              ]
+            },
+            {
+              "row": 2,
+              "col": 0,
+              "words": [
+                {
+                  "text": "2"
+                }
+              ]
+            },
+            {
+              "row": 2,
+              "col": 1,
+              "words": [
+                {
+                  "text": "Conferência"
+                },
+                {
+                  "text": "e"
+                },
+                {
+                  "text": "indexação"
+                }
+              ]
+            },
+            {
+              "row": 2,
+              "col": 2,
+              "words": [
+                {
+                  "text": "820"
+                }
+              ]
+            },
+            {
+              "row": 2,
+              "col": 3,
+              "words": [
+                {
+                  "text": "410,00"
+                }
+              ]
+            },
+            {
+              "row": 3,
+              "col": 0,
+              "words": [
+                {
+                  "text": "3"
+                }
+              ]
+            },
+            {
+              "row": 3,
+              "col": 1,
+              "words": [
+                {
+                  "text": "Mídia"
+                },
+                {
+                  "text": "de"
+                },
+                {
+                  "text": "entrega"
+                }
+              ]
+            },
+            {
+              "row": 3,
+              "col": 2,
+              "words": [
+                {
+                  "text": "2"
+                }
+              ]
+            },
+            {
+              "row": 3,
+              "col": 3,
+              "words": [
+                {
+                  "text": "86,56"
+                }
+              ]
+            },
+            {
+              "row": 4,
+              "col": 0,
+              "col_span": 3,
+              "words": [
+                {
+                  "text": "Total"
+                }
+              ]
+            },
+            {
+              "row": 4,
+              "col": 3,
+              "words": [
+                {
+                  "text": "1.234,56"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "figure",
+          "align": "right"
+        },
+        {
+          "type": "paragraph",
+          "words": [
+            {
+              "text": "Curitiba,"
+            },
+            {
+              "text": "2"
+            },
+            {
+              "text": "de"
+            },
+            {
+              "text": "outubro"
+            },
+            {
+              "text": "de"
+            },
+            {
+              "text": "2026."
+            },
+            {
+              "text": "Este"
+            },
+            {
+              "text": "recibo"
+            },
+            {
+              "text": "dá"
+            },
+            {
+              "text": "plena"
+            },
+            {
+              "text": "quitação"
+            },
+            {
+              "text": "dos"
+            },
+            {
+              "text": "valores"
+            },
+            {
+              "text": "acima."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

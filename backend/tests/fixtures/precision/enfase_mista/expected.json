@@ -1,0 +1,392 @@
+{
+  "case": "enfase_mista",
+  "input": "input.pdf",
+  "description": "Texto com negrito, itálico e negrito-itálico misturados no meio das frases.",
+  "handwriting": false,
+  "pages": [
+    {
+      "index": 0,
+      "w_pt": 595.44,
+      "h_pt": 841.92,
+      "blocks": [
+        {
+          "type": "heading",
+          "rel_size": 1.33,
+          "words": [
+            {
+              "text": "Orientações",
+              "bold": true
+            },
+            {
+              "text": "para",
+              "bold": true
+            },
+            {
+              "text": "a",
+              "bold": true
+            },
+            {
+              "text": "prova",
+              "bold": true
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "align": "justify",
+          "words": [
+            {
+              "text": "A"
+            },
+            {
+              "text": "prova"
+            },
+            {
+              "text": "terá"
+            },
+            {
+              "text": "duração",
+              "bold": true
+            },
+            {
+              "text": "máxima",
+              "bold": true
+            },
+            {
+              "text": "de",
+              "bold": true
+            },
+            {
+              "text": "quatro",
+              "bold": true
+            },
+            {
+              "text": "horas",
+              "bold": true
+            },
+            {
+              "text": "e"
+            },
+            {
+              "text": "começará"
+            },
+            {
+              "text": "pontualmente",
+              "italic": true
+            },
+            {
+              "text": "às"
+            },
+            {
+              "text": "8h."
+            },
+            {
+              "text": "Não"
+            },
+            {
+              "text": "será"
+            },
+            {
+              "text": "permitida"
+            },
+            {
+              "text": "a"
+            },
+            {
+              "text": "entrada"
+            },
+            {
+              "text": "após"
+            },
+            {
+              "text": "o"
+            },
+            {
+              "text": "fechamento",
+              "bold": true
+            },
+            {
+              "text": "dos",
+              "bold": true
+            },
+            {
+              "text": "portões,",
+              "bold": true
+            },
+            {
+              "text": "em"
+            },
+            {
+              "text": "nenhuma"
+            },
+            {
+              "text": "hipótese."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "align": "justify",
+          "words": [
+            {
+              "text": "Leve"
+            },
+            {
+              "text": "documento",
+              "bold": true
+            },
+            {
+              "text": "oficial",
+              "bold": true
+            },
+            {
+              "text": "com",
+              "bold": true
+            },
+            {
+              "text": "foto",
+              "bold": true
+            },
+            {
+              "text": "e"
+            },
+            {
+              "text": "caneta"
+            },
+            {
+              "text": "esferográfica"
+            },
+            {
+              "text": "de"
+            },
+            {
+              "text": "tinta"
+            },
+            {
+              "text": "azul",
+              "italic": true
+            },
+            {
+              "text": "ou",
+              "italic": true
+            },
+            {
+              "text": "preta,",
+              "italic": true
+            },
+            {
+              "text": "fabricada"
+            },
+            {
+              "text": "em"
+            },
+            {
+              "text": "material"
+            },
+            {
+              "text": "transparente."
+            },
+            {
+              "text": "O"
+            },
+            {
+              "text": "uso"
+            },
+            {
+              "text": "de"
+            },
+            {
+              "text": "calculadora,",
+              "bold": true,
+              "italic": true
+            },
+            {
+              "text": "relógio",
+              "bold": true,
+              "italic": true
+            },
+            {
+              "text": "digital",
+              "bold": true,
+              "italic": true
+            },
+            {
+              "text": "ou",
+              "bold": true,
+              "italic": true
+            },
+            {
+              "text": "celular",
+              "bold": true,
+              "italic": true
+            },
+            {
+              "text": "resultará"
+            },
+            {
+              "text": "na"
+            },
+            {
+              "text": "eliminação"
+            },
+            {
+              "text": "do"
+            },
+            {
+              "text": "candidato."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "align": "justify",
+          "words": [
+            {
+              "text": "As"
+            },
+            {
+              "text": "respostas"
+            },
+            {
+              "text": "devem"
+            },
+            {
+              "text": "ser"
+            },
+            {
+              "text": "transcritas"
+            },
+            {
+              "text": "para"
+            },
+            {
+              "text": "a"
+            },
+            {
+              "text": "folha",
+              "bold": true
+            },
+            {
+              "text": "de",
+              "bold": true
+            },
+            {
+              "text": "respostas,",
+              "bold": true
+            },
+            {
+              "text": "que"
+            },
+            {
+              "text": "é"
+            },
+            {
+              "text": "o"
+            },
+            {
+              "text": "único",
+              "italic": true
+            },
+            {
+              "text": "documento",
+              "italic": true
+            },
+            {
+              "text": "válido",
+              "italic": true
+            },
+            {
+              "text": "para"
+            },
+            {
+              "text": "a"
+            },
+            {
+              "text": "correção."
+            },
+            {
+              "text": "Rasuras"
+            },
+            {
+              "text": "na"
+            },
+            {
+              "text": "folha"
+            },
+            {
+              "text": "não",
+              "bold": true
+            },
+            {
+              "text": "serão",
+              "bold": true
+            },
+            {
+              "text": "aceitas.",
+              "bold": true
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "words": [
+            {
+              "text": "Observação:",
+              "italic": true
+            },
+            {
+              "text": "os"
+            },
+            {
+              "text": "candidatos"
+            },
+            {
+              "text": "poderão"
+            },
+            {
+              "text": "levar"
+            },
+            {
+              "text": "o"
+            },
+            {
+              "text": "caderno"
+            },
+            {
+              "text": "de"
+            },
+            {
+              "text": "questões"
+            },
+            {
+              "text": "somente"
+            },
+            {
+              "text": "após"
+            },
+            {
+              "text": "duas",
+              "bold": true
+            },
+            {
+              "text": "horas",
+              "bold": true
+            },
+            {
+              "text": "do"
+            },
+            {
+              "text": "início"
+            },
+            {
+              "text": "da"
+            },
+            {
+              "text": "prova."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
