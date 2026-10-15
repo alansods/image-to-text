@@ -1,0 +1,81 @@
+schema: spec-driven
+
+context: |
+  Produto: image-to-text — site gratuito, sem conta e sem opções, que converte
+  uma imagem (JPG, PNG, WEBP, HEIC) ou PDF escaneado em texto e em um
+  documento novo (Word ou PDF) fiel ao original: nenhum texto faltando,
+  nenhum caractere trocado, nenhum elemento visual perdido, mesma paginação,
+  organização e formatação (títulos, alinhamento, negrito/itálico, listas,
+  colunas, tabelas, cabeçalhos/rodapés, capa, logotipos, fotos, assinaturas).
+
+  Stack:
+  - Frontend: Next.js (App Router) + TypeScript (strict) + Tailwind CSS +
+    shadcn/ui, em frontend/. Testes: Vitest + Testing Library; E2E Playwright.
+  - Backend: Python 3.12 + FastAPI + Pydantic, em backend/. Fila de jobs:
+    Celery + Redis. Testes: pytest. Lint: ruff; tipos: mypy.
+  - Pré-processamento: OpenCV (inclinação, perspectiva, ruído, contraste,
+    upscale ~300 DPI). Entrada PDF: pypdfium2 (página → imagem).
+  - Layout + OCR primário: PaddleOCR PP-StructureV3.
+  - OCR secundário (leitura independente): docTR.
+  - Reconciliação: rapidfuzz (alinhamento palavra a palavra).
+  - Negrito/itálico: medição na imagem (OpenCV + scikit-image).
+  - Árbitro opcional: PaddleOCR-VL (modelo de visão leve, CPU), só em trechos
+    divergentes. Upgrade futuro com GPU: Qwen2.5-VL via Ollama.
+  - Exportação: python-docx (DOCX) e LibreOffice headless (DOCX → PDF).
+  - Infra: frontend na Vercel; backend em Docker fora da Vercel (Hugging Face
+    Spaces grátis ou Oracle Cloud Always Free). docker-compose local com
+    api + worker + redis.
+
+  Decisões de produto (2026-10-15, revisadas após o protótipo aprovado):
+  - 100% gratuito: nenhuma API paga ou serviço externo de IA. Todo OCR roda no
+    nosso backend; nenhuma imagem sai do servidor.
+  - Site de um endereço só (/) com três telas: envio → progresso → resultado.
+    Barra com logotipo e seletor de idioma da interface PT | EN; rodapé com
+    logotipo e ©; só tema claro.
+  - Um arquivo por conversão. A conversão começa ao escolher o arquivo, sem
+    perguntar modo nem idioma: sempre leitura dupla (máxima fidelidade) e
+    conteúdo em português e inglês detectados automaticamente.
+  - Sem login, sem conta, sem histórico. Nada guardado no navegador; arquivos
+    no servidor apagados ao cancelar/"Converter outro" e no máximo 1 h após o
+    envio.
+  - Fidelidade acima de "embelezar": transcrever literalmente, nunca corrigir
+    ortografia nem completar texto; trecho ilegível vira "[ilegível]".
+  - Elementos não-texto (capa, figura, logotipo, foto, assinatura, carimbo,
+    gráfico, fórmula) entram como imagem recortada do original, na mesma
+    página e posição, com tamanho proporcional. Texto dentro de imagem
+    continua imagem.
+  - Conferência obrigatória: copiar e baixar só aparecem depois que o usuário
+    resolve todas as palavras em dúvida (escolhe uma alternativa ou digita).
+  - Saídas: copiar texto, Word (.docx) e PDF (documento novo com texto), com a
+    mesma paginação e tamanho de folha do original.
+  - Formato interno único (Document → Page → Block) consumido pela tela de
+    resultado e pelos exportadores.
+  - Limitação aceita: manuscrito tem precisão menor; a conferência compensa.
+
+  Processo (SDD): specs são a fonte da verdade. Toda implementação, correção
+  ou alteração começa criando/ajustando a spec (change em openspec/changes/),
+  depois testes, depois código. Nada de comportamento sem cenário na spec.
+
+rules:
+  proposal:
+    - Escrever em PT-BR
+    - Sempre incluir seção "Fora de escopo"
+  specs:
+    - Escrever em PT-BR, com palavras-chave SHALL/MUST em inglês
+    - Requisitos com SHALL/MUST e cenários WHEN/THEN testáveis
+    - Cada cenário deve virar pelo menos um teste automatizado
+    - Specs descrevem comportamento observável, nunca detalhes de implementação
+  design:
+    - Registrar decisão, alternativas descartadas e motivo
+  tasks:
+    - "Ordem obrigatória por item: spec ajustada → teste falhando → implementação → teste passando"
+    - "Última task sempre: rodar pytest, ruff e mypy no backend; npm test, npm run lint e npx tsc --noEmit no frontend"
+
+operations:
+  apply:
+    guidance:
+      - Se a implementação revelar algo não previsto, pare e atualize a spec antes de seguir
+      - Antes de implementar, explique o plano (arquivos, funções, motivos) e espere aprovação
+  archive:
+    guidance:
+      - Só arquivar com testes, lint e typecheck verdes no frontend e no backend
