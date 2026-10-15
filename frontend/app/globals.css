@@ -1,0 +1,86 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/* Tema único (claro), com a paleta aprovada no protótipo. Âmbar (doubt) é exclusivo de "palavra em dúvida". */
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-plex-sans);
+  --font-mono: var(--font-plex-mono);
+  --font-serif: var(--font-source-serif);
+  --font-heading: var(--font-plex-sans);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-primary-soft: var(--primary-soft);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-doubt: var(--doubt);
+  --color-doubt-foreground: var(--doubt-foreground);
+  --color-doubt-line: var(--doubt-line);
+  --color-success: var(--success);
+  --color-paper: var(--paper);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  color-scheme: light;
+  --background: #faf8f4;
+  --foreground: #1c1b19;
+  --card: #ffffff;
+  --card-foreground: #1c1b19;
+  --popover: #ffffff;
+  --popover-foreground: #1c1b19;
+  --primary: #1f4e9c;
+  --primary-foreground: #ffffff;
+  --primary-soft: #e7edf7;
+  --secondary: #f2efe9;
+  --secondary-foreground: #1c1b19;
+  --muted: #f2efe9;
+  --muted-foreground: #5f5b54;
+  --accent: #f2efe9;
+  --accent-foreground: #1c1b19;
+  --destructive: #a8261b;
+  --border: #e3ded5;
+  --border-strong: #c9c2b5;
+  --input: #e3ded5;
+  --ring: #1f4e9c;
+  --doubt: #fcefc7;
+  --doubt-foreground: #7a4f00;
+  --doubt-line: #d49400;
+  --success: #2b6634;
+  --paper: #fffefb;
+  --radius: 0.5rem;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+}

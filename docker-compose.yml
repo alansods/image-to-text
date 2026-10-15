@@ -1,0 +1,40 @@
+# Ambiente local: api (FastAPI) + worker (Celery) + redis (fila e estado).
+services:
+  api:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      ITT_REDIS_URL: redis://redis:6379/0
+      ITT_CORS_ORIGINS: '["http://localhost:3000"]'
+      ITT_DATA_DIR: /data/jobs
+    volumes:
+      - jobs-data:/data
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  worker:
+    build: ./backend
+    command: ["celery", "-A", "app.worker", "worker", "--loglevel=info", "--concurrency=1"]
+    environment:
+      ITT_REDIS_URL: redis://redis:6379/0
+      ITT_DATA_DIR: /data/jobs
+    volumes:
+      - jobs-data:/data
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  redis:
+    image: redis:7.4-alpine
+    # Sem persistência em disco: nada da conversão deve sobreviver a um reinício.
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  jobs-data:

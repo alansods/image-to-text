@@ -2,15 +2,15 @@
 
 ## 1. Estrutura do projeto
 
-- [ ] 1.1 Criar `backend/` (Python 3.12, `pyproject.toml`, ruff, mypy, pytest) com FastAPI e rota `GET /health`
-- [ ] 1.2 Criar `frontend/` (Next.js App Router, TypeScript strict, Tailwind, shadcn/ui, Vitest, Playwright, ESLint) com fontes IBM Plex Sans/Mono e Source Serif 4
-- [ ] 1.3 Criar `docker-compose.yml` (api + worker + redis) e `backend/Dockerfile` com modelos baixados no build e `libreoffice-writer-nogui`
+- [x] 1.1 Criar `backend/` (Python 3.12, `pyproject.toml`, ruff, mypy, pytest) com FastAPI e rota `GET /health`
+- [x] 1.2 Criar `frontend/` (Next.js App Router, TypeScript strict, Tailwind, shadcn/ui, Vitest, Playwright, ESLint) com fontes IBM Plex Sans/Mono e Source Serif 4
+- [x] 1.3 Criar `docker-compose.yml` (api + worker + redis) e `backend/Dockerfile` enxuto (modelos e LibreOffice entram nas tasks 5.1, 6.2 e 8.3)
 - [ ] 1.4 Montar o conjunto de teste `backend/tests/fixtures/precision/` (imagens + gabaritos de texto, ênfase e paginação) e o teste `@pytest.mark.precision` (D12)
 
 ## 2. Formato interno
 
-- [ ] 2.1 Modelos Pydantic `Document`, `Page` (tamanho de folha, colunas), `Block` (alinhamento, tamanho relativo), `Word` (negrito, itálico, alternativas), `Cell`, `Job` (D1) com testes de validação
-- [ ] 2.2 Gerar JSON Schema e tipos TypeScript do frontend a partir dos modelos; script `npm run gen:types`
+- [x] 2.1 Modelos Pydantic `Document`, `Page` (tamanho de folha, colunas), `Block` (alinhamento, tamanho relativo), `Word` (negrito, itálico, alternativas), `Cell`, `Job` (D1) com testes de validação
+- [x] 2.2 Gerar JSON Schema e tipos TypeScript do frontend a partir dos modelos; script `npm run gen:types`
 
 ## 3. Conversão e fila (specs file-upload, job-processing)
 
@@ -32,7 +32,7 @@
 
 ## 5. Layout (spec layout-detection)
 
-- [ ] 5.1 Integração PP-StructureV3 e mapeamento de rótulos → tipos de bloco
+- [ ] 5.1 Integração PP-StructureV3 (modelos baixados no build da imagem) e mapeamento de rótulos → tipos de bloco
 - [ ] 5.2 Ordem de leitura, colunas, cabeçalho e rodapé
 - [ ] 5.3 Alinhamento e tamanho relativo por bloco
 - [ ] 5.4 Blocos figura (capa, logotipo, foto, assinatura, carimbo) e fórmula com recortes do original; legenda como bloco separado
@@ -41,7 +41,7 @@
 ## 6. Reconhecimento e reconciliação (specs text-recognition, reading-reconciliation)
 
 - [ ] 6.1 Leitura por bloco com PaddleOCR (palavra, caixa, confiança), PT e EN sem escolha
-- [ ] 6.2 Segunda leitura com docTR
+- [ ] 6.2 Segunda leitura com docTR (modelos baixados no build da imagem)
 - [ ] 6.3 Alinhamento das leituras e regra de concordância
 - [ ] 6.4 Resolução por confiança e por releitura ampliada, com etapa registrada
 - [ ] 6.5 Árbitro PaddleOCR-VL atrás de `ARBITER_ENABLED`, com validação da resposta contra as alternativas
@@ -60,7 +60,7 @@
 
 - [ ] 8.1 `PATCH /jobs/{id}/result` para gravar as palavras conferidas
 - [ ] 8.2 DOCX: seção por página com tamanho de folha, colunas, alinhamento, tamanho relativo, negrito/itálico, listas, tabelas com mescla, imagens proporcionais, cabeçalho/rodapé
-- [ ] 8.3 PDF via LibreOffice a partir do DOCX e verificação/ajuste de paginação (D10)
+- [ ] 8.3 PDF via LibreOffice (`libreoffice-writer-nogui` na imagem) a partir do DOCX e verificação/ajuste de paginação (D10)
 - [ ] 8.4 `GET /jobs/{id}/export?fmt=docx|pdf` com nome base do arquivo enviado e tratamento de falha
 
 ## 9. Frontend — moldura e envio (specs site-interface, file-upload)

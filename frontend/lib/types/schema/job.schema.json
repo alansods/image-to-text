@@ -1,0 +1,60 @@
+{
+  "$defs": {
+    "JobState": {
+      "enum": [
+        "queued",
+        "processing",
+        "done",
+        "failed",
+        "cancelled",
+        "expired"
+      ],
+      "title": "JobState",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "source_file": {
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "state": {
+      "$ref": "#/$defs/JobState",
+      "default": "queued"
+    },
+    "progress": {
+      "default": 0,
+      "maximum": 100,
+      "minimum": 0,
+      "type": "integer"
+    },
+    "error": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    }
+  },
+  "required": [
+    "id",
+    "source_file",
+    "created_at",
+    "state",
+    "progress",
+    "error"
+  ],
+  "title": "Job",
+  "type": "object"
+}

@@ -1,0 +1,375 @@
+{
+  "$defs": {
+    "Alignment": {
+      "enum": [
+        "left",
+        "center",
+        "right",
+        "justify"
+      ],
+      "title": "Alignment",
+      "type": "string"
+    },
+    "Alternative": {
+      "additionalProperties": false,
+      "description": "Uma leitura possível de uma palavra, mostrada na conferência.",
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "confidence": {
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        },
+        "source": {
+          "$ref": "#/$defs/ReadingSource"
+        }
+      },
+      "required": [
+        "text",
+        "confidence",
+        "source"
+      ],
+      "title": "Alternative",
+      "type": "object"
+    },
+    "BBox": {
+      "additionalProperties": false,
+      "description": "Caixa delimitadora em pixels da imagem da página.",
+      "properties": {
+        "x": {
+          "minimum": 0,
+          "type": "number"
+        },
+        "y": {
+          "minimum": 0,
+          "type": "number"
+        },
+        "w": {
+          "exclusiveMinimum": 0,
+          "type": "number"
+        },
+        "h": {
+          "exclusiveMinimum": 0,
+          "type": "number"
+        }
+      },
+      "required": [
+        "x",
+        "y",
+        "w",
+        "h"
+      ],
+      "title": "BBox",
+      "type": "object"
+    },
+    "Block": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "$ref": "#/$defs/BlockType"
+        },
+        "bbox": {
+          "$ref": "#/$defs/BBox"
+        },
+        "order": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "column": {
+          "default": 0,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "align": {
+          "$ref": "#/$defs/Alignment",
+          "default": "left"
+        },
+        "rel_size": {
+          "default": 1.0,
+          "exclusiveMinimum": 0,
+          "type": "number"
+        },
+        "words": {
+          "items": {
+            "$ref": "#/$defs/Word"
+          },
+          "type": "array"
+        },
+        "cells": {
+          "items": {
+            "$ref": "#/$defs/Cell"
+          },
+          "type": "array"
+        },
+        "image_ref": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "confidence": {
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "bbox",
+        "order",
+        "column",
+        "align",
+        "rel_size",
+        "words",
+        "cells",
+        "image_ref",
+        "confidence"
+      ],
+      "title": "Block",
+      "type": "object"
+    },
+    "BlockType": {
+      "enum": [
+        "heading",
+        "paragraph",
+        "list",
+        "table",
+        "figure",
+        "formula",
+        "header",
+        "footer"
+      ],
+      "title": "BlockType",
+      "type": "string"
+    },
+    "Cell": {
+      "additionalProperties": false,
+      "properties": {
+        "row": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "col": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "row_span": {
+          "default": 1,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "col_span": {
+          "default": 1,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "words": {
+          "items": {
+            "$ref": "#/$defs/Word"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "row",
+        "col",
+        "row_span",
+        "col_span",
+        "words"
+      ],
+      "title": "Cell",
+      "type": "object"
+    },
+    "Page": {
+      "additionalProperties": false,
+      "properties": {
+        "index": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "width": {
+          "exclusiveMinimum": 0,
+          "type": "integer"
+        },
+        "height": {
+          "exclusiveMinimum": 0,
+          "type": "integer"
+        },
+        "page_size": {
+          "$ref": "#/$defs/PageSize"
+        },
+        "columns": {
+          "default": 1,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "image_ref": {
+          "type": "string"
+        },
+        "blank": {
+          "default": false,
+          "type": "boolean"
+        },
+        "blocks": {
+          "items": {
+            "$ref": "#/$defs/Block"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "index",
+        "width",
+        "height",
+        "page_size",
+        "columns",
+        "image_ref",
+        "blank",
+        "blocks"
+      ],
+      "title": "Page",
+      "type": "object"
+    },
+    "PageSize": {
+      "additionalProperties": false,
+      "description": "Tamanho da folha em pontos (1/72 de polegada), usado para repetir a paginação.",
+      "properties": {
+        "w_pt": {
+          "exclusiveMinimum": 0,
+          "type": "number"
+        },
+        "h_pt": {
+          "exclusiveMinimum": 0,
+          "type": "number"
+        }
+      },
+      "required": [
+        "w_pt",
+        "h_pt"
+      ],
+      "title": "PageSize",
+      "type": "object"
+    },
+    "ReadingSource": {
+      "enum": [
+        "paddle",
+        "doctr",
+        "arbiter"
+      ],
+      "title": "ReadingSource",
+      "type": "string"
+    },
+    "ResolvedBy": {
+      "enum": [
+        "confidence",
+        "reread",
+        "arbiter"
+      ],
+      "title": "ResolvedBy",
+      "type": "string"
+    },
+    "Word": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        },
+        "bbox": {
+          "$ref": "#/$defs/BBox"
+        },
+        "confidence": {
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        },
+        "bold": {
+          "default": false,
+          "type": "boolean"
+        },
+        "italic": {
+          "default": false,
+          "type": "boolean"
+        },
+        "alternatives": {
+          "items": {
+            "$ref": "#/$defs/Alternative"
+          },
+          "type": "array"
+        },
+        "status": {
+          "$ref": "#/$defs/WordStatus"
+        },
+        "resolved_by": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ResolvedBy"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "id",
+        "text",
+        "bbox",
+        "confidence",
+        "bold",
+        "italic",
+        "alternatives",
+        "status",
+        "resolved_by"
+      ],
+      "title": "Word",
+      "type": "object"
+    },
+    "WordStatus": {
+      "enum": [
+        "accepted",
+        "resolved",
+        "uncertain",
+        "edited"
+      ],
+      "title": "WordStatus",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "source_file": {
+      "type": "string"
+    },
+    "pages": {
+      "items": {
+        "$ref": "#/$defs/Page"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "id",
+    "source_file",
+    "pages"
+  ],
+  "title": "Document",
+  "type": "object"
+}
