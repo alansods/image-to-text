@@ -39,6 +39,7 @@ export interface Block {
   rel_size: number;
   words: Word[];
   cells: Cell[];
+  items: ListItem[];
   image_ref: string | null;
   confidence: number;
 }
@@ -76,4 +77,11 @@ export interface Cell {
   row_span: number;
   col_span: number;
   words: Word[];
+}
+/**
+ * Item de uma lista: índice da palavra onde ele começa (o marcador) e o nível de recuo.
+ */
+export interface ListItem {
+  word_start: number;
+  level: number;
 }

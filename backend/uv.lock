@@ -1245,7 +1245,7 @@ requires-dist = [
     { name = "celery", specifier = ">=5.6.3" },
     { name = "fastapi", specifier = ">=0.143.2" },
     { name = "opencv-contrib-python", specifier = "==4.10.0.84" },
-    { name = "paddleocr", specifier = ">=3.7.0" },
+    { name = "paddleocr", specifier = "==3.7.0" },
     { name = "paddlepaddle", specifier = ">=3.3.1" },
     { name = "pillow", specifier = ">=12.3.0" },
     { name = "pydantic", specifier = ">=2.14.1" },

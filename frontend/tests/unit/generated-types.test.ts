@@ -55,6 +55,7 @@ describe("tipos gerados do formato interno", () => {
                 },
               ],
               cells: [],
+              items: [],
               image_ref: null,
               confidence: 0.9,
             },

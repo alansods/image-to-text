@@ -56,12 +56,18 @@ Arquivos em `/data/jobs/<id>/` (original, páginas alinhadas e normalizadas, rec
 - Tamanho de folha: do PDF, via `page.get_size()` (pontos); de imagem, A4 com orientação pela proporção (spec `document-export`).
 - pypdfium2 em vez de pdf2image/poppler: licença permissiva, sem dependência de sistema, rápido.
 
-### D5. Layout e OCR primário: PaddleOCR PP-StructureV3
-Entrega blocos tipados, ordem de leitura (inclusive colunas), estrutura de tabela e texto com confiança num único passe. Mapeamento de rótulos do modelo → tipos da spec em `pipeline/layout.py`. Complementos nossos:
-- Colunas: agrupamento dos blocos de texto por faixas de x (histograma das bordas esquerdas); número de colunas por página.
-- Alinhamento: comparação das margens esquerda/direita de cada linha do bloco com as margens do bloco (desvio < 2% da largura = alinhado naquele lado; ambos = justificado; centros iguais = centralizado).
-- Tamanho relativo: altura mediana das letras do bloco ÷ altura mediana da página.
-- Alternativas: Surya (licença restritiva); Docling (OCR fraco e pesado); LayoutParser (desatualizado).
+### D5. Layout: modelo `PP-DocLayout_plus-L` + organização própria
+Só o modelo de layout do PaddleOCR (sem o pipeline PP-StructureV3 completo): ~0,8 s e 1,3 GB por página. A leitura do texto fica toda na task 6, por bloco, como a spec pede. Em `pipeline/layout.py`:
+- Duas passadas de confiança: aceita caixas ≥ 0,5 e só aproveita as de 0,3 a 0,5 em áreas vazias (sobreposição < 30%). Recupera, por exemplo, o título de uma capa sem duplicar caixas.
+- Rótulos do modelo → tipos da spec (`doc_title`/`paragraph_title` → título; `number`/`footer` → rodapé; `image`/`chart`/`seal` → figura; legendas, notas, referências → parágrafo).
+- "Texto" que é desenho vira figura, avaliado na imagem alinhada (a limpeza de sombra clareia formas escuras grandes): forma grande e cheia (símbolo de logotipo) ou poucas manchas com um traço atravessando o bloco (assinatura).
+- Ordem de leitura: cabeçalho → corpo → rodapé. No corpo, blocos com ≥ 60% da largura útil separam seções; dentro de cada seção, grupos lado a lado (sem sobreposição em x e com sobreposição em y) são colunas, lidas inteiras da esquerda para a direita. A página só conta como multicoluna se cada coluna tiver ≥ 2 blocos (duas assinaturas lado a lado não são colunas). Alternativa descartada: XY-cut clássico — intercala colunas quando os espaços entre parágrafos coincidem em altura.
+- Alinhamento comparando o bloco com a área de texto (página ou coluna; blocos de largura total não contam para a coluna); bloco de largura total é justificado se as linhas, menos a última, chegam à margem direita (tolerância de 0,3 altura de letra). Ambiguidade aceita: linha única cheia, ou parágrafo de 2 linhas que é o mais largo da página.
+- Tamanho relativo: altura mediana das letras do bloco ÷ do texto da página.
+- Listas: parágrafos seguidos começando com marcador (`a)`, `1.`, `iv)`, `•`, `-`…) viram um bloco lista com `items` (palavra inicial e nível pelo recuo). Precisa do texto lido: aplicada na task 6.
+- Alternativa descartada: PP-StructureV3 completo — ~10 s e 4,7 GB por página no teste, estouro de memória com a detecção de texto "server", e lê a página inteira (duplicaria o custo da task 6).
+- MKL-DNN desligado no modelo de layout: no PaddlePaddle 3.3 em Linux x86 ele falha com MKL-DNN ligado (erro do conversor PIR); encontrado no teste de ponta a ponta no Docker.
+- O extra `paddleocr[doc-parser]` não é necessário para o modelo de layout (e traria ~30 dependências, incluindo o cliente `openai`); fica fora.
 
 ### D6. OCR secundário: docTR
 Arquitetura diferente (DBNet + PARSeq/CRNN), erros pouco correlacionados com o PaddleOCR — essencial para a votação valer. Sempre executado (não há modo de leitura única).

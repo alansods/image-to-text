@@ -106,6 +106,12 @@
           },
           "type": "array"
         },
+        "items": {
+          "items": {
+            "$ref": "#/$defs/ListItem"
+          },
+          "type": "array"
+        },
         "image_ref": {
           "anyOf": [
             {
@@ -133,6 +139,7 @@
         "rel_size",
         "words",
         "cells",
+        "items",
         "image_ref",
         "confidence"
       ],
@@ -189,6 +196,27 @@
         "words"
       ],
       "title": "Cell",
+      "type": "object"
+    },
+    "ListItem": {
+      "additionalProperties": false,
+      "description": "Item de uma lista: índice da palavra onde ele começa (o marcador) e o nível de recuo.",
+      "properties": {
+        "word_start": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "level": {
+          "default": 0,
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "word_start",
+        "level"
+      ],
+      "title": "ListItem",
       "type": "object"
     },
     "Page": {

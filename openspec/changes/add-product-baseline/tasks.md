@@ -32,15 +32,15 @@
 
 ## 5. Layout (spec layout-detection)
 
-- [ ] 5.1 Integração PP-StructureV3 (modelos baixados no build da imagem; PaddleOCR já instalado na task 4) e mapeamento de rótulos → tipos de bloco
-- [ ] 5.2 Ordem de leitura, colunas, cabeçalho e rodapé
-- [ ] 5.3 Alinhamento e tamanho relativo por bloco
-- [ ] 5.4 Blocos figura (capa, logotipo, foto, assinatura, carimbo) e fórmula com recortes do original; legenda como bloco separado
-- [ ] 5.5 Listas com marcadores e níveis
+- [x] 5.1 Integração do modelo de layout PP-DocLayout_plus-L (baixado no build da imagem) e mapeamento de rótulos → tipos de bloco
+- [x] 5.2 Ordem de leitura, colunas, cabeçalho e rodapé
+- [x] 5.3 Alinhamento e tamanho relativo por bloco
+- [x] 5.4 Blocos figura (capa, logotipo, foto, assinatura, carimbo) e fórmula com recortes do original; legenda como bloco separado
+- [x] 5.5 Listas com marcadores e níveis
 
 ## 6. Reconhecimento e reconciliação (specs text-recognition, reading-reconciliation)
 
-- [ ] 6.1 Leitura por bloco com PaddleOCR (palavra, caixa, confiança), PT e EN sem escolha
+- [ ] 6.1 Leitura por bloco com PaddleOCR (palavra, caixa, confiança), PT e EN sem escolha; aplicar `group_lists` (task 5.5) aos blocos lidos
 - [ ] 6.2 Segunda leitura com docTR (modelos baixados no build da imagem)
 - [ ] 6.3 Alinhamento das leituras e regra de concordância
 - [ ] 6.4 Resolução por confiança e por releitura ampliada, com etapa registrada

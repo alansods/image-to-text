@@ -6,6 +6,7 @@ de Word e PDF. Coordenadas (`BBox`) em pixels da imagem da página; tamanho de f
 
 from collections.abc import Iterator
 from enum import StrEnum
+from itertools import pairwise
 from typing import Self
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -120,6 +121,13 @@ class Cell(_Model):
     words: list[Word] = Field(default_factory=list)
 
 
+class ListItem(_Model):
+    """Item de uma lista: índice da palavra onde ele começa (o marcador) e o nível de recuo."""
+
+    word_start: int = Field(ge=0)
+    level: int = Field(default=0, ge=0)
+
+
 class Block(_Model):
     id: str
     type: BlockType
@@ -131,11 +139,24 @@ class Block(_Model):
     rel_size: float = Field(default=1.0, gt=0)
     words: list[Word] = Field(default_factory=list)
     cells: list[Cell] = Field(default_factory=list)
+    items: list[ListItem] = Field(default_factory=list)
     image_ref: str | None = None
     confidence: float = Field(ge=0, le=1)
 
     @model_validator(mode="after")
     def _check_content_matches_type(self) -> Self:
+        if self.type is BlockType.LIST:
+            starts = [item.word_start for item in self.items]
+            valid = (
+                bool(starts)
+                and starts[0] == 0
+                and all(a < b for a, b in pairwise(starts))
+                and starts[-1] < len(self.words)
+            )
+            if not valid:
+                raise ValueError("lista precisa de itens em ordem, o primeiro na palavra 0")
+        elif self.items:
+            raise ValueError("só blocos lista têm itens")
         if self.type in IMAGE_BLOCK_TYPES:
             if self.image_ref is None:
                 raise ValueError("bloco de imagem precisa de image_ref (recorte do original)")

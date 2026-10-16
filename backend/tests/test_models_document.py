@@ -14,6 +14,7 @@ from app.models.document import (
     BlockType,
     Cell,
     Document,
+    ListItem,
     Page,
     PageSize,
     ReadingSource,
@@ -219,4 +220,46 @@ class TestDocument:
         with pytest.raises(ValidationError):
             Document.model_validate(
                 {"id": "d1", "source_file": "a.pdf", "pages": [], "language": "pt"}
+            )
+
+
+class TestListItems:
+    def make_list(self, items: list[ListItem], words: int = 4) -> Block:
+        return Block(
+            id="l1",
+            type=BlockType.LIST,
+            bbox=BBox(x=0, y=0, w=300, h=60),
+            order=0,
+            words=[make_word(f"w{i}", f"p{i}") for i in range(words)],
+            items=items,
+            confidence=0.9,
+        )
+
+    def test_list_records_where_each_item_starts_and_its_level(self) -> None:
+        block = self.make_list([ListItem(word_start=0, level=0), ListItem(word_start=2, level=1)])
+
+        assert [(i.word_start, i.level) for i in block.items] == [(0, 0), (2, 1)]
+
+    def test_list_needs_items(self) -> None:
+        with pytest.raises(ValidationError, match="itens"):
+            self.make_list([])
+
+    def test_first_item_starts_at_first_word_and_items_go_forward(self) -> None:
+        with pytest.raises(ValidationError, match="itens"):
+            self.make_list([ListItem(word_start=1, level=0)])
+        with pytest.raises(ValidationError, match="itens"):
+            self.make_list([ListItem(word_start=0, level=0), ListItem(word_start=0, level=0)])
+        with pytest.raises(ValidationError, match="itens"):
+            self.make_list([ListItem(word_start=0, level=0), ListItem(word_start=9, level=0)])
+
+    def test_only_lists_have_items(self) -> None:
+        with pytest.raises(ValidationError, match="itens"):
+            Block(
+                id="b1",
+                type=BlockType.PARAGRAPH,
+                bbox=BBox(x=0, y=0, w=10, h=10),
+                order=0,
+                words=[make_word()],
+                items=[ListItem(word_start=0, level=0)],
+                confidence=0.9,
             )

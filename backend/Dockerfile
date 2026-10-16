@@ -29,8 +29,9 @@ RUN useradd --create-home --uid 1000 app \
     && chown -R app:app /data
 USER app
 
-# Modelo de orientação de página (task 4.2), baixado para o cache do usuário app.
-RUN python -c "from app.pipeline.preprocess import _orientation_model; _orientation_model()"
+# Modelos de orientação (task 4.2) e de layout (task 5.1), baixados para o cache do usuário app.
+RUN python -c "from app.pipeline.preprocess import _orientation_model; _orientation_model()" \
+    && python -c "from app.pipeline.layout import _layout_model; _layout_model()"
 
 EXPOSE 8000
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
