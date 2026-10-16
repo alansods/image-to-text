@@ -83,6 +83,7 @@ export interface Cell {
   col: number;
   row_span: number;
   col_span: number;
+  bbox: BBox | null;
   words: Word[];
 }
 /**

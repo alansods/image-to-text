@@ -17,6 +17,7 @@ from app.models.document import (
 )
 from app.models.job import JobState
 from app.pipeline.base import Image, PageInput, Pipeline, PipelineUnavailableError
+from app.pipeline.sizes import normalize_sizes
 from app.storage import JobFiles
 
 log = logging.getLogger(__name__)
@@ -128,6 +129,6 @@ def run_job(job_id: str, store: JobStore, files: JobFiles, pipeline: Pipeline) -
         store.update(job_id, state=JobState.FAILED, error="unreadable")
         return
 
-    document = Document(id=job_id, source_file=job.source_file, pages=pages)
+    document = normalize_sizes(Document(id=job_id, source_file=job.source_file, pages=pages))
     files.result.write_text(document.model_dump_json(), encoding="utf-8")
     store.update(job_id, state=JobState.DONE, progress=100)

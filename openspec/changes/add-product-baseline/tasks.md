@@ -59,10 +59,10 @@
 
 ## 8. Exportação (spec document-export)
 
-- [ ] 8.1 `PATCH /jobs/{id}/result` para gravar as palavras conferidas
-- [ ] 8.2 DOCX: seção por página com tamanho de folha, colunas, alinhamento, tamanho relativo, negrito/itálico, listas, tabelas com mescla, imagens proporcionais, cabeçalho/rodapé
-- [ ] 8.3 PDF via LibreOffice (`libreoffice-writer-nogui` na imagem) a partir do DOCX e verificação/ajuste de paginação (D10)
-- [ ] 8.4 `GET /jobs/{id}/export?fmt=docx|pdf` com nome base do arquivo enviado e tratamento de falha
+- [x] 8.1 `PATCH /jobs/{id}/result` para gravar as palavras conferidas
+- [x] 8.2 DOCX: seção por página com tamanho de folha, colunas, alinhamento, tamanho relativo, negrito/itálico, listas, tabelas com mescla, imagens proporcionais, cabeçalho/rodapé
+- [x] 8.3 PDF via LibreOffice (`libreoffice-writer-nogui` na imagem) a partir do DOCX e verificação/ajuste de paginação (D10)
+- [x] 8.4 `GET /jobs/{id}/export?fmt=docx|pdf` com nome base do arquivo enviado e tratamento de falha
 
 ## 9. Frontend — moldura e envio (specs site-interface, file-upload)
 

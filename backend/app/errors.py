@@ -16,6 +16,7 @@ class ErrorCode(StrEnum):
     NOT_FOUND = "not_found"
     EXPIRED = "expired"
     NOT_READY = "not_ready"
+    EXPORT_FAILED = "export_failed"
 
 
 class ApiError(Exception):

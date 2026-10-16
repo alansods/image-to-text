@@ -1,22 +1,28 @@
 """Rotas /jobs: enviar, acompanhar, obter o resultado, recortes e cancelar/apagar."""
 
+import logging
 from pathlib import Path
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
 
 import numpy as np
-from fastapi import APIRouter, Depends, File, Response, UploadFile
+from fastapi import APIRouter, Depends, File, Query, Response, UploadFile
+from fastapi.responses import FileResponse
 from PIL import Image
+from pydantic import BaseModel, Field, StringConstraints
 
 from app.config import Settings, get_settings
 from app.crops import png_bytes, word_crop
 from app.dependencies import JobQueue, client_ip, get_job_store, get_queue
 from app.errors import ApiError, ErrorCode, UploadRejectedError
+from app.export.docx_export import build_docx
+from app.export.pdf_export import ExportError, export_pair, soffice
 from app.job_store import JobStore
-from app.models.document import Document
+from app.models.document import Document, WordStatus
 from app.models.job import Job, JobState
 from app.storage import JobFiles, new_job_id
 from app.validation import inspect_source, save_limited
 
+log = logging.getLogger(__name__)
 router = APIRouter(prefix="/jobs", tags=["jobs"])
 
 SettingsDep = Annotated[Settings, Depends(get_settings)]
@@ -109,6 +115,92 @@ def get_word_crop(job_id: str, word_id: str, settings: SettingsDep, store: Store
                         pixels = np.asarray(image.convert("L"))
                     return Response(png_bytes(word_crop(pixels, word.bbox)), media_type="image/png")
     raise ApiError(404, ErrorCode.NOT_FOUND)
+
+
+class ReviewedWord(BaseModel):
+    id: str
+    text: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=200)]
+
+
+class Review(BaseModel):
+    words: list[ReviewedWord] = Field(min_length=1, max_length=5000)
+
+
+def _clear_exports(files: JobFiles) -> None:
+    for old in (files.dir / "exports").glob("document.*"):
+        old.unlink(missing_ok=True)
+
+
+@router.patch("/{job_id}/result")
+def review_words(
+    job_id: str, review: Review, settings: SettingsDep, store: StoreDep
+) -> dict[str, Any]:
+    """Grava as palavras conferidas (escolhidas ou digitadas) com status "editada"."""
+    document, files = _done_document(job_id, settings, store)
+    chosen = {w.id: w.text for w in review.words}
+    found: set[str] = set()
+    pages = []
+    for page in document.pages:
+        blocks = []
+        for block in page.blocks:
+
+            def edited(words: list[Any]) -> list[Any]:
+                result = []
+                for word in words:
+                    if word.id in chosen:
+                        found.add(word.id)
+                        word = word.model_copy(
+                            update={
+                                "text": chosen[word.id],
+                                "status": WordStatus.EDITED,
+                                "resolved_by": None,
+                            }
+                        )
+                    result.append(word)
+                return result
+
+            cells = [c.model_copy(update={"words": edited(c.words)}) for c in block.cells]
+            blocks.append(block.model_copy(update={"words": edited(block.words), "cells": cells}))
+        pages.append(page.model_copy(update={"blocks": blocks}))
+    if found != set(chosen):
+        raise ApiError(404, ErrorCode.NOT_FOUND)
+    updated = Document.model_validate(document.model_copy(update={"pages": pages}).model_dump())
+    files.result.write_text(updated.model_dump_json(), encoding="utf-8")
+    _clear_exports(files)
+    return updated.model_dump(mode="json")
+
+
+MEDIA_TYPES = {
+    "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "pdf": "application/pdf",
+}
+
+
+@router.get("/{job_id}/export")
+def export_document(
+    job_id: str,
+    settings: SettingsDep,
+    store: StoreDep,
+    fmt: Annotated[Literal["docx", "pdf"], Query()],
+) -> FileResponse:
+    """Word ou PDF do documento conferido, com o nome base do arquivo enviado."""
+    document, files = _done_document(job_id, settings, store)
+    out_dir = files.dir / "exports"
+    target = out_dir / f"document.{fmt}"
+    if not target.is_file():
+        try:
+            if soffice() is None and fmt == "docx":
+                # Sem LibreOffice (desenvolvimento local): Word sem a conferência de paginação.
+                out_dir.mkdir(parents=True, exist_ok=True)
+                build_docx(document, files.dir, target)
+            else:
+                export_pair(document, files.dir, out_dir)
+        except (ExportError, OSError, ValueError):
+            log.exception("falha ao gerar %s da conversão %s", fmt, job_id)
+            _clear_exports(files)
+            raise ApiError(500, ErrorCode.EXPORT_FAILED) from None
+    name = f"{Path(document.source_file).stem or 'documento'}.{fmt}"
+    return FileResponse(target, media_type=MEDIA_TYPES[fmt], filename=name)
 
 
 @router.delete("/{job_id}", status_code=204)

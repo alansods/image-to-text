@@ -150,6 +150,8 @@ class Cell(_Model):
     col: int = Field(ge=0)
     row_span: int = Field(default=1, ge=1)
     col_span: int = Field(default=1, ge=1)
+    # Caixa da célula na página (larguras das colunas no Word e na tela).
+    bbox: BBox | None = None
     words: list[Word] = Field(default_factory=list)
 
 

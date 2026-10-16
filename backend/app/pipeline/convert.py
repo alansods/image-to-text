@@ -4,6 +4,7 @@ from pathlib import Path
 
 from app.models.document import Document
 from app.pipeline.runner import DocumentPipeline
+from app.pipeline.sizes import normalize_sizes
 
 
 def convert_file(source: Path, pipeline: DocumentPipeline | None = None) -> Document:
@@ -12,4 +13,4 @@ def convert_file(source: Path, pipeline: DocumentPipeline | None = None) -> Docu
         pipeline.process_page(page, f"p{page.index}-", lambda _fraction: None).page
         for page in pipeline.load_pages(source)
     ]
-    return Document(id=source.stem, source_file=source.name, pages=pages)
+    return normalize_sizes(Document(id=source.stem, source_file=source.name, pages=pages))

@@ -1,10 +1,13 @@
 # Imagem do backend (api e worker usam a mesma imagem, com comandos diferentes).
-# Modelos de OCR são baixados no build (a 1ª conversão não espera download); LibreOffice entra na 8.3.
+# Modelos de OCR são baixados no build (a 1ª conversão não espera download).
 FROM python:3.12-slim
 
-# Bibliotecas de sistema do OpenCV (libgl1, libglib2.0-0) e do PaddlePaddle (libgomp1).
+# Bibliotecas de sistema do OpenCV (libgl1, libglib2.0-0) e do PaddlePaddle (libgomp1);
+# LibreOffice sem interface para Word → PDF (8.3) e fontes Liberation (medidas iguais às da
+# Times New Roman/Arial usadas no Word).
 RUN apt-get update \
     && apt-get install -y --no-install-recommends libgl1 libglib2.0-0 libgomp1 \
+        libreoffice-writer-nogui fonts-liberation \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=ghcr.io/astral-sh/uv:0.13.1 /uv /uvx /bin/

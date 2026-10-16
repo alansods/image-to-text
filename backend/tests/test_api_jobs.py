@@ -201,7 +201,7 @@ def finish_with_document(store: JobStore, settings: Settings, job_id: str) -> No
     )
     document = Document(
         id=job_id,
-        source_file="a.png",
+        source_file=store.get(job_id).source_file,  # type: ignore[union-attr]
         pages=[
             Page(
                 index=0,
@@ -277,3 +277,132 @@ class TestDelete:
 
     def test_delete_unknown_job_is_not_found(self, client: TestClient) -> None:
         assert client.delete("/jobs/nao-existe").status_code == 404
+
+
+class TestReview:
+    def test_reviewed_word_is_saved_as_edited(
+        self, client: TestClient, store: JobStore, settings: Settings
+    ) -> None:
+        job_id = client.post("/jobs", files={"file": ("a.png", png_bytes())}).json()["id"]
+        finish_with_document(store, settings, job_id)
+
+        response = client.patch(
+            f"/jobs/{job_id}/result", json={"words": [{"id": "p0-w0", "text": " SILVA "}]}
+        )
+
+        assert response.status_code == 200
+        saved = Document.model_validate(client.get(f"/jobs/{job_id}/result").json())
+        word = saved.pages[0].blocks[0].words[0]
+        assert (word.text, word.status) == ("SILVA", WordStatus.EDITED)
+
+    def test_unknown_word_or_empty_text_is_rejected(
+        self, client: TestClient, store: JobStore, settings: Settings
+    ) -> None:
+        job_id = client.post("/jobs", files={"file": ("a.png", png_bytes())}).json()["id"]
+        finish_with_document(store, settings, job_id)
+
+        unknown = client.patch(f"/jobs/{job_id}/result", json={"words": [{"id": "x", "text": "a"}]})
+        empty = client.patch(
+            f"/jobs/{job_id}/result", json={"words": [{"id": "p0-w0", "text": " "}]}
+        )
+
+        assert unknown.status_code == 404
+        assert empty.status_code == 422
+        word = Document.model_validate(client.get(f"/jobs/{job_id}/result").json())
+        assert word.pages[0].blocks[0].words[0].text == "SlLVA"
+
+
+class TestExport:
+    @pytest.fixture
+    def fake_export(self, monkeypatch: pytest.MonkeyPatch) -> list[str]:
+        calls: list[str] = []
+
+        def export_pair(document: Document, assets: Path, out_dir: Path) -> tuple[Path, Path]:
+            calls.append(document.pages[0].blocks[0].words[0].text)
+            out_dir.mkdir(parents=True, exist_ok=True)
+            (out_dir / "document.docx").write_bytes(b"PK docx")
+            (out_dir / "document.pdf").write_bytes(b"%PDF-1.7")
+            return out_dir / "document.docx", out_dir / "document.pdf"
+
+        import app.api.jobs as jobs
+
+        monkeypatch.setattr(jobs, "export_pair", export_pair)
+        monkeypatch.setattr(jobs, "soffice", lambda: "/usr/bin/soffice")
+        return calls
+
+    def test_download_uses_the_uploaded_file_name(
+        self, client: TestClient, store: JobStore, settings: Settings, fake_export: list[str]
+    ) -> None:
+        job_id = client.post("/jobs", files={"file": ("contrato.pdf", pdf_bytes())}).json()["id"]
+        finish_with_document(store, settings, job_id)
+
+        word = client.get(f"/jobs/{job_id}/export", params={"fmt": "docx"})
+        pdf = client.get(f"/jobs/{job_id}/export", params={"fmt": "pdf"})
+
+        assert word.status_code == 200 and word.content == b"PK docx"
+        assert 'filename="contrato.docx"' in word.headers["content-disposition"]
+        assert pdf.headers["content-type"] == "application/pdf"
+        assert 'filename="contrato.pdf"' in pdf.headers["content-disposition"]
+        assert fake_export == ["SlLVA"]  # gerado uma vez, reaproveitado
+
+    def test_review_after_download_regenerates_the_files(
+        self, client: TestClient, store: JobStore, settings: Settings, fake_export: list[str]
+    ) -> None:
+        job_id = client.post("/jobs", files={"file": ("a.png", png_bytes())}).json()["id"]
+        finish_with_document(store, settings, job_id)
+
+        client.get(f"/jobs/{job_id}/export", params={"fmt": "pdf"})
+        client.patch(f"/jobs/{job_id}/result", json={"words": [{"id": "p0-w0", "text": "SILVA"}]})
+        client.get(f"/jobs/{job_id}/export", params={"fmt": "pdf"})
+
+        assert fake_export == ["SlLVA", "SILVA"]
+
+    def test_failure_is_reported_and_keeps_the_review(
+        self,
+        client: TestClient,
+        store: JobStore,
+        settings: Settings,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        import app.api.jobs as jobs
+        from app.export.pdf_export import ExportError
+
+        def broken(*_args: object) -> tuple[Path, Path]:
+            raise ExportError("quebrou")
+
+        monkeypatch.setattr(jobs, "export_pair", broken)
+        job_id = client.post("/jobs", files={"file": ("a.png", png_bytes())}).json()["id"]
+        finish_with_document(store, settings, job_id)
+        client.patch(f"/jobs/{job_id}/result", json={"words": [{"id": "p0-w0", "text": "SILVA"}]})
+
+        response = client.get(f"/jobs/{job_id}/export", params={"fmt": "pdf"})
+
+        assert (response.status_code, response.json()) == (500, {"error": "export_failed"})
+        saved = Document.model_validate(client.get(f"/jobs/{job_id}/result").json())
+        assert saved.pages[0].blocks[0].words[0].text == "SILVA"
+
+    def test_without_libreoffice_word_is_still_generated(
+        self,
+        client: TestClient,
+        store: JobStore,
+        settings: Settings,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        import app.api.jobs as jobs
+
+        monkeypatch.setattr(jobs, "soffice", lambda: None)
+        job_id = client.post("/jobs", files={"file": ("a.png", png_bytes())}).json()["id"]
+        finish_with_document(store, settings, job_id)
+
+        response = client.get(f"/jobs/{job_id}/export", params={"fmt": "docx"})
+
+        assert response.status_code == 200
+        assert response.content.startswith(b"PK")
+
+    def test_unknown_format_is_rejected(
+        self, client: TestClient, store: JobStore, settings: Settings
+    ) -> None:
+        job_id = client.post("/jobs", files={"file": ("a.png", png_bytes())}).json()["id"]
+        finish_with_document(store, settings, job_id)
+
+        assert client.get(f"/jobs/{job_id}/export", params={"fmt": "odt"}).status_code == 422

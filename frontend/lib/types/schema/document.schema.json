@@ -181,6 +181,17 @@
           "minimum": 1,
           "type": "integer"
         },
+        "bbox": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BBox"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "words": {
           "items": {
             "$ref": "#/$defs/Word"
@@ -193,6 +204,7 @@
         "col",
         "row_span",
         "col_span",
+        "bbox",
         "words"
       ],
       "title": "Cell",

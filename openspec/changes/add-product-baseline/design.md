@@ -106,11 +106,14 @@ Nenhum dos OCRs gratuitos devolve ênfase, então ela é medida na imagem `norma
 - Medido: nenhum bloco órfão nem linha faltante falsos nos 9 casos do conjunto.
 
 ### D10. Exportação: DOCX com python-docx, PDF pelo LibreOffice
-- DOCX direto do `Document`: uma seção por página original, com o tamanho de folha da página e quebra de seção na troca; número de colunas da página como colunas da seção; parágrafos com alinhamento, tamanho de fonte = tamanho base × tamanho relativo; *runs* com negrito/itálico por palavra; listas com o marcador original como texto (para não depender da numeração automática do Word); tabelas com `merge`; figuras como imagem inline com largura proporcional (largura do recorte ÷ largura da página × largura útil).
-- Paginação garantida: depois de gerar, o DOCX é convertido em PDF e as páginas são contadas; se alguma página original transbordou, a fonte daquela seção é reduzida em passos de 5% e o documento regerado (até 6 tentativas). O mesmo PDF é o "Baixar PDF".
-- PDF: `soffice --headless --convert-to pdf` sobre o DOCX gerado. Word e PDF ficam idênticos.
+- DOCX direto do `Document` (`app/export/docx_export.py`): uma seção por página original, com o tamanho de folha da página (paisagem quando mais larga); margens pela posição do conteúdo no original (18–90 pt); blocos "cabeçalho"/"rodapé" viram cabeçalho/rodapé da seção (não vinculados à anterior); página com colunas usa seções contínuas (blocos com ≥ 60% da largura do conteúdo atravessam as colunas; quebra de coluna entre colunas); tamanho = corpo do documento × tamanho relativo (D16); *runs* com negrito/itálico por palavra (palavras seguidas com a mesma ênfase num só run); listas com o marcador original como texto e recuo por nível; tabelas "Table Grid" com `merge` e larguras de coluna proporcionais (`gridCol` + largura das células: o LibreOffice segue a grade, o Word as células); figuras como imagem inline com largura proporcional; espaço antes de cada bloco = vão do original menos 0,3 do corpo, até 3 linhas. Fonte Times New Roman (Liberation Serif no servidor, mesmas medidas).
+- Paginação garantida (`app/export/pdf_export.py`): o DOCX é convertido em PDF e as páginas são contadas; se passar do número de páginas do original, as fontes são reduzidas 5% e tudo é regerado (até 6 tentativas). O mesmo par DOCX/PDF é servido nos dois downloads e fica em cache até a próxima conferência (`PATCH` apaga).
+- PDF: `soffice --headless --convert-to pdf` com perfil temporário próprio por chamada (conversões simultâneas não disputam o perfil); `libreoffice-writer-nogui` + `fonts-liberation` na imagem. Sem LibreOffice (desenvolvimento local), o Word é gerado sem a conferência de paginação e o PDF falha com `export_failed`.
+- `PATCH /jobs/{id}/result` com `{"words": [{"id", "text"}]}`: texto aparado, 1–200 caracteres; palavra desconhecida → 404; status "editada".
+- `GET /jobs/{id}/export?fmt=docx|pdf`: nome base do arquivo enviado; falha → 500 `{"error": "export_failed"}` sem tocar na conferência.
+- Medido (Docker, x86 emulado): Word + PDF de 1–3 páginas em ~2 s.
 - Copiar texto: montado no frontend a partir do `Document` (sem chamada ao servidor).
-- Cada formato é um módulo em `backend/app/export/` com `export(document, options) -> Path`.
+- Limitação: a família da fonte do original (com/sem serifa) não é detectada; tudo sai em serifa.
 - Alternativas: desenhar o PDF direto (ReportLab) — duas implementações de layout que divergiriam; OCRmyPDF/PDF pesquisável — mantém a imagem escaneada, e o produto pede documento novo com texto.
 
 ### D11. Frontend
@@ -166,6 +169,9 @@ A medição de qualidade (D13) revelou duas falhas silenciosas, com texto inteir
 - Não estruturável → imagem do original: grade com buraco ou sobreposição, menos de 2×2, palavra fora de todas as células ou tabela sem nenhuma palavra.
 - Medido: recibo (18 células, "Total" com 3 colunas) CER 0%; cabeçalho mesclado (linhas e colunas) e célula vazia corretos; tabela sem bordas (12 células) correta.
 - Alternativas: `SLANeXt_wired/wireless` (estrutura certa, mas caixas das células distorcidas em tabelas largas — células "fora" da tabela); `SLANet_plus` (errou a mescla); grade por OpenCV (falha sem bordas).
+
+### D16. Tamanho relativo medido no documento inteiro
+Depois de lidas todas as páginas, `rel_size` de cada bloco de texto = altura mediana das suas palavras ÷ altura mediana das palavras dos parágrafos do documento (`app/pipeline/sizes.py`). Na página, o "texto típico" de uma capa é o próprio título (o título de 24 pt saía como 13 pt). Medido: altura da palavra em pontos ≈ corpo da fonte (razão 0,94–1,13). O mesmo número serve à tela e aos exportadores.
 
 ## Open Questions
 

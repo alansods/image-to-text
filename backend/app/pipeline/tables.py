@@ -135,6 +135,13 @@ def assign_words(cells: Sequence[CellBox], words: Sequence[Word]) -> list[Cell] 
             return None
         grouped[index].append(word)
     return [
-        Cell(row=c.row, col=c.col, row_span=c.row_span, col_span=c.col_span, words=group)
+        Cell(
+            row=c.row,
+            col=c.col,
+            row_span=c.row_span,
+            col_span=c.col_span,
+            bbox=c.bbox,
+            words=group,
+        )
         for c, group in zip(cells, grouped, strict=True)
     ]
