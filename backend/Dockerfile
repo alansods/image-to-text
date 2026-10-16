@@ -1,6 +1,6 @@
 # Imagem do backend (api e worker usam a mesma imagem, com comandos diferentes).
 # Modelos de OCR são baixados no build (a 1ª conversão não espera download).
-FROM python:3.12-slim
+FROM python:3.12-slim AS app
 
 # Bibliotecas de sistema do OpenCV (libgl1, libglib2.0-0) e do PaddlePaddle (libgomp1);
 # LibreOffice sem interface para Word → PDF (8.3) e fontes Liberation (medidas iguais às da
@@ -43,3 +43,18 @@ RUN python -c "from app.pipeline.preprocess import _orientation_model; _orientat
 
 EXPOSE 8000
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+
+# ------------------------------------------------------------------ Hugging Face Spaces (11.1)
+# Um contêiner só com api + worker + redis (supervisord), na porta 7860 dos Spaces.
+# `docker compose` usa o estágio `app`; o Space constrói este, o último.
+FROM app AS space
+USER root
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends redis-server supervisor \
+    && rm -rf /var/lib/apt/lists/*
+COPY deploy/supervisord.conf /etc/supervisor/image-to-text.conf
+USER app
+ENV ITT_REDIS_URL=redis://127.0.0.1:6379/0 \
+    ITT_DATA_DIR=/data/jobs
+EXPOSE 7860
+CMD ["supervisord", "-c", "/etc/supervisor/image-to-text.conf"]

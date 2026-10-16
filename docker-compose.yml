@@ -1,7 +1,9 @@
 # Ambiente local: api (FastAPI) + worker (Celery) + redis (fila e estado).
 services:
   api:
-    build: ./backend
+    build:
+      context: ./backend
+      target: app
     # O PaddlePaddle só existe para Linux x86; em Macs com chip M o Docker emula (design D2/Context).
     platform: linux/amd64
     ports:
@@ -17,7 +19,9 @@ services:
         condition: service_healthy
 
   worker:
-    build: ./backend
+    build:
+      context: ./backend
+      target: app
     platform: linux/amd64
     # -B: agendador embutido (limpeza a cada 5 min). Um único worker, então não há agendamento duplicado.
     command:

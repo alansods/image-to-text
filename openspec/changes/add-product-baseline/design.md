@@ -175,6 +175,12 @@ A medição de qualidade (D13) revelou duas falhas silenciosas, com texto inteir
 ### D16. Tamanho relativo medido no documento inteiro
 Depois de lidas todas as páginas, `rel_size` de cada bloco de texto = altura mediana das suas palavras ÷ altura mediana das palavras dos parágrafos do documento (`app/pipeline/sizes.py`). Na página, o "texto típico" de uma capa é o próprio título (o título de 24 pt saía como 13 pt). Medido: altura da palavra em pontos ≈ corpo da fonte (razão 0,94–1,13). O mesmo número serve à tela e aos exportadores.
 
+### D17. Deploy gratuito
+- Backend no Hugging Face Spaces (Docker, CPU basic grátis: 2 vCPU, 16 GB, x86): estágio `space` do mesmo `backend/Dockerfile` acrescenta `redis-server` e `supervisor`, que sobe redis (sem persistência), worker Celery com o agendador de limpeza e a API na porta 7860; tudo como o usuário 1000 que o Space usa. `docker compose` constrói o estágio `app` (sem supervisord). Testado localmente: os três processos sobem e um recibo é convertido e exportado.
+- Frontend na Vercel com `frontend/` como raiz e `NEXT_PUBLIC_API_URL` apontando para o Space; o Space libera o site em `ITT_CORS_ORIGINS`. Páginas estáticas (build de produção verificado).
+- Passo a passo para o usuário em `docs/deploy.md`.
+- Alternativas: Render/Railway grátis — pouca memória para os modelos (512 MB–1 GB); três Spaces separados (api, worker, redis) — o grátis não tem rede privada entre Spaces.
+
 ## Open Questions
 
 - Limites da avaliação de qualidade (D13): calibrar no conjunto de teste.
