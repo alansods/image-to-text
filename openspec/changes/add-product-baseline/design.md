@@ -93,9 +93,11 @@ Só o modelo de layout do PaddleOCR (sem o pipeline PP-StructureV3 completo): ~0
 
 ### D8. Negrito e itálico por palavra
 Nenhum dos OCRs gratuitos devolve ênfase, então ela é medida na imagem `normalized`, por palavra:
-- Negrito: espessura média do traço = área de tinta ÷ comprimento do esqueleto (`skimage.morphology.skeletonize`), comparada à mediana do mesmo tamanho relativo de letra na página; acima de 1,35× = negrito.
-- Itálico: ângulo de cisalhamento que maximiza a variância da projeção vertical (testando −20° a +20°); inclinação ≥ 8° = itálico.
-- Os limiares saem do conjunto de teste (D11), com meta ≥ 95% de acerto da spec.
+- **Negrito:** largura das hastes = média do miolo (percentis 25–75) dos trechos contínuos de tinta em cada linha de pixels, dividida pelo tamanho relativo do bloco e comparada à mediana da página; ≥ 1,26× = negrito. Medido no conjunto de teste: palavras normais até 1,22, negrito a partir de 1,30 (negrito+itálico tem hastes mais finas). A medida "tinta ÷ esqueleto" (`skeletonize`) foi a primeira tentativa e descartada: as serifas e galhos do esqueleto diluem a diferença (maiúsculas em negrito davam só 1,35×).
+- **Itálico:** ângulo de cisalhamento que maximiza a soma dos quadrados da projeção vertical (−20° a +20°); inclinação ≥ 8° = itálico. Medido: itálico 16°, normal 0°.
+- **Palavras curtas** (< 3 caracteres: "a", "de") têm pouca tinta: entre duas vizinhas que concordam, seguem as vizinhas; na borda do bloco vale a própria medida.
+- **Tamanho de blocos em maiúsculas:** o tamanho relativo da D5 mede a altura mediana das manchas, que num bloco só de maiúsculas/algarismos (≥ 60%) é a altura da maiúscula, ~1,4× a do "x". Depois da leitura, `size_for_text` divide por 1,4 (título 16 pt/11 pt: medido 1,91 → 1,36; gabarito 1,36). Corrige também o tamanho do título no Word/PDF.
+- **Limitações conhecidas:** prints de baixa resolução ampliados 4× borram todas as letras igualmente e comprimem a diferença do negrito (título de print: 91,5% de acerto no caso); capas com quase só título ficam sem "texto típico" de referência na página; manuscrito sai como itálico (letra inclinada) — só reportado, fora da meta.
 - Alternativas: classificador treinado de atributos de fonte — sem modelo aberto confiável para PT; descartado no MVP. Pedir ao árbitro VL — caro em CPU para todas as palavras.
 
 ### D9. Checagem de completude

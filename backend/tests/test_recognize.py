@@ -180,3 +180,24 @@ def test_blank_page_has_no_blocks() -> None:
 
     assert result.page.blank
     assert result.page.blocks == []
+
+
+def test_emphasis_is_measured_on_the_normalized_page(monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    import app.pipeline.recognize as recognize
+
+    seen: list[tuple[list[str], tuple[int, ...]]] = []
+
+    def fake_mark(blocks, image):  # type: ignore[no-untyped-def]
+        seen.append(([b.id for b in blocks], image.shape))
+        return [
+            b.model_copy(update={"words": [w.model_copy(update={"bold": True}) for w in b.words]})
+            for b in blocks
+        ]
+
+    monkeypatch.setattr(recognize, "mark_emphasis", fake_mark)
+    layout = PageLayout([block(BlockType.PARAGRAPH, 0, 100, 100)], columns=1)
+    rs = readers([("contrato", 110, 110, 0.97)], [("contrato", 110, 110, 0.97)])
+    result = recognize_page(preprocessed(), layout, page_input(), "p2-", rs)
+
+    assert seen == [(["p2-b0"], (1000, 800))]
+    assert result.page.blocks[0].words[0].bold

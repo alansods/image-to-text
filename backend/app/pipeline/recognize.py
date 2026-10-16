@@ -14,7 +14,8 @@ import numpy as np
 
 from app.models.document import ILLEGIBLE, BBox, Block, BlockType, Page, Word, WordStatus
 from app.pipeline.base import Image, PageInput, ProcessedPage
-from app.pipeline.layout import LayoutBlock, PageLayout, group_lists
+from app.pipeline.emphasis import mark_emphasis
+from app.pipeline.layout import LayoutBlock, PageLayout, group_lists, size_for_text
 from app.pipeline.preprocess import Preprocessed
 from app.pipeline.reading import Gray, Reader
 from app.pipeline.reconcile import reconcile_block
@@ -120,7 +121,7 @@ def _read_text_block(
         order=layout_block.order,
         column=layout_block.column,
         align=layout_block.align,
-        rel_size=layout_block.rel_size,
+        rel_size=size_for_text(layout_block.rel_size, " ".join(w.text for w in words)),
         words=words,
         confidence=mean(w.confidence for w in words),
     )
@@ -167,7 +168,7 @@ def recognize_page(
             columns=layout.columns if layout is not None else 1,
             image_ref=f"pages/{page.index}.png",
             blank=pre.blank,
-            blocks=group_lists(blocks),
+            blocks=group_lists(mark_emphasis(blocks, pre.normalized)),
         ),
         aligned=pre.aligned,
         crops=crops,

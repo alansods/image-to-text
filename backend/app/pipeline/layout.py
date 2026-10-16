@@ -315,6 +315,22 @@ def relative_size(crop: Gray, body_char_height: float) -> float:
     return round(height / body_char_height, 2)
 
 
+# Altura da maiúscula ÷ altura do "x" (Times 1,48; Helvetica 1,37): bloco só de maiúsculas e
+# algarismos é medido pela maiúscula e pareceria 1,4 vez maior do que é.
+CAPS_TO_X_HEIGHT = 1.4
+# A partir desta fração de maiúsculas/algarismos, o bloco conta como "todo em maiúsculas".
+CAPS_SHARE = 0.6
+
+
+def size_for_text(rel_size: float, text: str) -> float:
+    """Corrige o tamanho relativo depois da leitura, quando o texto é todo em maiúsculas."""
+    chars = [c for c in text if c.isalnum()]
+    if not chars:
+        return rel_size
+    tall = sum(c.isupper() or c.isdigit() for c in chars) / len(chars)
+    return round(rel_size / CAPS_TO_X_HEIGHT, 2) if tall >= CAPS_SHARE else rel_size
+
+
 # ------------------------------------------------------------------ tudo junto
 
 

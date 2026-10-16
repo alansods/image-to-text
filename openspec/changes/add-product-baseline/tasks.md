@@ -46,7 +46,7 @@
 - [x] 6.4 Resolução por confiança e por releitura ampliada, com etapa registrada
 - [x] 6.5 Árbitro PaddleOCR-VL atrás de `ARBITER_ENABLED`, com validação da resposta contra as alternativas
 - [x] 6.6 Transcrição literal e "[ilegível]"; alternativas distintas e contagem de dúvidas por página/documento
-- [ ] 6.7 Negrito e itálico por palavra (D8)
+- [x] 6.7 Negrito e itálico por palavra (D8)
 - [ ] 6.8 Rodar o teste de precisão e ajustar até CER ≤ 1%, WER ≤ 2% e ênfase ≥ 95% em impresso
 
 ## 7. Completude e tabelas (specs completeness-check, table-extraction)

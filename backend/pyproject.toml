@@ -20,7 +20,6 @@ dependencies = [
     "python-doctr>=1.1.0",
     "python-multipart>=0.0.32",
     "redis>=8.1.0",
-    "scikit-image>=0.26.0",
     "sentencepiece>=0.2.2",
     "torch>=2.14.1",
     "torchvision>=0.29.1",

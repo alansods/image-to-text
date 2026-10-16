@@ -38,7 +38,7 @@ Digitalizar documentos (contratos, apostilas, notas, formulários, prints) hoje 
 
 - Novos projetos `frontend/` (Next.js) e `backend/` (FastAPI + worker Celery), além de `docker-compose.yml`.
 - API HTTP nova: `GET /health`, `POST /jobs`, `GET /jobs/{id}`, `DELETE /jobs/{id}`, `GET /jobs/{id}/result`, `GET /jobs/{id}/crops/{word_id}`, `PATCH /jobs/{id}/result`, `GET /jobs/{id}/export?fmt=docx|pdf`.
-- Dependências gratuitas e open source: OpenCV, scikit-image, pypdfium2, PaddleOCR (PP-StructureV3 e PaddleOCR-VL), docTR, rapidfuzz, python-docx, LibreOffice (conversão DOCX → PDF), Redis, Celery.
+- Dependências gratuitas e open source: OpenCV, pypdfium2, PaddleOCR (layout PP-DocLayout_plus-L, leitura PP-OCRv6 e árbitro PaddleOCR-VL), docTR (modelo multilíngue), python-docx, LibreOffice (conversão DOCX → PDF), Redis, Celery.
 - Nenhuma dependência paga, nenhuma conta de usuário e nenhum envio de dados a terceiros.
 
 ## Fora de escopo

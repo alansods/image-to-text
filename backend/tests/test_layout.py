@@ -23,6 +23,7 @@ from app.pipeline.layout import (
     map_label,
     merge_passes,
     reading_order,
+    size_for_text,
 )
 from app.pipeline.preprocess import load_pages, preprocess
 from tests.precision.truth import Truth
@@ -305,3 +306,17 @@ def test_layout_coordinates_match_the_page_image() -> None:
     assert all(b.bbox.x >= 0 and b.bbox.x + b.bbox.w <= w + 1 for b in layout.blocks)
     assert all(b.bbox.y >= 0 and b.bbox.y + b.bbox.h <= h + 1 for b in layout.blocks)
     assert isinstance(np.asarray(page.aligned), np.ndarray)
+
+
+class TestSizeForText:
+    # A altura medida é a da maiúscula quando o bloco é todo em maiúsculas (D5).
+    def test_all_caps_block_is_measured_by_cap_height(self) -> None:
+        assert size_for_text(1.91, "CONTRATO DE PRESTAÇÃO DE SERVIÇOS") == 1.36
+        assert size_for_text(1.54, "COMUNICADO INTERNO Nº 18/2026") == 1.1
+
+    def test_mixed_case_text_keeps_the_measured_size(self) -> None:
+        assert size_for_text(1.0, "Pelo presente instrumento, JOÃO PEREIRA") == 1.0
+        assert size_for_text(1.4, "Relatório Anual") == 1.4
+
+    def test_text_without_letters_keeps_the_measured_size(self) -> None:
+        assert size_for_text(1.2, "— · —") == 1.2
