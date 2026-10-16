@@ -18,9 +18,12 @@ API_MODELS: dict[str, type[BaseModel]] = {"document": Document, "job": Job}
 
 
 def _drop_property_titles(schema: dict[str, Any]) -> None:
-    """Remove o título de cada propriedade (vira apelido inútil no TypeScript gerado)."""
+    """Remove o título de cada propriedade (vira apelido inútil no TypeScript gerado) e o
+    `readOnly` ao lado de `$ref` (campos calculados), que faria o gerador duplicar o tipo."""
     for prop in schema.get("properties", {}).values():
         prop.pop("title", None)
+        if "$ref" in prop:
+            prop.pop("readOnly", None)
     for definition in schema.get("$defs", {}).values():
         _drop_property_titles(definition)
 

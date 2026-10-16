@@ -11,6 +11,7 @@ export interface Document {
   id: string;
   source_file: string;
   pages: Page[];
+  counts: WordCounts;
 }
 export interface Page {
   index: number;
@@ -21,6 +22,7 @@ export interface Page {
   image_ref: string;
   blank: boolean;
   blocks: Block[];
+  counts: WordCounts;
 }
 /**
  * Tamanho da folha em pontos (1/72 de polegada), usado para repetir a paginação.
@@ -84,4 +86,13 @@ export interface Cell {
 export interface ListItem {
   word_start: number;
   level: number;
+}
+/**
+ * Quantas palavras estão em cada status (spec reading-reconciliation, contagem de dúvidas).
+ */
+export interface WordCounts {
+  accepted: number;
+  resolved: number;
+  uncertain: number;
+  edited: number;
 }

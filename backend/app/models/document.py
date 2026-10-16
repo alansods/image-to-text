@@ -7,9 +7,9 @@ de Word e PDF. Coordenadas (`BBox`) em pixels da imagem da página; tamanho de f
 from collections.abc import Iterator
 from enum import StrEnum
 from itertools import pairwise
-from typing import Self
+from typing import Any, Self
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, computed_field, model_validator
 
 ILLEGIBLE = "[ilegível]"
 
@@ -20,6 +20,13 @@ class _Model(BaseModel):
         # No JSON devolvido pela API, campos com valor padrão sempre vêm preenchidos.
         json_schema_serialization_defaults_required=True,
     )
+
+
+def _drop_counts(data: Any) -> Any:
+    """`counts` é calculado; ao reler um JSON gravado, ignora o valor que veio nele."""
+    if isinstance(data, dict) and "counts" in data:
+        data = {k: v for k, v in data.items() if k != "counts"}
+    return data
 
 
 class BlockType(StrEnum):
@@ -113,6 +120,22 @@ class Word(_Model):
         return self
 
 
+class WordCounts(_Model):
+    """Quantas palavras estão em cada status (spec reading-reconciliation, contagem de dúvidas)."""
+
+    accepted: int = 0
+    resolved: int = 0
+    uncertain: int = 0
+    edited: int = 0
+
+    @classmethod
+    def of(cls, words: Iterator["Word"]) -> "WordCounts":
+        totals = dict.fromkeys(("accepted", "resolved", "uncertain", "edited"), 0)
+        for word in words:
+            totals[word.status.value] += 1
+        return cls(**totals)
+
+
 class Cell(_Model):
     row: int = Field(ge=0)
     col: int = Field(ge=0)
@@ -185,6 +208,13 @@ class Page(_Model):
     blank: bool = False
     blocks: list[Block] = Field(default_factory=list)
 
+    _ignore_counts = model_validator(mode="before")(_drop_counts)
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def counts(self) -> WordCounts:
+        return WordCounts.of(w for block in self.blocks for w in block.all_words())
+
     @model_validator(mode="after")
     def _check_blocks(self) -> Self:
         if self.blank and self.blocks:
@@ -199,6 +229,13 @@ class Document(_Model):
     id: str
     source_file: str
     pages: list[Page]
+
+    _ignore_counts = model_validator(mode="before")(_drop_counts)
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def counts(self) -> WordCounts:
+        return WordCounts.of(self.words_in_reading_order())
 
     @model_validator(mode="after")
     def _check_document(self) -> Self:

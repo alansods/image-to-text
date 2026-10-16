@@ -19,6 +19,8 @@ class Settings(BaseSettings):
     # Só ligue se a API estiver atrás de um proxy confiável que preencha X-Forwarded-For;
     # do contrário, qualquer um forjaria o cabeçalho para driblar o limite por endereço.
     trust_forwarded_for: bool = False
+    # Árbitro PaddleOCR-VL nas divergências que sobram (design D7). Pesado em CPU: desligado.
+    arbiter_enabled: bool = False
 
 
 @lru_cache

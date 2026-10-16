@@ -237,16 +237,20 @@ def test_missing_recognition_fails_whole_job_not_page_by_page(
     assert not files.result.exists()
 
 
-def test_worker_pipeline_loads_real_pages_but_recognition_is_pending(tmp_path: Path) -> None:
+def test_worker_pipeline_reads_real_pages(tmp_path: Path) -> None:
     from app.pipeline.runner import DocumentPipeline
     from tests.conftest import pdf_bytes
 
     source = tmp_path / "source.pdf"
     source.write_bytes(pdf_bytes(pages=2))
     pipeline = DocumentPipeline()
+    reported: list[float] = []
 
     pages = pipeline.load_pages(source)
+    result = pipeline.process_page(pages[1], "p1-", reported.append)
 
     assert [p.index for p in pages] == [0, 1]
-    with pytest.raises(PipelineUnavailableError):
-        pipeline.process_page(pages[0], "p0-", lambda _f: None)
+    words = [w.text for b in result.page.blocks for w in b.all_words()]
+    assert words == ["Página", "2"]
+    assert result.page.blocks[0].id.startswith("p1-")
+    assert reported == sorted(reported) and reported[-1] == 1.0

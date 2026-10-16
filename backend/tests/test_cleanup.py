@@ -9,6 +9,7 @@ import pytest
 from app import worker
 from app.cleanup import cleanup_expired
 from app.job_store import JobStore
+from app.models.document import Document
 from app.models.job import Job, JobState
 from app.storage import JobFiles
 from tests.conftest import png_bytes
@@ -61,6 +62,7 @@ def test_convert_job_task_runs_the_orchestrator(
     worker.convert_job.apply(args=("j1",)).get()
 
     job = store.get("j1")
-    # As páginas já são carregadas e pré-processadas; sem o reconhecimento (tasks 5 a 7),
-    # a conversão falha com motivo explícito.
-    assert job is not None and job.state is JobState.FAILED and job.error == "pipeline_unavailable"
+    # Imagem toda branca: a conversão termina com uma página em branco.
+    assert job is not None and job.state is JobState.DONE
+    document = Document.model_validate_json((tmp_path / "j1" / "result.json").read_text())
+    assert [p.blank for p in document.pages] == [True]

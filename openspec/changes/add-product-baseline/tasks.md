@@ -40,12 +40,12 @@
 
 ## 6. Reconhecimento e reconciliação (specs text-recognition, reading-reconciliation)
 
-- [ ] 6.1 Leitura por bloco com PaddleOCR (palavra, caixa, confiança), PT e EN sem escolha; aplicar `group_lists` (task 5.5) aos blocos lidos
-- [ ] 6.2 Segunda leitura com docTR (modelos baixados no build da imagem)
-- [ ] 6.3 Alinhamento das leituras e regra de concordância
-- [ ] 6.4 Resolução por confiança e por releitura ampliada, com etapa registrada
-- [ ] 6.5 Árbitro PaddleOCR-VL atrás de `ARBITER_ENABLED`, com validação da resposta contra as alternativas
-- [ ] 6.6 Transcrição literal e "[ilegível]"; alternativas distintas e contagem de dúvidas por página/documento
+- [x] 6.1 Leitura por bloco com PaddleOCR (palavra, caixa, confiança), PT e EN sem escolha; aplicar `group_lists` (task 5.5) aos blocos lidos
+- [x] 6.2 Segunda leitura com docTR (modelos baixados no build da imagem)
+- [x] 6.3 Alinhamento das leituras e regra de concordância
+- [x] 6.4 Resolução por confiança e por releitura ampliada, com etapa registrada
+- [x] 6.5 Árbitro PaddleOCR-VL atrás de `ARBITER_ENABLED`, com validação da resposta contra as alternativas
+- [x] 6.6 Transcrição literal e "[ilegível]"; alternativas distintas e contagem de dúvidas por página/documento
 - [ ] 6.7 Negrito e itálico por palavra (D8)
 - [ ] 6.8 Rodar o teste de precisão e ajustar até CER ≤ 1%, WER ≤ 2% e ênfase ≥ 95% em impresso
 

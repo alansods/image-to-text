@@ -60,10 +60,13 @@ describe("tipos gerados do formato interno", () => {
               confidence: 0.9,
             },
           ],
+          counts: { accepted: 0, resolved: 0, uncertain: 1, edited: 0 },
         },
       ],
+      counts: { accepted: 0, resolved: 0, uncertain: 1, edited: 0 },
     };
 
     expect(document.pages[0].blocks[0].words[0].alternatives).toHaveLength(2);
+    expect(document.counts.uncertain).toBe(1);
   });
 });

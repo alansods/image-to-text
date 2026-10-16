@@ -69,16 +69,27 @@ Só o modelo de layout do PaddleOCR (sem o pipeline PP-StructureV3 completo): ~0
 - MKL-DNN desligado no modelo de layout: no PaddlePaddle 3.3 em Linux x86 ele falha com MKL-DNN ligado (erro do conversor PIR); encontrado no teste de ponta a ponta no Docker.
 - O extra `paddleocr[doc-parser]` não é necessário para o modelo de layout (e traria ~30 dependências, incluindo o cliente `openai`); fica fora.
 
-### D6. OCR secundário: docTR
-Arquitetura diferente (DBNet + PARSeq/CRNN), erros pouco correlacionados com o PaddleOCR — essencial para a votação valer. Sempre executado (não há modo de leitura única).
-- Alternativas: Tesseract (fraco em fotos; possível terceiro voto futuro); EasyOCR (mais lento em CPU).
+### D6. Leitores: PaddleOCR (modelo para português) e docTR multilíngue
+- **Primário:** PaddleOCR com `lang="pt"`, que na versão 3.7 usa `PP-OCRv6_medium_det` + `PP-OCRv6_medium_rec` (latino, lê também inglês). Medido na página 1 dos casos sintéticos: CER 0,08% (impresso), 0,16% (foto), ~11 s/página no Mac. Confiança é por linha; a caixa de cada palavra sai de `return_word_box`.
+- **Secundário:** docTR com detector `db_resnet50` e reconhecedor `Felix92/doctr-torch-parseq-multilingual-v1` (Hugging Face, Apache 2.0), baixados no build. Arquitetura diferente, erros pouco correlacionados — essencial para a votação valer. Medido: CER 2,5–2,7%, ~8 s/página. Sempre executado (não há modo de leitura única).
+- O vocabulário do docTR multilíngue **não tem** ª, º, —, –, “ e ”; isso é tratado na comparação (D7, regra de caracteres cegos).
+- O detector do docTR redimensiona a entrada para 1024 px: recortes menores são colados num fundo branco de 1024 px (num rodapé de 214×70 px ele lia lixo).
+- As caixas por palavra do PaddleOCR vêm de fragmentos que podem juntar acentuadas vizinhas ("á à"); cada fragmento é repartido por caractere.
+- Releitura (D7.4) usa só os reconhecedores (`TextRecognition` do PaddleOCR e `recognition_predictor` do docTR) no recorte da palavra ampliado 2×, sem detecção.
+- O docTR declara `opencv-python`; ele é bloqueado por `override-dependencies` no `pyproject.toml`, pois o `opencv-contrib-python` exigido pelo PaddleX já fornece o `cv2`.
+- Alternativas: docTR de fábrica (vocabulário francês, sem ã/õ/á/í/ó/ú — CER 5%, WER 25%); Tesseract (fraco em fotos, mais um programa no servidor); outro modelo do próprio PaddleOCR (erros correlacionados, votação perde valor); EasyOCR (mais lento em CPU).
 
 ### D7. Reconciliação
-1. Alinhar as duas sequências de palavras por bloco pela posição (IoU ≥ 0,3) e, no desempate, `rapidfuzz.fuzz.ratio`. Palavras sem par viram divergência contra vazio.
-2. Normalização só para comparar (NFC, aspas/hífens equivalentes); o texto final mantém a grafia original.
-3. Regras na ordem da spec: confiança (Δ ≥ 0,15 e ≥ 0,90) → releitura do recorte ampliado 2× → árbitro.
-4. Árbitro: PaddleOCR-VL recebe o recorte da palavra com margem + linha de contexto e escolhe entre as alternativas; resposta validada contra {alternativas, "[ilegível]"}. Liga/desliga por `ARBITER_ENABLED`.
-- Alternativa: ROVER/votação por caractere — ganho marginal com só dois leitores.
+0. **Calibração:** a confiança do docTR é multiplicada por 0,9. Medido: ele dá ~1,0 até a leituras erradas ("_`{|}" para "—", "~" para "-") e erra ~15× mais que o PaddleOCR; sem isso, a leitura dele seria a padrão nas dúvidas e venceria pela regra de confiança.
+1. **Alinhamento por sobreposição:** palavras das duas leituras de um bloco (em coordenadas da página) se ligam quando a interseção cobre ≥ 50% da menor caixa; cada grupo ligado é uma unidade de comparação. Assim "CONTRA" + "TO" (docTR) se compara com "CONTRATO" (PaddleOCR). Palavras sem par viram divergência contra vazio (texto `""` como alternativa = "não há palavra aqui"). As unidades seguem a ordem das linhas (de cima para baixo, da esquerda para a direita).
+2. **Normalização só para comparar** (NFC, aspas e hífens/travessões equivalentes, espaços ignorados dentro da unidade); o texto final mantém a grafia do PaddleOCR. **Espaços:** o texto aceito junta os espaços das duas leituras — o PaddleOCR às vezes cola palavras ("R$17,00"), o docTR separa pela posição. Palavras do docTR com vão < 0,2 da altura são uma palavra partida ("CONTRA" + "TO") e se juntam sem espaço.
+2b. **Indicador ordinal:** "°" (grau) grudado numa letra vira "º" nas duas leituras e na releitura ("n°" → "nº"). Os dois leitores confundem os sinais (medido: todo "nº" dos contratos saía "n°"), e grau só aparece depois de número ("25°C"), que fica intacto. Decisão do usuário: visualmente igual, mas a troca afeta busca, copiar/colar em sistemas e leitores de tela. Alternativas: deixar "n°" (A) ou marcar todo "n°" como dúvida (C, cliques demais).
+3. **Caracteres cegos:** caractere que o PaddleOCR leu e que não existe no vocabulário do docTR (ª, º, —, –…) casa com qualquer caractere ou com nada na leitura do docTR. Unidade cujo texto do PaddleOCR é só de caracteres cegos (um "—" solto) é aceita com a leitura dele, seja qual for a do docTR (que ali não tem como acertar).
+4. Regras na ordem da spec: confiança (Δ ≥ 0,15 e ≥ 0,90) → releitura do recorte ampliado 2× com os dois reconhecedores → árbitro. O recorte da releitura tem margem de 0,25 da altura em cima/embaixo (acentos) e só 0,1 dos lados (com margem maior ele pegava a letra vizinha: "o" virou "on").
+5. Palavra em dúvida fica com a leitura de maior confiança; as alternativas são os textos distintos das duas leituras, por confiança.
+6. Árbitro: PaddleOCR-VL recebe o recorte da palavra com margem + linha de contexto e escolhe entre as alternativas; resposta validada contra {alternativas, "[ilegível]"} (ignorando aspas/traços/espaços); se o recorte da palavra não decide, lê a linha e aceita a opção que aparece nela como palavra inteira, se só uma aparecer. Usa `DocVLM(model_name="PaddleOCR-VL-0.9B")` com a pergunta "OCR:" (precisa de `sentencepiece` e `einops`). Medido no Mac: ~3 s por palavra, ~16 s por linha, por isso fica desligado por padrão (`ITT_ARBITER_ENABLED`) e o modelo não é baixado no build.
+7. Bloco de texto em que nenhum leitor encontrou palavra vira uma palavra "[ilegível]" em dúvida com a caixa do bloco. Até a task 7, tabelas entram como imagem do original.
+- Alternativas: ROVER/votação por caractere — ganho marginal com só dois leitores; pareamento 1:1 por IoU — quebra quando um leitor separa uma palavra em duas.
 
 ### D8. Negrito e itálico por palavra
 Nenhum dos OCRs gratuitos devolve ênfase, então ela é medida na imagem `normalized`, por palavra:

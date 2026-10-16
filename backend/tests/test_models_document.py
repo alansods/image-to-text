@@ -20,6 +20,7 @@ from app.models.document import (
     ReadingSource,
     ResolvedBy,
     Word,
+    WordCounts,
     WordStatus,
 )
 
@@ -210,6 +211,19 @@ class TestDocument:
 
         assert document.uncertain_count() == 2
         assert [w.id for w in document.uncertain_words()] == ["w2", "w3"]
+
+    def test_counts_words_by_status_per_page_and_in_total(self) -> None:
+        resolved = make_word("w4", resolved_by=ResolvedBy.REREAD, status=WordStatus.RESOLVED)
+        page0 = make_page(
+            0, [make_paragraph("b1", 0, [make_word("w1"), make_uncertain_word("w2")])]
+        )
+        page1 = make_page(1, [make_paragraph("b2", 0, [make_word("w3"), resolved])])
+        document = Document(id="d1", source_file="contrato.pdf", pages=[page0, page1])
+
+        assert page0.counts == WordCounts(accepted=1, resolved=0, uncertain=1, edited=0)
+        assert page1.counts == WordCounts(accepted=1, resolved=1, uncertain=0, edited=0)
+        assert document.counts == WordCounts(accepted=2, resolved=1, uncertain=1, edited=0)
+        assert document.model_dump(mode="json")["pages"][0]["counts"]["uncertain"] == 1
 
     def test_round_trips_through_json(self) -> None:
         document = Document(id="d1", source_file="contrato.pdf", pages=[make_page(0)])

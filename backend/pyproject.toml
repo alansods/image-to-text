@@ -8,6 +8,7 @@ authors = [
 requires-python = ">=3.12"
 dependencies = [
     "celery>=5.6.3",
+    "einops>=0.8.2",
     "fastapi>=0.143.2",
     "opencv-contrib-python==4.10.0.84",
     "paddleocr==3.7.0",
@@ -16,8 +17,13 @@ dependencies = [
     "pydantic>=2.14.1",
     "pydantic-settings>=2.16.0",
     "pypdfium2>=5.14.0",
+    "python-doctr>=1.1.0",
     "python-multipart>=0.0.32",
     "redis>=8.1.0",
+    "scikit-image>=0.26.0",
+    "sentencepiece>=0.2.2",
+    "torch>=2.14.1",
+    "torchvision>=0.29.1",
     "uvicorn[standard]>=0.54.0",
 ]
 
@@ -35,6 +41,18 @@ dev = [
 
 [tool.uv]
 package = false
+# O docTR pede opencv-python; o PaddleX exige o opencv-contrib-python exato, que já fornece o cv2.
+override-dependencies = ["opencv-python; sys_platform == 'never'"]
+
+# PyTorch (usado pelo docTR) no Linux vem do índice só-CPU: o do PyPI traz ~3 GB de CUDA.
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu", marker = "sys_platform == 'linux'" }]
+torchvision = [{ index = "pytorch-cpu", marker = "sys_platform == 'linux'" }]
 
 [tool.ruff]
 line-length = 100
@@ -46,6 +64,7 @@ select = ["E", "F", "W", "I", "B", "UP", "N", "SIM", "RUF"]
 [tool.ruff.lint.per-file-ignores]
 # Os documentos sintéticos usam de propósito caracteres que confundem (×, 1/l, 0/O) para testar o OCR.
 "tests/fixtures/precision/generator/*" = ["RUF001"]
+"tests/test_reconcile.py" = ["RUF001"]
 
 [tool.mypy]
 python_version = "3.12"

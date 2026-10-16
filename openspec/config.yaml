@@ -15,9 +15,9 @@ context: |
     Celery + Redis. Testes: pytest. Lint: ruff; tipos: mypy.
   - Pré-processamento: OpenCV (inclinação, perspectiva, ruído, contraste,
     upscale ~300 DPI). Entrada PDF: pypdfium2 (página → imagem).
-  - Layout + OCR primário: PaddleOCR PP-StructureV3.
-  - OCR secundário (leitura independente): docTR.
-  - Reconciliação: rapidfuzz (alinhamento palavra a palavra).
+  - Layout: PaddleOCR PP-DocLayout_plus-L. OCR primário: PaddleOCR (lang pt, PP-OCRv6).
+  - OCR secundário (leitura independente): docTR multilíngue.
+  - Reconciliação: alinhamento das leituras por sobreposição de caixas.
   - Negrito/itálico: medição na imagem (OpenCV + scikit-image).
   - Árbitro opcional: PaddleOCR-VL (modelo de visão leve, CPU), só em trechos
     divergentes. Upgrade futuro com GPU: Qwen2.5-VL via Ollama.

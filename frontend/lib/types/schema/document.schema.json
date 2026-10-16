@@ -254,6 +254,9 @@
             "$ref": "#/$defs/Block"
           },
           "type": "array"
+        },
+        "counts": {
+          "$ref": "#/$defs/WordCounts"
         }
       },
       "required": [
@@ -264,7 +267,8 @@
         "columns",
         "image_ref",
         "blank",
-        "blocks"
+        "blocks",
+        "counts"
       ],
       "title": "Page",
       "type": "object"
@@ -367,6 +371,36 @@
       "title": "Word",
       "type": "object"
     },
+    "WordCounts": {
+      "additionalProperties": false,
+      "description": "Quantas palavras estão em cada status (spec reading-reconciliation, contagem de dúvidas).",
+      "properties": {
+        "accepted": {
+          "default": 0,
+          "type": "integer"
+        },
+        "resolved": {
+          "default": 0,
+          "type": "integer"
+        },
+        "uncertain": {
+          "default": 0,
+          "type": "integer"
+        },
+        "edited": {
+          "default": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "accepted",
+        "resolved",
+        "uncertain",
+        "edited"
+      ],
+      "title": "WordCounts",
+      "type": "object"
+    },
     "WordStatus": {
       "enum": [
         "accepted",
@@ -391,12 +425,16 @@
         "$ref": "#/$defs/Page"
       },
       "type": "array"
+    },
+    "counts": {
+      "$ref": "#/$defs/WordCounts"
     }
   },
   "required": [
     "id",
     "source_file",
-    "pages"
+    "pages",
+    "counts"
   ],
   "title": "Document",
   "type": "object"

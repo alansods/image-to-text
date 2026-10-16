@@ -372,15 +372,6 @@ def analyze_layout(aligned: Image, normalized: Gray) -> PageLayout:
     return PageLayout(blocks=blocks, columns=columns)
 
 
-def figure_crops(aligned: Image, layout: PageLayout, id_prefix: str) -> dict[str, Image]:
-    """Recortes coloridos do original para figuras e fórmulas, por id de bloco."""
-    return {
-        f"{id_prefix}b{block.order}": np.ascontiguousarray(_crop(aligned, block.bbox))
-        for block in layout.blocks
-        if block.type in {BlockType.FIGURE, BlockType.FORMULA}
-    }
-
-
 # ------------------------------------------------------------------ listas (5.5)
 
 _MARKER = re.compile(

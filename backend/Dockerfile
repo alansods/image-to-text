@@ -29,9 +29,13 @@ RUN useradd --create-home --uid 1000 app \
     && chown -R app:app /data
 USER app
 
-# Modelos de orientação (task 4.2) e de layout (task 5.1), baixados para o cache do usuário app.
+# Modelos de orientação (4.2), layout (5.1) e dos dois leitores (6.1, 6.2), baixados para o cache
+# do usuário app. O árbitro (6.5) fica desligado e não é baixado: com ITT_ARBITER_ENABLED=true,
+# o modelo PaddleOCR-VL é baixado na primeira divergência.
 RUN python -c "from app.pipeline.preprocess import _orientation_model; _orientation_model()" \
-    && python -c "from app.pipeline.layout import _layout_model; _layout_model()"
+    && python -c "from app.pipeline.layout import _layout_model; _layout_model()" \
+    && python -c "from app.pipeline.ocr_paddle import _ocr, _recognizer; _ocr(); _recognizer()" \
+    && python -c "from app.pipeline.ocr_doctr import _models; _models()"
 
 EXPOSE 8000
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

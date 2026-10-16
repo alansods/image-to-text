@@ -1,15 +1,38 @@
-"""Pipeline usado pelo worker. Hoje: carrega, pré-processa (task 4) e detecta o layout (task 5);
-a leitura do texto (leitura dupla, reconciliação, completude e tabelas) entra nas tasks 6 e 7."""
+"""Pipeline usado pelo worker: carrega, pré-processa, detecta o layout e lê o texto.
+Completude e tabelas entram na task 7."""
 
 from collections.abc import Callable
 from pathlib import Path
 
-from app.pipeline.base import PageInput, PipelineUnavailableError, ProcessedPage
+from app.config import get_settings
+from app.pipeline.base import PageInput, ProcessedPage
 from app.pipeline.layout import analyze_layout
 from app.pipeline.preprocess import load_pages, preprocess
+from app.pipeline.recognize import Readers, recognize_page
+
+
+def default_readers() -> Readers:
+    from app.pipeline.ocr_doctr import DoctrReader
+    from app.pipeline.ocr_paddle import PaddleReader
+
+    arbiter = None
+    if get_settings().arbiter_enabled:
+        from app.pipeline.arbiter import VlArbiter
+
+        arbiter = VlArbiter()
+    return Readers(primary=PaddleReader(), secondary=DoctrReader(), arbiter=arbiter)
 
 
 class DocumentPipeline:
+    def __init__(self, readers: Readers | None = None) -> None:
+        self._readers = readers
+
+    @property
+    def readers(self) -> Readers:
+        if self._readers is None:
+            self._readers = default_readers()
+        return self._readers
+
     def load_pages(self, source: Path) -> list[PageInput]:
         return load_pages(source)
 
@@ -18,7 +41,8 @@ class DocumentPipeline:
     ) -> ProcessedPage:
         pre = preprocess(page)
         report(0.1)
-        if not pre.blank:
-            analyze_layout(pre.aligned, pre.normalized)
-        report(0.2)
-        raise PipelineUnavailableError("leitura do texto ainda não implementada (task 6)")
+        layout = None if pre.blank else analyze_layout(pre.aligned, pre.normalized)
+        report(0.3)
+        result = recognize_page(pre, layout, page, id_prefix, self.readers)
+        report(1.0)
+        return result
