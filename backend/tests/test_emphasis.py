@@ -7,7 +7,7 @@ import pypdfium2 as pdfium
 from reportlab.pdfbase.pdfmetrics import stringWidth
 from reportlab.pdfgen.canvas import Canvas
 
-from app.models.document import ILLEGIBLE, BBox, Block, BlockType, Word, WordStatus
+from app.models.document import ILLEGIBLE, BBox, Block, BlockType, Cell, Word, WordStatus
 from app.pipeline.emphasis import mark_emphasis, slant, stroke_width
 from app.pipeline.reading import Gray
 
@@ -147,3 +147,25 @@ def test_illegible_words_are_left_plain() -> None:
 
     [result] = mark_emphasis([paragraph], image)
     assert not result.words[0].bold and not result.words[0].italic
+
+
+def test_words_inside_table_cells_get_emphasis() -> None:
+    line = styled(BODY, {"contratante"}, BOLD)
+    image, [boxes] = render([(line, 11)])
+    source = block("b0", 0, [w for w, _ in line], boxes, 1.0)
+    half = len(source.words) // 2
+    table = Block(
+        id="t0",
+        type=BlockType.TABLE,
+        bbox=source.bbox,
+        order=0,
+        cells=[
+            Cell(row=0, col=0, words=source.words[:half]),
+            Cell(row=0, col=1, words=source.words[half:]),
+        ],
+        confidence=0.99,
+    )
+
+    [result] = mark_emphasis([table], image)
+
+    assert [w.text for c in result.cells for w in c.words if w.bold] == ["contratante"]

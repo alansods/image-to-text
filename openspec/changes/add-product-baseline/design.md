@@ -101,7 +101,9 @@ Nenhum dos OCRs gratuitos devolve ênfase, então ela é medida na imagem `norma
 - Alternativas: classificador treinado de atributos de fonte — sem modelo aberto confiável para PT; descartado no MVP. Pedir ao árbitro VL — caro em CPU para todas as palavras.
 
 ### D9. Checagem de completude
-Binarização (Otsu adaptativo) da página normalizada → componentes conectados → máscara do que está fora dos blocos. Componentes maiores que o menor caractere detectado são agrupados (dilatação) em regiões órfãs, reprocessadas como blocos. Linhas por bloco: perfil de projeção horizontal; cada linha visível sem transcrição vira uma palavra "[ilegível]" em dúvida com a caixa da linha.
+- **Regiões órfãs (7.1):** tinta da página normalizada (limiar 140) fora de todos os blocos (com margem de 10 px); manchas menores que 0,4 altura de letra nas duas direções são poeira; o resto é agrupado por dilatação de 1 altura de letra. Cada região é lida pelos dois leitores: com palavras vira parágrafo; sem palavras vira figura (recorte do original). Entra antes do primeiro bloco abaixo dela que se sobrepõe na horizontal (nota de rodapé → fim da página).
+- **Linhas por bloco (7.2):** faixas horizontais ocupadas por manchas com altura de letra (0,5–2,5 alturas típicas); faixa sem nenhum centro de palavra lida é relida sozinha pelos dois leitores; sem leitura, vira "[ilegível]" em dúvida com a caixa da linha (o recorte da conferência mostra a linha).
+- Medido: nenhum bloco órfão nem linha faltante falsos nos 9 casos do conjunto.
 
 ### D10. Exportação: DOCX com python-docx, PDF pelo LibreOffice
 - DOCX direto do `Document`: uma seção por página original, com o tamanho de folha da página e quebra de seção na troca; número de colunas da página como colunas da seção; parágrafos com alinhamento, tamanho de fonte = tamanho base × tamanho relativo; *runs* com negrito/itálico por palavra; listas com o marcador original como texto (para não depender da numeração automática do Word); tabelas com `merge`; figuras como imagem inline com largura proporcional (largura do recorte ÷ largura da página × largura útil).
@@ -157,6 +159,13 @@ A medição de qualidade (D13) revelou duas falhas silenciosas, com texto inteir
 - **Causa real da "fórmula" de página inteira:** o endireitamento. Na foto desfocada, Otsu direto marcava ~41% da página (sombra/fundo) como tinta e a busca "achava" −15° numa folha reta; a página entortada confundia o detector. Correção: binarizar a página já sem sombra (`_flatten`, a mesma divisão pelo fundo da limpeza, sem o filtro de ruído lento). A proteção "texto dentro de figura" fica como rede de segurança: linhas = faixas horizontais ocupadas por manchas com altura de letra/palavra (≥ 4 manchas, ≥ 10% da largura); ≥ 3 linhas com ≥ 50% da tinta = texto; parágrafos separados por vão > 1,1 altura de letra; o que sobra com tamanho de desenho volta como figura. Nenhuma figura de verdade do conjunto (logotipos, gráfico, ilustração, assinaturas, carimbo) é afetada.
 - Medido depois das correções: contrato/artigo desbotados e desfocados (σ 1–2) lidos com CER 0–0,49%.
 - Alternativas: rodar o detector numa versão nitidificada (testado: a versão limpa da página dá o mesmo erro); recusar a imagem (descartado pelo usuário, D13).
+
+### D15. Tabelas
+- Classificador `PP-LCNet_x1_0_table_cls` (com/sem grade) + detector de células `RT-DETR-L_wired_table_cell_det` / `RT-DETR-L_wireless_table_cell_det` (0,4–0,7 s por tabela). A grade sai das bordas das caixas: bordas a menos de 0,3 altura típica de célula são a mesma linha/coluna de grade; caixa que atravessa várias = célula mesclada.
+- Texto: a tabela inteira passa pela leitura dupla e reconciliação (D7); cada palavra vai para a célula que contém o centro dela. Ênfase medida também nas células.
+- Não estruturável → imagem do original: grade com buraco ou sobreposição, menos de 2×2, palavra fora de todas as células ou tabela sem nenhuma palavra.
+- Medido: recibo (18 células, "Total" com 3 colunas) CER 0%; cabeçalho mesclado (linhas e colunas) e célula vazia corretos; tabela sem bordas (12 células) correta.
+- Alternativas: `SLANeXt_wired/wireless` (estrutura certa, mas caixas das células distorcidas em tabelas largas — células "fora" da tabela); `SLANet_plus` (errou a mescla); grade por OpenCV (falha sem bordas).
 
 ## Open Questions
 

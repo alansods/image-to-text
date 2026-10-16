@@ -93,10 +93,10 @@ def _follow_neighbors(words: list[Word], measured: list[bool]) -> list[bool]:
 
 
 def mark_emphasis(blocks: list[Block], image: Gray) -> list[Block]:
-    """Preenche `bold` e `italic` das palavras dos blocos de texto da página."""
+    """Preenche `bold` e `italic` das palavras da página (texto corrido e células de tabela)."""
     widths: dict[str, float] = {}
     for block in blocks:
-        for word in block.words:
+        for word in block.all_words():
             if word.text != ILLEGIBLE:
                 measured = stroke_width(_crop(image, word.bbox))
                 if measured is not None:
@@ -105,24 +105,27 @@ def mark_emphasis(blocks: list[Block], image: Gray) -> list[Block]:
         return blocks
     typical = median(widths.values())
 
-    result = []
-    for block in blocks:
-        if not block.words:
-            result.append(block)
-            continue
+    def marked(words: list[Word]) -> list[Word]:
+        if not words:
+            return words
         italic = _follow_neighbors(
-            block.words,
-            [
-                w.text != ILLEGIBLE and slant(_crop(image, w.bbox)) >= ITALIC_DEGREES
-                for w in block.words
-            ],
+            words,
+            [w.text != ILLEGIBLE and slant(_crop(image, w.bbox)) >= ITALIC_DEGREES for w in words],
         )
         bold = _follow_neighbors(
-            block.words, [widths.get(w.id, 0.0) >= BOLD_RATIO * typical for w in block.words]
+            words, [widths.get(w.id, 0.0) >= BOLD_RATIO * typical for w in words]
         )
-        words = [
+        return [
             word.model_copy(update={"bold": bold[i], "italic": italic[i]})
-            for i, word in enumerate(block.words)
+            for i, word in enumerate(words)
         ]
-        result.append(block.model_copy(update={"words": words}))
-    return result
+
+    return [
+        block.model_copy(
+            update={
+                "words": marked(block.words),
+                "cells": [c.model_copy(update={"words": marked(c.words)}) for c in block.cells],
+            }
+        )
+        for block in blocks
+    ]

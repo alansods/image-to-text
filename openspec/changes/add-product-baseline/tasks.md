@@ -48,14 +48,14 @@
 - [x] 6.6 Transcrição literal e "[ilegível]"; alternativas distintas e contagem de dúvidas por página/documento
 - [x] 6.7 Negrito e itálico por palavra (D8)
 - [x] 6.9 Avaliação de qualidade por página (resolução, desfoque, contraste, leitura incerta) registrada no resultado (D13)
-- [ ] 6.8 Rodar o teste de precisão e ajustar até CER ≤ 1%, WER ≤ 2% e ênfase ≥ 95% em impresso
+- [x] 6.8 Rodar o teste de precisão e ajustar até CER ≤ 1%, WER ≤ 2% e ênfase ≥ 95% em impresso
 
 ## 7. Completude e tabelas (specs completeness-check, table-extraction)
 
-- [ ] 7.1 Detecção de regiões órfãs, filtro de ruído e novos blocos na posição de leitura
-- [ ] 7.2 Contagem de linhas por bloco, releitura e linhas faltantes como "[ilegível]" em dúvida
-- [ ] 7.3 Estrutura de tabela com mesclas, cabeçalho e tabelas sem bordas
-- [ ] 7.4 Células lidas pela leitura dupla; células vazias; tabela não estruturável como imagem
+- [x] 7.1 Detecção de regiões órfãs, filtro de ruído e novos blocos na posição de leitura
+- [x] 7.2 Contagem de linhas por bloco, releitura e linhas faltantes como "[ilegível]" em dúvida
+- [x] 7.3 Estrutura de tabela com mesclas, cabeçalho e tabelas sem bordas
+- [x] 7.4 Células lidas pela leitura dupla; células vazias; tabela não estruturável como imagem
 
 ## 8. Exportação (spec document-export)
 

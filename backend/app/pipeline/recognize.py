@@ -14,14 +14,22 @@ import numpy as np
 
 from app.models.document import ILLEGIBLE, BBox, Block, BlockType, Page, Word, WordStatus
 from app.pipeline.base import Image, PageInput, ProcessedPage
+from app.pipeline.completeness import missing_lines, orphan_regions
 from app.pipeline.emphasis import mark_emphasis
-from app.pipeline.layout import LayoutBlock, PageLayout, group_lists, size_for_text
-from app.pipeline.preprocess import Preprocessed
+from app.pipeline.layout import (
+    LayoutBlock,
+    PageLayout,
+    group_lists,
+    relative_size,
+    size_for_text,
+)
+from app.pipeline.preprocess import Preprocessed, median_char_height
 from app.pipeline.quality import TEXT_TYPES, image_issues, reading_issues
 from app.pipeline.reading import Gray, Reader
 from app.pipeline.reconcile import reconcile_block
+from app.pipeline.tables import assign_words, table_structure, trustworthy
 
-# Tabelas viram imagem até a task 7 (table-extraction).
+# Tabela só vira imagem quando a estrutura não é confiável (spec table-extraction).
 IMAGE_TYPES = frozenset({BlockType.FIGURE, BlockType.FORMULA, BlockType.TABLE})
 # Margem em volta do bloco para não cortar acentos e descendentes.
 BLOCK_MARGIN = 8
@@ -76,10 +84,9 @@ def _word_crop(image: Gray, box: BBox) -> Gray:
     )
 
 
-def _read_text_block(
-    normalized: Gray, layout_block: LayoutBlock, block_id: str, readers: Readers
-) -> Block:
-    crop, origin = _block_crop(normalized, layout_block.bbox)
+def _read_words(normalized: Gray, region: BBox, word_prefix: str, readers: Readers) -> list[Word]:
+    """Lê uma região com os dois leitores e reconcilia (releitura e árbitro inclusos)."""
+    crop, origin = _block_crop(normalized, region)
     primary = readers.primary.read_block(crop, origin)
     secondary = readers.secondary.read_block(crop, origin)
     known = set(readers.secondary.vocab)
@@ -92,29 +99,30 @@ def _read_text_block(
     arbiter = None
     if readers.arbiter is not None:
         judge = readers.arbiter
-        line_box = layout_block.bbox
 
         def arbiter(box: BBox, options: list[str]) -> str | None:
             line = _crop(
                 normalized,
-                line_box.x,
+                region.x,
                 box.y - box.h / 2,
-                line_box.x + line_box.w,
+                region.x + region.w,
                 box.y + box.h * 1.5,
             )
             return judge.choose(_word_crop(normalized, box), line, options)
 
-    words = reconcile_block(primary, secondary, blind, block_id, reread, arbiter)
+    return reconcile_block(primary, secondary, blind, word_prefix, reread, arbiter)
+
+
+def _illegible(word_id: str, box: BBox) -> Word:
+    return Word(id=word_id, text=ILLEGIBLE, bbox=box, confidence=0, status=WordStatus.UNCERTAIN)
+
+
+def _read_text_block(
+    normalized: Gray, layout_block: LayoutBlock, block_id: str, readers: Readers
+) -> Block:
+    words = _read_words(normalized, layout_block.bbox, block_id, readers)
     if not words:
-        words = [
-            Word(
-                id=f"{block_id}w0",
-                text=ILLEGIBLE,
-                bbox=layout_block.bbox,
-                confidence=0,
-                status=WordStatus.UNCERTAIN,
-            )
-        ]
+        words = [_illegible(f"{block_id}w0", layout_block.bbox)]
     return Block(
         id=block_id,
         type=layout_block.type,
@@ -126,6 +134,121 @@ def _read_text_block(
         words=words,
         confidence=mean(w.confidence for w in words),
     )
+
+
+def _read_table(
+    pre: Preprocessed, layout_block: LayoutBlock, block_id: str, readers: Readers
+) -> Block | None:
+    """Tabela estruturada com células lidas; `None` se a estrutura não for confiável."""
+    box = layout_block.bbox
+    x1, y1 = max(0.0, box.x - BLOCK_MARGIN), max(0.0, box.y - BLOCK_MARGIN)
+    crop = _crop(pre.aligned, x1, y1, box.x + box.w + BLOCK_MARGIN, box.y + box.h + BLOCK_MARGIN)
+    cells = table_structure(crop, (float(int(x1)), float(int(y1))))
+    if not trustworthy(cells):
+        return None
+    filled = assign_words(cells, _read_words(pre.normalized, box, block_id, readers))
+    if filled is None:
+        return None
+    words = [w for cell in filled for w in cell.words]
+    return Block(
+        id=block_id,
+        type=BlockType.TABLE,
+        bbox=box,
+        order=layout_block.order,
+        column=layout_block.column,
+        cells=filled,
+        confidence=mean(w.confidence for w in words) if words else layout_block.score,
+    )
+
+
+def _reading_sort(words: list[Word]) -> list[Word]:
+    """Linhas de cima para baixo; dentro da linha, da esquerda para a direita."""
+    lines: list[list[Word]] = []
+    for word in sorted(words, key=lambda w: w.bbox.y):
+        center = word.bbox.y + word.bbox.h / 2
+        first = lines[-1][0].bbox if lines else None
+        if first is not None and first.y <= center <= first.y + first.h:
+            lines[-1].append(word)
+        else:
+            lines.append([word])
+    return [w for line in lines for w in sorted(line, key=lambda w: w.bbox.x)]
+
+
+def _fill_missing_lines(
+    normalized: Gray, block: Block, char_height: float, readers: Readers
+) -> Block:
+    """Linha visível sem palavra lida: relê a linha; sem leitura, "[ilegível]" (7.2)."""
+    if not block.words:
+        return block
+    added: list[Word] = []
+    lines = missing_lines(normalized, block.bbox, [w.bbox for w in block.words], char_height)
+    for index, line in enumerate(lines):
+        prefix = f"{block.id}m{index}"
+        added.extend(
+            _read_words(normalized, line, prefix, readers) or [_illegible(f"{prefix}w0", line)]
+        )
+    if not added:
+        return block
+    words = _reading_sort([*block.words, *added])
+    return block.model_copy(
+        update={"words": words, "confidence": mean(w.confidence for w in words)}
+    )
+
+
+def _orphan_blocks(
+    pre: Preprocessed, blocks: list[Block], char_height: float, id_prefix: str, readers: Readers
+) -> tuple[list[Block], dict[str, Image]]:
+    """Tinta fora de todos os blocos vira bloco novo, lido ou como figura (7.1)."""
+    found: list[Block] = []
+    crops: dict[str, Image] = {}
+    regions = orphan_regions(pre.normalized, [b.bbox for b in blocks], char_height)
+    for index, region in enumerate(regions):
+        block_id = f"{id_prefix}o{index}"
+        words = _read_words(pre.normalized, region, block_id, readers)
+        if words:
+            crop, _origin = _block_crop(pre.normalized, region)
+            text = " ".join(w.text for w in words)
+            found.append(
+                Block(
+                    id=block_id,
+                    type=BlockType.PARAGRAPH,
+                    bbox=region,
+                    order=0,
+                    rel_size=size_for_text(relative_size(crop, char_height), text),
+                    words=words,
+                    confidence=mean(w.confidence for w in words),
+                )
+            )
+        else:
+            r = region
+            crops[block_id] = _crop(pre.aligned, r.x, r.y, r.x + r.w, r.y + r.h)
+            found.append(
+                Block(
+                    id=block_id,
+                    type=BlockType.FIGURE,
+                    bbox=region,
+                    order=0,
+                    image_ref=f"crops/{block_id}.png",
+                    confidence=0,
+                )
+            )
+    return found, crops
+
+
+def _insert_in_reading_order(blocks: list[Block], extra: list[Block]) -> list[Block]:
+    """Cada bloco novo entra antes do primeiro bloco abaixo dele na mesma faixa horizontal."""
+    result = sorted(blocks, key=lambda b: b.order)
+    for block in extra:
+        b = block.bbox
+
+        def below(other: Block, b: BBox = b) -> bool:
+            o = other.bbox
+            overlaps = min(o.x + o.w, b.x + b.w) > max(o.x, b.x)
+            return overlaps and o.y > b.y
+
+        position = next((i for i, other in enumerate(result) if below(other)), len(result))
+        result.insert(position, block)
+    return [b.model_copy(update={"order": i}) for i, b in enumerate(result)]
 
 
 def recognize_page(
@@ -140,6 +263,11 @@ def recognize_page(
     crops: dict[str, Image] = {}
     for layout_block in layout.blocks if layout is not None and not pre.blank else []:
         block_id = f"{id_prefix}b{layout_block.order}"
+        if layout_block.type is BlockType.TABLE:
+            table = _read_table(pre, layout_block, block_id, readers)
+            if table is not None:
+                blocks.append(table)
+                continue
         if layout_block.type in IMAGE_TYPES:
             box = layout_block.bbox
             crops[block_id] = _crop(pre.aligned, box.x, box.y, box.x + box.w, box.y + box.h)
@@ -160,6 +288,12 @@ def recognize_page(
         else:
             blocks.append(_read_text_block(pre.normalized, layout_block, block_id, readers))
 
+    if blocks:
+        char_height = median_char_height(pre.normalized)
+        blocks = [_fill_missing_lines(pre.normalized, b, char_height, readers) for b in blocks]
+        extra, extra_crops = _orphan_blocks(pre, blocks, char_height, id_prefix, readers)
+        blocks = _insert_in_reading_order(blocks, extra)
+        crops.update(extra_crops)
     blocks = group_lists(mark_emphasis(blocks, pre.normalized))
     issues = []
     if layout is not None and not pre.blank:
