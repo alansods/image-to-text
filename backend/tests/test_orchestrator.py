@@ -215,3 +215,38 @@ def test_job_that_is_not_queued_is_ignored(store: JobStore, files: JobFiles, job
     run_job(job.id, store, files, pipeline)
 
     assert pipeline.processed == []
+
+
+class UnavailableRecognition(FakePipeline):
+    """Páginas carregam, mas o reconhecimento ainda não existe neste servidor."""
+
+    def process_page(
+        self, page: PageInput, id_prefix: str, report: Callable[[float], None]
+    ) -> ProcessedPage:
+        raise PipelineUnavailableError
+
+
+def test_missing_recognition_fails_whole_job_not_page_by_page(
+    store: JobStore, files: JobFiles, job: Job
+) -> None:
+    run_job(job.id, store, files, UnavailableRecognition(pages=3))
+
+    final = store.get(job.id)
+    assert final is not None and final.state is JobState.FAILED
+    assert final.error == "pipeline_unavailable"
+    assert not files.result.exists()
+
+
+def test_worker_pipeline_loads_real_pages_but_recognition_is_pending(tmp_path: Path) -> None:
+    from app.pipeline.runner import DocumentPipeline
+    from tests.conftest import pdf_bytes
+
+    source = tmp_path / "source.pdf"
+    source.write_bytes(pdf_bytes(pages=2))
+    pipeline = DocumentPipeline()
+
+    pages = pipeline.load_pages(source)
+
+    assert [p.index for p in pages] == [0, 1]
+    with pytest.raises(PipelineUnavailableError):
+        pipeline.process_page(pages[0], "p0-", lambda _f: None)

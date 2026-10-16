@@ -111,6 +111,9 @@ def run_job(job_id: str, store: JobStore, files: JobFiles, pipeline: Pipeline) -
             for block_id, crop in result.crops.items():
                 _save_png(crop, str(files.dir / "crops" / f"{block_id}.png"))
             pages.append(result.page)
+        except PipelineUnavailableError:
+            store.update(job_id, state=JobState.FAILED, error="pipeline_unavailable")
+            return
         except Exception:
             log.exception("falha na página %s da conversão %s", index, job_id)
             failures += 1

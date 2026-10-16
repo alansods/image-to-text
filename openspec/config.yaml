@@ -23,7 +23,8 @@ context: |
     divergentes. Upgrade futuro com GPU: Qwen2.5-VL via Ollama.
   - Exportação: python-docx (DOCX) e LibreOffice headless (DOCX → PDF).
   - Infra: frontend na Vercel; backend em Docker fora da Vercel (Hugging Face
-    Spaces grátis ou Oracle Cloud Always Free). docker-compose local com
+    Spaces grátis, x86). A imagem do backend é sempre linux/amd64: o
+    PaddlePaddle não tem pacote para Linux ARM. docker-compose local com
     api + worker + redis.
 
   Decisões de produto (2026-10-15, revisadas após o protótipo aprovado):

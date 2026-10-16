@@ -3,7 +3,8 @@
 Projeto novo, sem código. Motivação e escopo em `proposal.md`; comportamento em `specs/`; telas em `docs/layout/rotas-e-paginas.md`. Restrições que moldam a arquitetura:
 
 - 100% gratuito, sem conta e sem IA externa: todo reconhecimento roda no nosso backend e nada fica guardado além de 1 hora.
-- Frontend na Vercel; o backend não cabe lá (modelos de OCR passam de 250 MB, jobs longos estouram o timeout, sem GPU). Backend em Docker no Hugging Face Spaces (grátis, CPU, 16 GB) ou Oracle Cloud Always Free (ARM, 24 GB).
+- Frontend na Vercel; o backend não cabe lá (modelos de OCR passam de 250 MB, jobs longos estouram o timeout, sem GPU). Backend em Docker no Hugging Face Spaces (grátis, CPU x86, 16 GB).
+- O backend roda só em **x86 (linux/amd64)**: o PaddlePaddle não publica pacote para Linux ARM. A imagem Docker é fixada em `linux/amd64` (no Mac com chip M, o Docker local roda por emulação, ~4× mais lento; os testes com pytest rodam nativos no macOS). Por isso o Oracle Cloud Always Free (ARM) deixou de ser opção de hospedagem. Alternativa descartada por ora: trocar o PaddlePaddle pelo ONNX Runtime (roda em ARM), sem garantia de que todos os modelos necessários tenham versão ONNX.
 - Servidor só com CPU: o pipeline precisa caber em ~40 s/página (sempre leitura dupla).
 - O documento gerado precisa repetir a paginação, a organização, a formatação e as imagens do original.
 
@@ -41,10 +42,16 @@ Arquivos em `/data/jobs/<id>/` (original, páginas alinhadas e normalizadas, rec
 - O frontend não usa localStorage/IndexedDB para dados da conversão nem para o idioma.
 
 ### D4. Pré-processamento com OpenCV; PDF com pypdfium2
-- Orientação: classificador de orientação do PaddleOCR (0/90/180/270); inclinação: `minAreaRect` sobre texto binarizado.
-- Perspectiva: maior contorno quadrilátero (Canny + `approxPolyDP`) + `warpPerspective`; se a área for < 50% da imagem, não corrige.
-- Limpeza: CLAHE, `fastNlMeansDenoising`, remoção de sombra por divisão pelo fundo estimado.
-- Upscale: se a altura média de caractere estimada < 20 px, ampliar (INTER_CUBIC) até ~30 px.
+- Ordem: perspectiva → orientação → inclinação → limpeza → página em branco → ampliação.
+- Imagens: rotação do EXIF aplicada ao abrir (fotos de celular vêm "deitadas" com a rotação só anotada).
+- Perspectiva: a folha é a maior região clara (Otsu sobre a imagem reduzida) aproximada por 4 cantos (`approxPolyDP`) + `warpPerspective`; se a região ocupar < 50% da foto ou praticamente a imagem toda (scan), não corrige.
+- Orientação: classificador `PP-LCNet_x1_0_doc_ori` do PaddleOCR (0/90/180/270, ~0,02 s/página); o rótulo é a rotação no sentido horário, desfeita com `np.rot90(img, rótulo/90)`.
+- Inclinação: ângulo que maximiza a variância da projeção horizontal do texto binarizado (busca grossa ±15° a cada 0,5° em imagem reduzida, refino ±0,6° a cada 0,05°). Alternativa descartada: `minAreaRect` sobre o texto — erra quando há figuras, carimbos ou assinaturas na página.
+- Limpeza: sombra removida dividindo pelo fundo estimado (fechamento morfológico + mediana), CLAHE e `fastNlMeansDenoising`.
+- Página em branco: nenhuma mancha escura (limiar fixo 140) com área de letra pequena.
+- Ampliação: se a altura mediana das letras < 20 px, amplia (INTER_CUBIC) as duas versões até ~32 px (as bordas suavizadas "encolhem" ~10% na binarização), mantendo as coordenadas de `aligned` e `normalized` iguais.
+- Medido: ~1 s por página A4 a 300 DPI (CPU).
+- Dependências: PaddleOCR/PaddlePaddle entram já aqui (orientação), não na 5.1. O PaddleX confere o pacote `opencv-contrib-python==4.10.0.84` pelo nome, então usamos exatamente ele como única instalação do OpenCV (com `libgl1`/`libglib2.0-0` na imagem Docker). Alternativa descartada: a variante "headless" com o mesmo `cv2` — o PaddleX a recusa, e duas instalações de `cv2` juntas quebram de forma imprevisível.
 - Duas saídas por página: `aligned` (original apenas rotacionado/retificado, usada em recortes e imagens do documento) e `normalized` (contrastada, usada só para leitura).
 - Tamanho de folha: do PDF, via `page.get_size()` (pontos); de imagem, A4 com orientação pela proporção (spec `document-export`).
 - pypdfium2 em vez de pdf2image/poppler: licença permissiva, sem dependência de sistema, rápido.
@@ -104,7 +111,7 @@ Next.js App Router com uma rota (`/`) e uma máquina de estados de tela (`upload
 - [Detecção de negrito/itálico abaixo de 95%] → limiares calibrados no conjunto de teste; se não atingir, a spec é revista antes de seguir.
 - [Texto transborda a página no Word] → redução de fonte por seção com verificação de páginas (D10).
 - [LibreOffice aumenta a imagem Docker em ~500 MB] → aceito; instalar só `libreoffice-writer-nogui`.
-- [HF Spaces hiberna e o 1º acesso demora ~1 min] → a tela de progresso fica em 0% com "Lendo seu documento…"; documentar Oracle Free como opção sempre ligada.
+- [HF Spaces hiberna e o 1º acesso demora ~1 min] → a tela de progresso fica em 0% com "Lendo seu documento…".
 - [Erros correlacionados entre os dois OCRs] → completude + conferência humana cobrem; Tesseract como terceiro voto é evolução possível.
 - [Manuscrito abaixo da meta] → meta de CER só para impresso; manuscrito medido e reportado, sem bloquear.
 - [Disco cheio no plano grátis] → descarte em 1 h, limite de 50 páginas e 20 MB.
@@ -116,5 +123,5 @@ Projeto novo: sem migração. Deploy inicial: `frontend` na Vercel com `NEXT_PUB
 
 ## Open Questions
 
-- Versão exata do PP-StructureV3 / PaddleOCR-VL a fixar: decidir na implementação pelo melhor resultado no conjunto de teste em CPU ARM e x86.
+- Versão exata do PP-StructureV3 / PaddleOCR-VL a fixar: decidir na implementação pelo melhor resultado no conjunto de teste em CPU x86.
 - Limiares de negrito/itálico (D8): calibrar no conjunto de teste.

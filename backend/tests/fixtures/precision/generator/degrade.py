@@ -22,7 +22,7 @@ def scan(page: Gray, rng: np.random.Generator, *, tilt_deg: float = 0.4) -> Gray
     """Scanner de mesa: leve inclinação, papel não tão branco e ruído de sensor."""
     h, w = page.shape
     matrix = cv2.getRotationMatrix2D((w / 2, h / 2), tilt_deg, 1.0)
-    tilted = cv2.warpAffine(page, matrix, (w, h), borderValue=255)
+    tilted = cv2.warpAffine(page, matrix, (w, h), borderValue=(255,))
     paper = tilted.astype(np.float32) * 0.96 + 4
     noise = rng.normal(0, 4, size=paper.shape)
     return np.clip(paper + noise, 0, 255).astype(np.uint8)
@@ -53,7 +53,7 @@ def photo(page: Gray, rng: np.random.Generator) -> NDArray[np.uint8]:
     sheet = cv2.cvtColor(page, cv2.COLOR_GRAY2BGR).astype(np.float32)
     warped = cv2.warpPerspective(sheet, matrix, (canvas_w, canvas_h), borderValue=(0, 0, 0))
     mask = cv2.warpPerspective(
-        np.ones((h, w), np.float32), matrix, (canvas_w, canvas_h), borderValue=0
+        np.ones((h, w), np.float32), matrix, (canvas_w, canvas_h), borderValue=(0,)
     )[..., None]
     image = desk * (1 - mask) + warped * mask * np.array([0.93, 0.96, 1.0], dtype=np.float32)
 

@@ -2,6 +2,8 @@
 services:
   api:
     build: ./backend
+    # O PaddlePaddle só existe para Linux x86; em Macs com chip M o Docker emula (design D2/Context).
+    platform: linux/amd64
     ports:
       - "8000:8000"
     environment:
@@ -16,6 +18,7 @@ services:
 
   worker:
     build: ./backend
+    platform: linux/amd64
     # -B: agendador embutido (limpeza a cada 5 min). Um único worker, então não há agendamento duplicado.
     command:
       [

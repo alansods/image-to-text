@@ -11,7 +11,8 @@ from app.cleanup import cleanup_expired
 from app.config import get_settings
 from app.job_store import JobStore, utc_now
 from app.orchestrator import run_job
-from app.pipeline.base import Pipeline, UnavailablePipeline
+from app.pipeline.base import Pipeline
+from app.pipeline.runner import DocumentPipeline
 from app.storage import JobFiles
 
 _settings = get_settings()
@@ -40,8 +41,7 @@ def _context() -> tuple[JobStore, Path]:
 
 
 def _pipeline() -> Pipeline:
-    # Substituído pelo pipeline real quando as tasks 4 a 7 existirem.
-    return UnavailablePipeline()
+    return DocumentPipeline()
 
 
 @celery_app.task(name="ping")

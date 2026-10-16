@@ -11,6 +11,7 @@ from app.cleanup import cleanup_expired
 from app.job_store import JobStore
 from app.models.job import Job, JobState
 from app.storage import JobFiles
+from tests.conftest import png_bytes
 
 T0 = datetime(2026, 10, 15, 12, 0, tzinfo=UTC)
 
@@ -54,11 +55,12 @@ def test_convert_job_task_runs_the_orchestrator(
 ) -> None:
     store = JobStore(fakeredis.FakeRedis(), now=lambda: T0)
     store.create(Job(id="j1", source_file="a.png", created_at=T0), client_ip="1.2.3.4")
-    make_files(tmp_path, "j1", T0).source("png").write_bytes(b"\x89PNG")
+    make_files(tmp_path, "j1", T0).source("png").write_bytes(png_bytes(400, 300))
     monkeypatch.setattr(worker, "_context", lambda: (store, tmp_path))
 
     worker.convert_job.apply(args=("j1",)).get()
 
     job = store.get("j1")
-    # Sem o pipeline instalado (tasks 4 a 7), a conversão falha com motivo explícito.
+    # As páginas já são carregadas e pré-processadas; sem o reconhecimento (tasks 5 a 7),
+    # a conversão falha com motivo explícito.
     assert job is not None and job.state is JobState.FAILED and job.error == "pipeline_unavailable"

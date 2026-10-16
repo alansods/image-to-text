@@ -24,15 +24,15 @@
 
 ## 4. Pré-processamento (spec image-preprocessing)
 
-- [ ] 4.1 Rasterização de PDF a ≥ 300 DPI com tamanho de folha por página; A4 por proporção para imagens
-- [ ] 4.2 Orientação (0/90/180/270) e inclinação (residual ≤ 0,5°)
-- [ ] 4.3 Correção de perspectiva com fallback sem correção
-- [ ] 4.4 Limpeza (contraste, ruído, sombra) e upscale de texto pequeno
-- [ ] 4.5 Página em branco mantida; saídas `aligned` e `normalized` preservando o original
+- [x] 4.1 Rasterização de PDF a ≥ 300 DPI com tamanho de folha por página; A4 por proporção para imagens
+- [x] 4.2 Orientação (0/90/180/270) e inclinação (residual ≤ 0,5°)
+- [x] 4.3 Correção de perspectiva com fallback sem correção
+- [x] 4.4 Limpeza (contraste, ruído, sombra) e upscale de texto pequeno
+- [x] 4.5 Página em branco mantida; saídas `aligned` e `normalized` preservando o original
 
 ## 5. Layout (spec layout-detection)
 
-- [ ] 5.1 Integração PP-StructureV3 (modelos baixados no build da imagem) e mapeamento de rótulos → tipos de bloco
+- [ ] 5.1 Integração PP-StructureV3 (modelos baixados no build da imagem; PaddleOCR já instalado na task 4) e mapeamento de rótulos → tipos de bloco
 - [ ] 5.2 Ordem de leitura, colunas, cabeçalho e rodapé
 - [ ] 5.3 Alinhamento e tamanho relativo por bloco
 - [ ] 5.4 Blocos figura (capa, logotipo, foto, assinatura, carimbo) e fórmula com recortes do original; legenda como bloco separado
