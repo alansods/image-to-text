@@ -172,7 +172,9 @@ def _best_angle(binary: Gray, center: float, span: float, step: float) -> float:
 
 def deskew(image: Image, max_angle: float = 15) -> tuple[Image, float]:
     """Endireita a página; devolve a imagem e o ângulo corrigido (graus, anti-horário)."""
-    gray = _to_gray(image)
+    # Binariza sem sombra: numa foto desfocada, Otsu direto marcava ~40% da página (sombra e
+    # fundo) como tinta e "achava" 15° de inclinação numa folha reta (D14).
+    gray = _flatten(_to_gray(image))
     binary = _u8(cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1])
     coarse_scale = 800 / max(binary.shape)
     coarse = _u8(
@@ -195,8 +197,23 @@ def deskew(image: Image, max_angle: float = 15) -> tuple[Image, float]:
 # ------------------------------------------------------------------ limpeza (4.4, 4.5)
 
 
-def clean(gray: Gray) -> Gray:
-    """Remove sombra, aumenta o contraste e reduz o ruído (só para leitura)."""
+# Esticar contraste (D14): só quando a tinta mais escura é cinza (≥ FADED_INK) e ainda assim
+# se destaca do papel (≤ PAPER_NOISE); papel em branco com ruído fica acima disso.
+FADED_INK = 60
+PAPER_NOISE = 225
+
+
+def _stretch(flat: Gray) -> Gray:
+    """Tinta desbotada vira preta: o cinza mais escuro (percentil 0,5) passa a 0, o papel fica."""
+    darkest = float(np.percentile(flat, 0.5))
+    if not FADED_INK <= darkest <= PAPER_NOISE:
+        return flat
+    stretched = (flat.astype(np.float32) - darkest) * (255.0 / (255.0 - darkest))
+    return np.asarray(np.clip(stretched, 0, 255), dtype=np.uint8)
+
+
+def _flatten(gray: Gray) -> Gray:
+    """Divide pelo fundo estimado (tira sombra e degradê) e estica tinta desbotada."""
     scale = 0.25
     small = cv2.resize(gray, None, fx=scale, fy=scale, interpolation=cv2.INTER_AREA)
     # Fundo estimado: fecha (apaga) o texto escuro e suaviza bastante.
@@ -205,9 +222,13 @@ def clean(gray: Gray) -> Gray:
     background = cv2.resize(
         background, (gray.shape[1], gray.shape[0]), interpolation=cv2.INTER_LINEAR
     )
-    flat = cv2.divide(gray, background, scale=255)
+    return _stretch(np.asarray(cv2.divide(gray, background, scale=255), dtype=np.uint8))
+
+
+def clean(gray: Gray) -> Gray:
+    """Remove sombra, aumenta o contraste e reduz o ruído (só para leitura)."""
     clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
-    contrasted = clahe.apply(flat)
+    contrasted = clahe.apply(_flatten(gray))
     return np.asarray(cv2.fastNlMeansDenoising(contrasted, None, h=7), dtype=np.uint8)
 
 

@@ -66,6 +66,15 @@ class ReadingSource(StrEnum):
     ARBITER = "arbiter"
 
 
+class QualityIssue(StrEnum):
+    """Motivo de uma página ter baixa qualidade (spec image-preprocessing, D13)."""
+
+    RESOLUTION = "resolution"
+    BLUR = "blur"
+    CONTRAST = "contrast"
+    UNCERTAIN_READING = "uncertain_reading"
+
+
 IMAGE_BLOCK_TYPES = frozenset({BlockType.FIGURE, BlockType.FORMULA})
 
 
@@ -206,6 +215,8 @@ class Page(_Model):
     columns: int = Field(default=1, ge=1)
     image_ref: str
     blank: bool = False
+    # Vazio = qualidade boa; senão a tela avisa para conferir com atenção.
+    quality_issues: list[QualityIssue] = Field(default_factory=list)
     blocks: list[Block] = Field(default_factory=list)
 
     _ignore_counts = model_validator(mode="before")(_drop_counts)

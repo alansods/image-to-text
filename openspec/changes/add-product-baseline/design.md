@@ -140,7 +140,24 @@ Next.js App Router com uma rota (`/`) e uma máquina de estados de tela (`upload
 
 Projeto novo: sem migração. Deploy inicial: `frontend` na Vercel com `NEXT_PUBLIC_API_URL`; `backend` como imagem Docker no HF Spaces. Rollback: voltar para a imagem/commit anterior em cada plataforma.
 
+### D13. Avaliação de qualidade da página
+Pedido do usuário: em imagem ruim, **avisar** (não recusar) que pode haver inconsistências; recusa só quando nada é legível (já existe: falha "unreadable"). Cada página ganha `quality = {low, reasons[]}` no resultado, com motivos:
+- `resolution`: altura típica da letra na imagem original abaixo do mínimo de leitura (o pré-processamento precisou ampliar muito);
+- `blur`: nitidez baixa — variância do Laplaciano nas regiões de texto;
+- `contrast`: diferença pequena entre tinta e papel;
+- `uncertain_reading`: mais de 10% das palavras da página em dúvida ou "[ilegível]".
+Medido (página 1 dos casos + versões degradadas na hora): ampliação ≥ 2× só no print (4×); nitidez (percentil 90 do |Laplaciano| na faixa em volta da tinta, dentro dos blocos de texto, ÷ contraste) 0,35–0,69 nas páginas boas e 0,10–0,27 nas desfocadas (σ 1,5–2) → limite 0,30; contraste (mediana do papel − mediana da tinta nos blocos de texto) 136–242 nas boas → limite 80. Medir na página inteira não serve: a ilustração da capa (degradês) derrubava a nitidez para 0,06. Os limites são calibrados no conjunto de teste: os casos impressos nítidos não podem disparar o aviso; o print de tela (letras de ~7 px ampliadas 4×) e uma foto desfocada sim. A tela mostra o aviso acima das folhas (task 10.6).
+- Resultado medido: nenhum caso nítido do conjunto é marcado; print → `resolution` + `blur`; manuscrito → `uncertain_reading`; versões desbotadas → `contrast`; desfoque σ 2 → `blur`. Desfoque leve (σ 1) às vezes não é marcado, mas a leitura continua boa (CER ≤ 0,3%).
+- Alternativas: recusar a imagem — descartado pelo usuário (muitas vezes só existe aquela foto, e ela ainda rende texto aproveitável); não marcar ênfase em imagem ruim — descartado no MVP, o aviso já pede conferência da formatação.
+
+### D14. Robustez: contraste baixo e texto classificado como imagem
+A medição de qualidade (D13) revelou duas falhas silenciosas, com texto inteiro perdido sem dúvida nem aviso:
+- **Contraste baixo virava página em branco:** com tinta cinza-clara (cinza 150–213), `is_blank` não achava manchas. Correção: esticar o contraste (percentis 0,5 e 99,5 → 0 e 255) antes da limpeza e da checagem de branco, quando a faixa útil é estreita; página realmente branca não tem faixa para esticar.
+- **Foto levemente desfocada virava uma "fórmula"/"imagem" de página inteira** no `PP-DocLayout_plus-L` (mesmo com σ 1, só na foto; a versão impressa resiste). Correção: depois da detecção, bloco figura/fórmula que contém linhas de texto (manchas do tamanho de letra alinhadas em fileiras) é redividido em parágrafos pelas linhas de texto e lido como texto; figuras de verdade (logotipo, gráfico, assinatura) não têm fileiras regulares de letras.
+- **Causa real da "fórmula" de página inteira:** o endireitamento. Na foto desfocada, Otsu direto marcava ~41% da página (sombra/fundo) como tinta e a busca "achava" −15° numa folha reta; a página entortada confundia o detector. Correção: binarizar a página já sem sombra (`_flatten`, a mesma divisão pelo fundo da limpeza, sem o filtro de ruído lento). A proteção "texto dentro de figura" fica como rede de segurança: linhas = faixas horizontais ocupadas por manchas com altura de letra/palavra (≥ 4 manchas, ≥ 10% da largura); ≥ 3 linhas com ≥ 50% da tinta = texto; parágrafos separados por vão > 1,1 altura de letra; o que sobra com tamanho de desenho volta como figura. Nenhuma figura de verdade do conjunto (logotipos, gráfico, ilustração, assinaturas, carimbo) é afetada.
+- Medido depois das correções: contrato/artigo desbotados e desfocados (σ 1–2) lidos com CER 0–0,49%.
+- Alternativas: rodar o detector numa versão nitidificada (testado: a versão limpa da página dá o mesmo erro); recusar a imagem (descartado pelo usuário, D13).
+
 ## Open Questions
 
-- Versão exata do PP-StructureV3 / PaddleOCR-VL a fixar: decidir na implementação pelo melhor resultado no conjunto de teste em CPU x86.
-- Limiares de negrito/itálico (D8): calibrar no conjunto de teste.
+- Limites da avaliação de qualidade (D13): calibrar no conjunto de teste.

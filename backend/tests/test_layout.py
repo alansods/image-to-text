@@ -4,6 +4,7 @@ tamanho relativo, elementos não-texto e listas."""
 from functools import cache
 from pathlib import Path
 
+import cv2
 import numpy as np
 import pytest
 
@@ -15,6 +16,7 @@ from app.models.document import (
     Word,
     WordStatus,
 )
+from app.pipeline.base import PageInput
 from app.pipeline.layout import (
     Candidate,
     PageLayout,
@@ -24,8 +26,9 @@ from app.pipeline.layout import (
     merge_passes,
     reading_order,
     size_for_text,
+    text_paragraphs,
 )
-from app.pipeline.preprocess import load_pages, preprocess
+from app.pipeline.preprocess import load_pages, median_char_height, preprocess
 from tests.precision.truth import Truth
 
 FIXTURES = Path(__file__).parent / "fixtures" / "precision"
@@ -189,10 +192,13 @@ class TestLists:
 # ------------------------------------------------------------------ integração com o modelo
 
 
+def fixture_page(case: str, page_index: int = 0) -> PageInput:
+    return load_pages(next((FIXTURES / case).glob("input.*")))[page_index]
+
+
 @cache
 def layout_of(case: str, page_index: int = 0) -> PageLayout:
-    page = load_pages(next((FIXTURES / case).glob("input.*")))[page_index]
-    pre = preprocess(page)
+    pre = preprocess(fixture_page(case, page_index))
     return analyze_layout(pre.aligned, pre.normalized)
 
 
@@ -320,3 +326,53 @@ class TestSizeForText:
 
     def test_text_without_letters_keeps_the_measured_size(self) -> None:
         assert size_for_text(1.2, "— · —") == 1.2
+
+
+class TestTextInsideFigures:
+    """Texto não vira imagem (spec layout-detection, D14)."""
+
+    def test_blurred_photo_paragraphs_are_read_as_text(self) -> None:
+        page = load_pages(FIXTURES / "contrato_foto" / "input.jpg")[0]
+        blurred = np.ascontiguousarray(cv2.GaussianBlur(page.image, (0, 0), 1.5))
+        pre = preprocess(PageInput(page.index, blurred, page.page_size))
+        blocks = analyze_layout(pre.aligned, pre.normalized).blocks
+
+        texts = [b for b in blocks if b.type not in {BlockType.FIGURE, BlockType.FORMULA}]
+        images = [b for b in blocks if b.type in {BlockType.FIGURE, BlockType.FORMULA}]
+        assert len(texts) >= 8
+        assert len(images) == 1  # a rubrica
+        assert [b.bbox.y for b in blocks] == sorted(b.bbox.y for b in blocks)
+
+    def test_paragraphs_inside_a_region_are_found(self) -> None:
+        # A página inteira do contrato como se fosse uma única "figura".
+        pre = preprocess(fixture_page("contrato_impresso"))
+        expected = [
+            b
+            for b in layout_of("contrato_impresso").blocks
+            if b.type in {BlockType.HEADING, BlockType.PARAGRAPH}
+        ]
+
+        found = text_paragraphs(pre.normalized, median_char_height(pre.normalized))
+
+        assert len(found) >= len(expected) - 2
+        assert [b.y for b in found] == sorted(b.y for b in found)
+
+    @pytest.mark.parametrize(
+        ("case", "index"),
+        [
+            ("contrato_impresso", 0),
+            ("contrato_foto", 0),
+            ("recibo_tabela", 0),
+            ("artigo_duas_colunas", 0),
+            ("relatorio_tres_paginas", 0),
+            ("print_tela", 0),
+        ],
+    )
+    def test_real_figures_have_no_text_lines(self, case: str, index: int) -> None:
+        page = fixture_page(case, index)
+        pre = preprocess(page)
+        for block in analyze_layout(pre.aligned, pre.normalized).blocks:
+            if block.type is BlockType.FIGURE:
+                b = block.bbox
+                crop = pre.normalized[int(b.y) : int(b.y + b.h), int(b.x) : int(b.x + b.w)]
+                assert text_paragraphs(crop, median_char_height(pre.normalized)) == [], (case, b)

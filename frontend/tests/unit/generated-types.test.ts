@@ -29,6 +29,7 @@ describe("tipos gerados do formato interno", () => {
           columns: 1,
           image_ref: "pages/0.png",
           blank: false,
+          quality_issues: ["resolution"],
           blocks: [
             {
               id: "b1",

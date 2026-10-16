@@ -15,6 +15,21 @@ A tela de resultado SHALL mostrar o documento em folhas, uma por página do orig
 - **WHEN** a conversão de uma única foto termina
 - **THEN** a tela mostra 1 folha rotulada "Página 1 de 1"
 
+### Requirement: Aviso de baixa qualidade
+Quando alguma página tiver baixa qualidade, a tela de resultado SHALL mostrar, acima das folhas, um aviso de que a imagem tem baixa qualidade e de que o texto e a formatação (negrito, itálico) devem ser conferidos com atenção; em documentos com mais de uma página, o aviso SHALL indicar quais páginas. O aviso MUST NOT bloquear a cópia nem o download.
+
+#### Scenario: Imagem nítida
+- **WHEN** nenhuma página do resultado tem baixa qualidade
+- **THEN** nenhum aviso de qualidade aparece
+
+#### Scenario: Uma página ruim
+- **WHEN** só a página 2 de um PDF de 3 páginas tem baixa qualidade
+- **THEN** o aviso de qualidade aparece e cita a página 2
+
+#### Scenario: Não bloqueia
+- **WHEN** há aviso de qualidade e nenhuma palavra em dúvida
+- **THEN** a tela mostra "Tudo conferido" com "Copiar texto", "Baixar Word" e "Baixar PDF"
+
 ### Requirement: Destaque das dúvidas
 Palavras "em dúvida" SHALL aparecer destacadas no texto com fundo âmbar e também com sublinhado ondulado, para que o destaque não dependa só de cor, e cada uma MUST ser um controle acionável por clique, toque e teclado.
 

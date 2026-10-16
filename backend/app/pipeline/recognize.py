@@ -17,6 +17,7 @@ from app.pipeline.base import Image, PageInput, ProcessedPage
 from app.pipeline.emphasis import mark_emphasis
 from app.pipeline.layout import LayoutBlock, PageLayout, group_lists, size_for_text
 from app.pipeline.preprocess import Preprocessed
+from app.pipeline.quality import TEXT_TYPES, image_issues, reading_issues
 from app.pipeline.reading import Gray, Reader
 from app.pipeline.reconcile import reconcile_block
 
@@ -159,6 +160,11 @@ def recognize_page(
         else:
             blocks.append(_read_text_block(pre.normalized, layout_block, block_id, readers))
 
+    blocks = group_lists(mark_emphasis(blocks, pre.normalized))
+    issues = []
+    if layout is not None and not pre.blank:
+        text_boxes = [b.bbox for b in layout.blocks if b.type in TEXT_TYPES]
+        issues = image_issues(pre, text_boxes) + reading_issues(blocks)
     return ProcessedPage(
         page=Page(
             index=page.index,
@@ -168,7 +174,8 @@ def recognize_page(
             columns=layout.columns if layout is not None else 1,
             image_ref=f"pages/{page.index}.png",
             blank=pre.blank,
-            blocks=group_lists(mark_emphasis(blocks, pre.normalized)),
+            quality_issues=issues,
+            blocks=blocks,
         ),
         aligned=pre.aligned,
         crops=crops,

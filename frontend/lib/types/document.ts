@@ -1,5 +1,9 @@
 /* Gerado por `npm run gen:types` a partir de backend/app/models. Não edite à mão. */
 
+/**
+ * Motivo de uma página ter baixa qualidade (spec image-preprocessing, D13).
+ */
+export type QualityIssue = "resolution" | "blur" | "contrast" | "uncertain_reading";
 export type BlockType =
   "heading" | "paragraph" | "list" | "table" | "figure" | "formula" | "header" | "footer";
 export type Alignment = "left" | "center" | "right" | "justify";
@@ -21,6 +25,7 @@ export interface Page {
   columns: number;
   image_ref: string;
   blank: boolean;
+  quality_issues: QualityIssue[];
   blocks: Block[];
   counts: WordCounts;
 }

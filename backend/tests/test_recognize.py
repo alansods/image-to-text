@@ -8,6 +8,7 @@ from app.models.document import (
     BBox,
     BlockType,
     PageSize,
+    QualityIssue,
     ReadingSource,
     ResolvedBy,
     WordStatus,
@@ -201,3 +202,17 @@ def test_emphasis_is_measured_on_the_normalized_page(monkeypatch) -> None:  # ty
 
     assert seen == [(["p2-b0"], (1000, 800))]
     assert result.page.blocks[0].words[0].bold
+
+
+def test_page_records_quality_issues() -> None:
+    layout = PageLayout([block(BlockType.PARAGRAPH, 0, 100, 100)], columns=1)
+    rs = readers([("Sllva", 110, 110, 0.80)], [("Silva", 110, 110, 0.82)])
+    result = recognize_page(preprocessed(), layout, page_input(), "p2-", rs)
+
+    assert QualityIssue.UNCERTAIN_READING in result.page.quality_issues
+
+
+def test_blank_page_has_no_quality_issues() -> None:
+    result = recognize_page(preprocessed(blank=True), None, page_input(), "p2-", readers([], []))
+
+    assert result.page.quality_issues == []

@@ -249,6 +249,12 @@
           "default": false,
           "type": "boolean"
         },
+        "quality_issues": {
+          "items": {
+            "$ref": "#/$defs/QualityIssue"
+          },
+          "type": "array"
+        },
         "blocks": {
           "items": {
             "$ref": "#/$defs/Block"
@@ -267,6 +273,7 @@
         "columns",
         "image_ref",
         "blank",
+        "quality_issues",
         "blocks",
         "counts"
       ],
@@ -292,6 +299,17 @@
       ],
       "title": "PageSize",
       "type": "object"
+    },
+    "QualityIssue": {
+      "description": "Motivo de uma página ter baixa qualidade (spec image-preprocessing, D13).",
+      "enum": [
+        "resolution",
+        "blur",
+        "contrast",
+        "uncertain_reading"
+      ],
+      "title": "QualityIssue",
+      "type": "string"
     },
     "ReadingSource": {
       "enum": [

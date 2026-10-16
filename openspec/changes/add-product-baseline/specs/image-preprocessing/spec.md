@@ -47,9 +47,32 @@ O sistema SHALL reduzir ruído, sombras e baixo contraste e ampliar páginas cuj
 - **WHEN** uma captura de tela de 600 px de largura com fonte pequena é processada
 - **THEN** a página é ampliada antes da leitura e o texto é reconhecido
 
+#### Scenario: Contraste baixo
+- **WHEN** uma foto com tinta cinza-clara sobre papel acinzentado, com pouco contraste, é processada
+- **THEN** o texto é reconhecido e a página não é tratada como em branco
+
 ### Requirement: Página sem conteúdo
 O sistema SHALL identificar páginas em branco e mantê-las no resultado como páginas em branco, sem blocos.
 
 #### Scenario: Página em branco
 - **WHEN** uma página totalmente branca é processada
 - **THEN** a página aparece no resultado, na mesma posição, sem blocos
+
+### Requirement: Avaliação de qualidade
+O sistema SHALL avaliar cada página e marcá-la como de baixa qualidade quando as letras estiverem abaixo da resolução mínima de leitura, quando a imagem estiver desfocada ou com baixo contraste, ou quando a leitura resultar em muitas palavras em dúvida ou ilegíveis, registrando no resultado as páginas de baixa qualidade e o motivo. A baixa qualidade MUST NOT impedir a conversão.
+
+#### Scenario: Print pequeno
+- **WHEN** uma captura de tela de 600 px de largura com fonte pequena é convertida
+- **THEN** a página é marcada como de baixa qualidade com o motivo "resolução"
+
+#### Scenario: Foto desfocada
+- **WHEN** uma foto de documento fora de foco é convertida
+- **THEN** a página é marcada como de baixa qualidade com o motivo "desfoque"
+
+#### Scenario: Leitura incerta
+- **WHEN** mais de 10% das palavras de uma página ficam em dúvida ou ilegíveis
+- **THEN** a página é marcada como de baixa qualidade com o motivo "leitura incerta"
+
+#### Scenario: Documento nítido
+- **WHEN** um PDF digitalizado com boa resolução e nitidez é convertido
+- **THEN** nenhuma página é marcada como de baixa qualidade

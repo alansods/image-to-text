@@ -59,10 +59,11 @@ Centralizado: "Lendo seu documento…", barra de progresso (máx. 420 px), "cont
 
 Coluna central (máx. 760 px):
 1. Linha superior: ícone + nome do arquivo à esquerda; "Converter outro" (botão discreto) à direita.
-2. **Enquanto houver dúvidas**: aviso âmbar "Confira N palavras antes de baixar" / "Elas estão marcadas no texto. Escolha a forma certa de cada uma." + botão primário "Conferir próxima". **Não há** botões de copiar nem baixar.
-3. **Sem dúvidas**: "✓ Tudo conferido" em verde e três botões: "Copiar texto" (primário; vira "Copiado"), "Baixar Word", "Baixar PDF".
-4. **Documento**: uma folha A4 (proporção da página original) por página, com rótulo "PÁGINA N DE T" acima e o número no rodapé da folha. Texto em Source Serif, com títulos, alinhamento, negrito/itálico, listas, colunas, tabelas e imagens (logotipo, assinatura, capa) como no original.
-5. **Palavras em dúvida**: fundo âmbar + sublinhado ondulado, são botões.
+2. **Se alguma página tiver baixa qualidade**: aviso discreto "A imagem tem baixa qualidade. Confira o texto e a formatação (negrito, itálico) com atenção." — em documentos com várias páginas, cita as páginas ("páginas 2 e 3"). Não bloqueia copiar nem baixar.
+3. **Enquanto houver dúvidas**: aviso âmbar "Confira N palavras antes de baixar" / "Elas estão marcadas no texto. Escolha a forma certa de cada uma." + botão primário "Conferir próxima". **Não há** botões de copiar nem baixar.
+4. **Sem dúvidas**: "✓ Tudo conferido" em verde e três botões: "Copiar texto" (primário; vira "Copiado"), "Baixar Word", "Baixar PDF".
+5. **Documento**: uma folha A4 (proporção da página original) por página, com rótulo "PÁGINA N DE T" acima e o número no rodapé da folha. Texto em Source Serif, com títulos, alinhamento, negrito/itálico, listas, colunas, tabelas e imagens (logotipo, assinatura, capa) como no original.
+6. **Palavras em dúvida**: fundo âmbar + sublinhado ondulado, são botões.
 
 **Quadro de conferência** (popover junto da palavra; bottom sheet no celular):
 - "Na imagem:" + recorte ampliado do original com a palavra contornada e um pouco de contexto.

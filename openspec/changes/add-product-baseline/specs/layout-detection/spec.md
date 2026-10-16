@@ -36,6 +36,13 @@ O sistema MUST classificar capas, figuras, fotos, logotipos, ilustrações, grá
 - **WHEN** uma figura possui legenda em texto abaixo dela
 - **THEN** a figura vira um bloco "figura" e a legenda vira um bloco de texto separado, logo após a figura na ordem de leitura
 
+### Requirement: Texto não vira imagem
+O sistema MUST NOT entregar como figura ou fórmula uma região que contém linhas de texto corrido: quando um bloco detectado como figura ou fórmula contém linhas de texto, essas linhas SHALL ser lidas como texto.
+
+#### Scenario: Foto levemente desfocada
+- **WHEN** uma foto de contrato levemente desfocada é processada e o detector classifica a página inteira como uma única figura ou fórmula
+- **THEN** os parágrafos da página são lidos como texto, e não entregues como imagem
+
 ### Requirement: Fórmulas como imagem
 O sistema SHALL tratar fórmulas matemáticas como blocos "fórmula" com recorte do original, sem tentar transcrevê-las.
 

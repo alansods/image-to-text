@@ -47,6 +47,7 @@
 - [x] 6.5 Árbitro PaddleOCR-VL atrás de `ARBITER_ENABLED`, com validação da resposta contra as alternativas
 - [x] 6.6 Transcrição literal e "[ilegível]"; alternativas distintas e contagem de dúvidas por página/documento
 - [x] 6.7 Negrito e itálico por palavra (D8)
+- [x] 6.9 Avaliação de qualidade por página (resolução, desfoque, contraste, leitura incerta) registrada no resultado (D13)
 - [ ] 6.8 Rodar o teste de precisão e ajustar até CER ≤ 1%, WER ≤ 2% e ênfase ≥ 95% em impresso
 
 ## 7. Completude e tabelas (specs completeness-check, table-extraction)
@@ -75,6 +76,7 @@
 - [ ] 10.2 Destaque das dúvidas (âmbar + sublinhado ondulado), aviso "Confira N palavras antes de baixar" e "Conferir próxima"
 - [ ] 10.3 Quadro de conferência (popover / bottom sheet): recorte, alternativas monoespaçadas com diferença destacada, "Ou digite a correta", Esc para fechar
 - [ ] 10.4 Resolver e avançar para a próxima dúvida atravessando páginas; envio das escolhas ao servidor
+- [ ] 10.6 Aviso de baixa qualidade acima das folhas, com as páginas afetadas, sem bloquear cópia nem download
 - [ ] 10.5 "Tudo conferido" com "Copiar texto" (→ "Copiado"), "Baixar Word" e "Baixar PDF"; "Converter outro" e logotipo apagando a conversão
 
 ## 11. Deploy e verificação final

@@ -171,6 +171,124 @@ def looks_like_image(crop: Gray, char_height: float) -> bool:
     return int(letter_like.sum()) <= 3 and bool(long_stroke.any())
 
 
+# ------------------------------------------------------------------ texto que virou imagem (D14)
+
+# Linha de texto: ao menos 4 manchas do tamanho de letra/palavra, cobrindo 10% da largura.
+LINE_MIN_PIECES = 4
+LINE_MIN_SPAN = 0.1
+# Bloco de texto: ao menos 3 linhas e metade da tinta nelas.
+TEXT_MIN_LINES = 3
+TEXT_INK_SHARE = 0.5
+# Vão entre linhas maior que isto (em alturas de letra) separa parágrafos.
+PARAGRAPH_GAP = 1.1
+
+
+def _text_lines(
+    stats: NDArray[np.int32], char_height: float, width: int
+) -> list[NDArray[np.int32]]:
+    """Fileiras de manchas com altura de letra (no desfoque, letras se fundem em palavras).
+
+    As linhas são as faixas horizontais ocupadas por essas manchas (projeção), o que tolera
+    ascendentes, descendentes e acentos com centros em alturas diferentes.
+    """
+    heights = stats[:, cv2.CC_STAT_HEIGHT]
+    widths = stats[:, cv2.CC_STAT_WIDTH]
+    pieces = stats[
+        (heights >= 0.5 * char_height) & (heights <= 2.5 * char_height) & (widths <= 15 * heights)
+    ]
+    if len(pieces) == 0:
+        return []
+    tops = pieces[:, cv2.CC_STAT_TOP]
+    bottoms = tops + pieces[:, cv2.CC_STAT_HEIGHT]
+    rows = np.zeros(int(bottoms.max()) + 1, dtype=bool)
+    for top, bottom in zip(tops, bottoms, strict=True):
+        rows[top:bottom] = True
+    edges = np.diff(np.concatenate(([0], rows.astype(np.int8), [0])))
+    starts, ends = np.nonzero(edges == 1)[0], np.nonzero(edges == -1)[0]
+    centers = tops + pieces[:, cv2.CC_STAT_HEIGHT] / 2
+    result = []
+    for start, end in zip(starts, ends, strict=True):
+        line = pieces[(centers >= start) & (centers < end)]
+        if len(line) < LINE_MIN_PIECES:
+            continue
+        left = line[:, cv2.CC_STAT_LEFT].min()
+        right = (line[:, cv2.CC_STAT_LEFT] + line[:, cv2.CC_STAT_WIDTH]).max()
+        if right - left >= LINE_MIN_SPAN * width:
+            result.append(line)
+    return result
+
+
+def _box_of(stats: NDArray[np.int32]) -> BBox:
+    left = int(stats[:, cv2.CC_STAT_LEFT].min())
+    top = int(stats[:, cv2.CC_STAT_TOP].min())
+    right = int((stats[:, cv2.CC_STAT_LEFT] + stats[:, cv2.CC_STAT_WIDTH]).max())
+    bottom = int((stats[:, cv2.CC_STAT_TOP] + stats[:, cv2.CC_STAT_HEIGHT]).max())
+    return BBox(x=left, y=top, w=max(right - left, 1), h=max(bottom - top, 1))
+
+
+def text_paragraphs(crop: Gray, char_height: float) -> list[BBox]:
+    """Parágrafos de texto corrido dentro de uma região (coordenadas do recorte); vazio se a
+    região não tem linhas de texto — figura de verdade (logotipo, gráfico, assinatura)."""
+    if crop.size == 0 or char_height <= 0:
+        return []
+    stats = _ink_stats(crop)
+    if len(stats) == 0:
+        return []
+    lines = _text_lines(stats, char_height, crop.shape[1])
+    in_lines = sum(int(line[:, cv2.CC_STAT_AREA].sum()) for line in lines)
+    if len(lines) < TEXT_MIN_LINES or in_lines < TEXT_INK_SHARE * stats[:, cv2.CC_STAT_AREA].sum():
+        return []
+    boxes = sorted((_box_of(line) for line in lines), key=lambda b: b.y)
+    paragraphs: list[list[BBox]] = [[boxes[0]]]
+    for box in boxes[1:]:
+        previous = paragraphs[-1][-1]
+        if box.y - (previous.y + previous.h) > PARAGRAPH_GAP * char_height:
+            paragraphs.append([box])
+        else:
+            paragraphs[-1].append(box)
+    result = []
+    for group in paragraphs:
+        x1, y1 = min(b.x for b in group), min(b.y for b in group)
+        x2, y2 = max(b.x + b.w for b in group), max(b.y + b.h for b in group)
+        result.append(BBox(x=x1, y=y1, w=x2 - x1, h=y2 - y1))
+    return result
+
+
+def _leftover_images(crop: Gray, paragraphs: list[BBox], char_height: float) -> list[BBox]:
+    """Desenhos que sobram fora dos parágrafos (ex.: a rubrica), agrupados por proximidade."""
+    ink = cv2.threshold(crop, 140, 255, cv2.THRESH_BINARY_INV)[1]
+    for p in paragraphs:
+        ink[int(p.y) : int(p.y + p.h) + 1, int(p.x) : int(p.x + p.w) + 1] = 0
+    size = max(3, int(char_height))
+    grouped = cv2.dilate(ink, np.ones((size, size), np.uint8))
+    count, _labels, stats, _ = cv2.connectedComponentsWithStats(grouped, connectivity=8)
+    regions = []
+    for x, y, w, h, _area in stats[1:count]:
+        if w >= 2 * char_height and h >= 2 * char_height:
+            pad = size // 2
+            regions.append(BBox(x=x + pad, y=y + pad, w=max(w - 2 * pad, 1), h=max(h - 2 * pad, 1)))
+    return regions
+
+
+def _split_disguised_text(
+    candidate: Candidate, normalized: Gray, char_height: float
+) -> list[Candidate]:
+    """Figura/fórmula que contém linhas de texto vira parágrafos (+ os desenhos que sobram)."""
+    crop = _crop(normalized, candidate.bbox)
+    paragraphs = text_paragraphs(crop, char_height)
+    if not paragraphs:
+        return [candidate]
+    ox, oy = candidate.bbox.x, candidate.bbox.y
+
+    def moved(box: BBox) -> BBox:
+        return BBox(x=ox + box.x, y=oy + box.y, w=box.w, h=box.h)
+
+    return [Candidate("text", candidate.score, moved(p)) for p in paragraphs] + [
+        Candidate("image", candidate.score, moved(r))
+        for r in _leftover_images(crop, paragraphs, char_height)
+    ]
+
+
 # ------------------------------------------------------------------ ordem de leitura (5.2)
 
 
@@ -346,7 +464,10 @@ def analyze_layout(aligned: Image, normalized: Gray) -> PageLayout:
             _crop(original, candidate.bbox), char_height
         ):
             candidate = replace(candidate, label="image")
-        candidates.append(candidate)
+        if map_label(candidate.label) in {BlockType.FIGURE, BlockType.FORMULA}:
+            candidates.extend(_split_disguised_text(candidate, normalized, char_height))
+        else:
+            candidates.append(candidate)
 
     ordered, columns = reading_order(candidates)
     body = [c for c, _ in ordered if map_label(c.label) not in _EDGE_TYPES] or [

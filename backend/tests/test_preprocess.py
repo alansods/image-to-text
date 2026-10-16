@@ -127,6 +127,30 @@ class TestDeskew:
         assert abs(angle) <= 0.6  # só a inclinação de scanner já presente no caso
 
 
+class TestDeskewBlurredPhoto:
+    """Foto levemente desfocada: sombra e fundo não podem "puxar" o ângulo (D14)."""
+
+    @pytest.mark.parametrize("sigma", [1.0, 2.0])
+    def test_straight_blurred_photo_is_not_tilted(self, sigma: float) -> None:
+        page = fixture_pages("contrato_foto")[0].image
+        blurred = np.ascontiguousarray(cv2.GaussianBlur(page, (0, 0), sigma))
+        sheet = correct_perspective(blurred)
+
+        _, angle = deskew(sheet if sheet is not None else blurred)
+
+        assert abs(angle) <= 0.6
+
+    def test_tilted_blurred_photo_is_straightened(self) -> None:
+        page = fixture_pages("contrato_foto")[0].image
+        sheet = correct_perspective(page)
+        assert sheet is not None
+        tilted = rotate(np.ascontiguousarray(cv2.GaussianBlur(sheet, (0, 0), 1.5)), 5.0)
+
+        _, angle = deskew(tilted)
+
+        assert angle == pytest.approx(-5.0, abs=0.5)
+
+
 class TestPerspective:
     def test_photo_on_desk_becomes_the_sheet_alone(self) -> None:
         photo = fixture_pages("contrato_foto")[0].image
@@ -162,6 +186,31 @@ class TestCleaning:
 
         assert median_char_height(result.normalized) >= 28
         assert result.aligned.shape[:2] == result.normalized.shape[:2]
+
+
+class TestLowContrast:
+    """Tinta cinza-clara em papel acinzentado (xerox fraca, foto com pouca luz)."""
+
+    @staticmethod
+    def faded(image: NDArray[np.uint8]) -> NDArray[np.uint8]:
+        return np.asarray(image.astype(np.float32) * 0.25 + 150, dtype=np.uint8)
+
+    @pytest.mark.parametrize("case", ["contrato_impresso", "contrato_foto"])
+    def test_faded_page_is_not_blank_and_keeps_its_letters(self, case: str) -> None:
+        page = fixture_pages(case)[0]
+        sharp = preprocess(page)
+        result = preprocess(PageInput(page.index, self.faded(page.image), page.page_size))
+
+        assert not result.blank
+        assert median_char_height(result.normalized) == pytest.approx(
+            median_char_height(sharp.normalized), abs=3
+        )
+
+    def test_noisy_blank_paper_stays_blank(self) -> None:
+        rng = np.random.default_rng(7)
+        paper = np.clip(rng.normal(232, 4, (3508, 2480)), 0, 255).astype(np.uint8)
+
+        assert is_blank(clean(paper))
 
 
 class TestBlank:
