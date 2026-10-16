@@ -10,6 +10,10 @@ from statistics import median
 
 from app.models.document import ILLEGIBLE, Block, BlockType, Document
 
+# A altura das palavras varia ±10% no mesmo corpo de fonte (acentos, maiúsculas, descendentes):
+# abaixo desta diferença o bloco é do tamanho do texto principal.
+SAME_SIZE = 0.15
+
 TEXT_TYPES = {
     BlockType.HEADING,
     BlockType.PARAGRAPH,
@@ -41,7 +45,9 @@ def normalize_sizes(document: Document) -> Document:
         for block in page.blocks:
             heights = _heights(block, scale) if block.type in TEXT_TYPES else []
             if heights:
-                block = block.model_copy(update={"rel_size": round(median(heights) / reference, 2)})
+                relative = median(heights) / reference
+                size = 1.0 if abs(relative - 1.0) < SAME_SIZE else round(relative, 2)
+                block = block.model_copy(update={"rel_size": size})
             blocks.append(block)
         pages.append(page.model_copy(update={"blocks": blocks}))
     return document.model_copy(update={"pages": pages})

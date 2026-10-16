@@ -199,6 +199,15 @@ def finish_with_document(store: JobStore, settings: Settings, job_id: str) -> No
         words=[word],
         confidence=0.6,
     )
+    Image.fromarray(np.zeros((20, 30), np.uint8)).save(files.dir / "crops" / "p0-fig.png")
+    figure = Block(
+        id="p0-fig",
+        type=BlockType.FIGURE,
+        bbox=BBox(x=0, y=150, w=30, h=20),
+        order=1,
+        image_ref="crops/p0-fig.png",
+        confidence=0.9,
+    )
     document = Document(
         id=job_id,
         source_file=store.get(job_id).source_file,  # type: ignore[union-attr]
@@ -209,7 +218,7 @@ def finish_with_document(store: JobStore, settings: Settings, job_id: str) -> No
                 height=200,
                 page_size=PageSize(w_pt=841.89, h_pt=595.28),
                 image_ref="pages/0.png",
-                blocks=[block],
+                blocks=[block, figure],
             )
         ],
     )
@@ -239,6 +248,42 @@ class TestResult:
         assert response.status_code == 200
         assert response.headers["content-type"] == "image/png"
         assert response.content.startswith(b"\x89PNG")
+
+    def test_word_crop_outlines_the_word_in_amber(
+        self, client: TestClient, store: JobStore, settings: Settings
+    ) -> None:
+        import io
+
+        job_id = client.post("/jobs", files={"file": ("a.png", png_bytes())}).json()["id"]
+        finish_with_document(store, settings, job_id)
+
+        crop = np.asarray(
+            Image.open(io.BytesIO(client.get(f"/jobs/{job_id}/crops/p0-w0").content)).convert("RGB")
+        )
+
+        amber = (np.abs(crop.astype(int) - (212, 148, 0)).sum(axis=2) < 30).sum()
+        assert amber > 50
+
+    def test_figure_image_is_served_by_block_id(
+        self, client: TestClient, store: JobStore, settings: Settings
+    ) -> None:
+        job_id = client.post("/jobs", files={"file": ("a.png", png_bytes())}).json()["id"]
+        finish_with_document(store, settings, job_id)
+
+        response = client.get(f"/jobs/{job_id}/images/p0-fig")
+
+        assert response.status_code == 200
+        assert response.content.startswith(b"\x89PNG")
+        assert client.get(f"/jobs/{job_id}/images/p0-b0").status_code == 404  # bloco de texto
+
+    def test_download_name_is_readable_by_the_browser(self, client: TestClient) -> None:
+        response = client.options(
+            "/jobs/x/export",
+            headers={"Origin": "http://localhost:3000", "Access-Control-Request-Method": "GET"},
+        )
+        assert response.status_code == 200
+        exposed = client.get("/health", headers={"Origin": "http://localhost:3000"}).headers
+        assert "content-disposition" in exposed.get("access-control-expose-headers", "").lower()
 
     def test_unknown_word_crop_is_not_found(
         self, client: TestClient, store: JobStore, settings: Settings
@@ -295,21 +340,32 @@ class TestReview:
         word = saved.pages[0].blocks[0].words[0]
         assert (word.text, word.status) == ("SILVA", WordStatus.EDITED)
 
-    def test_unknown_word_or_empty_text_is_rejected(
+    def test_unknown_word_is_rejected(
         self, client: TestClient, store: JobStore, settings: Settings
     ) -> None:
         job_id = client.post("/jobs", files={"file": ("a.png", png_bytes())}).json()["id"]
         finish_with_document(store, settings, job_id)
 
         unknown = client.patch(f"/jobs/{job_id}/result", json={"words": [{"id": "x", "text": "a"}]})
-        empty = client.patch(
-            f"/jobs/{job_id}/result", json={"words": [{"id": "p0-w0", "text": " "}]}
-        )
 
         assert unknown.status_code == 404
-        assert empty.status_code == 422
         word = Document.model_validate(client.get(f"/jobs/{job_id}/result").json())
         assert word.pages[0].blocks[0].words[0].text == "SlLVA"
+
+    def test_empty_choice_means_there_is_no_word(
+        self, client: TestClient, store: JobStore, settings: Settings
+    ) -> None:
+        # Alternativa vazia: um leitor viu "palavra" onde o outro não viu nada (ex.: sujeira).
+        job_id = client.post("/jobs", files={"file": ("a.png", png_bytes())}).json()["id"]
+        finish_with_document(store, settings, job_id)
+
+        response = client.patch(
+            f"/jobs/{job_id}/result", json={"words": [{"id": "p0-w0", "text": "  "}]}
+        )
+
+        assert response.status_code == 200
+        word = Document.model_validate(response.json()).pages[0].blocks[0].words[0]
+        assert (word.text, word.status) == ("", WordStatus.EDITED)
 
 
 class TestExport:

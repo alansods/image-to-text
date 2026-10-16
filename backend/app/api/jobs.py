@@ -112,14 +112,30 @@ def get_word_crop(job_id: str, word_id: str, settings: SettingsDep, store: Store
             for word in block.all_words():
                 if word.id == word_id:
                     with Image.open(files.page_image(page.index)) as image:
-                        pixels = np.asarray(image.convert("L"))
+                        pixels = np.asarray(image.convert("RGB"))
                     return Response(png_bytes(word_crop(pixels, word.bbox)), media_type="image/png")
+    raise ApiError(404, ErrorCode.NOT_FOUND)
+
+
+@router.get("/{job_id}/images/{block_id}")
+def get_block_image(
+    job_id: str, block_id: str, settings: SettingsDep, store: StoreDep
+) -> FileResponse:
+    """Recorte do original de uma figura/fórmula (logotipo, assinatura…), para a tela."""
+    document, files = _done_document(job_id, settings, store)
+    for page in document.pages:
+        for block in page.blocks:
+            if block.id == block_id and block.image_ref is not None:
+                path = (files.dir / block.image_ref).resolve()
+                if path.is_file() and path.is_relative_to(files.dir.resolve()):
+                    return FileResponse(path, media_type="image/png")
     raise ApiError(404, ErrorCode.NOT_FOUND)
 
 
 class ReviewedWord(BaseModel):
     id: str
-    text: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=200)]
+    # Vazio = "não há palavra aqui" (alternativa vazia escolhida na conferência).
+    text: Annotated[str, StringConstraints(strip_whitespace=True, max_length=200)]
 
 
 class Review(BaseModel):

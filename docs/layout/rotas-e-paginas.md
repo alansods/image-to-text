@@ -91,7 +91,8 @@ Coluna central (máx. 760 px):
 | Convertendo | `GET /jobs/{id}` (polling 1,5 s) | Estado e percentual |
 | Convertendo, Resultado | `DELETE /jobs/{id}` | Cancelar / Converter outro / logotipo |
 | Resultado | `GET /jobs/{id}/result` | Páginas, blocos, palavras, alternativas |
-| Resultado | `GET /jobs/{id}/crops/{word_id}` | Recorte para o quadro de conferência |
+| Resultado | `GET /jobs/{id}/crops/{word_id}` | Recorte para o quadro de conferência (palavra contornada em âmbar) |
+| Resultado | `GET /jobs/{id}/images/{block_id}` | Imagem do original de uma figura (logotipo, assinatura, capa) nas folhas |
 | Resultado | `PATCH /jobs/{id}/result` | Gravar palavras conferidas |
 | Resultado | `GET /jobs/{id}/export?fmt=docx\|pdf` | Baixar Word ou PDF |
 
@@ -100,9 +101,10 @@ Coluna central (máx. 760 px):
 - `SiteHeader` (logotipo + `LanguageToggle`), `SiteFooter`
 - `UploadDropzone` (clique, arrastar, colar, câmera no celular)
 - `ConvertingProgress`
-- `ResultToolbar` (`ReviewGate` ↔ `ResultActions`)
-- `DocumentPages` → `PageSheet` → blocos (`TextBlock`, `ListBlock`, `TableBlock`, `ImageBlock`)
-- `UncertainWord`, `WordCheckPopover` / `WordCheckSheet`, `AlternativeOption` (diferença por caractere)
+- `ResultView` (aviso de qualidade, `ReviewGate` ↔ ações, documento)
+- `DocumentPages` → `PageSheet` → `BlockView` (texto, lista, tabela, imagem)
+- `WordCheck` (popover no desktop, painel inferior no celular; opções com diferença por caractere)
+- Implementação: `components/{site,upload,progress,result,app}/`, `lib/{api,i18n,document,sheet,files}`
 
 ## 9. Fora do layout (MVP)
 

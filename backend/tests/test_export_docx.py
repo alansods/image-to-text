@@ -133,3 +133,17 @@ def test_table_columns_keep_their_proportions(tmp_path: Path) -> None:
     assert row[1].width > 3 * row[0].width
     grid = word_table._tbl.tblGrid.findall(qn("w:gridCol"))
     assert int(grid[1].get(qn("w:w"))) > 3 * int(grid[0].get(qn("w:w")))
+
+
+def test_removed_words_leave_no_gap(tmp_path: Path) -> None:
+    document = sample_document(tmp_path)
+    page = document.pages[0]
+    body = next(b for b in page.blocks if b.id == "p0-b3")
+    words = [w.model_copy(update={"text": ""}) if w.text == "declara" else w for w in body.words]
+    blocks = [b.model_copy(update={"words": words}) if b is body else b for b in page.blocks]
+    document.pages[0] = page.model_copy(update={"blocks": blocks})
+    out = tmp_path / "t.docx"
+    build_docx(document, tmp_path, out)
+
+    texts = [p.text for p in docx.Document(str(out)).paragraphs]
+    assert "O CONTRATANTE" in texts

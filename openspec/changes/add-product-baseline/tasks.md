@@ -66,21 +66,21 @@
 
 ## 9. Frontend — moldura e envio (specs site-interface, file-upload)
 
-- [ ] 9.1 Layout base: barra com logotipo e seletor PT | EN, rodapé, tema claro, 404, dicionários pt/en com idioma inicial do navegador
-- [ ] 9.2 Tela de envio: escolher arquivo, arrastar, colar, "Tirar foto" no celular, HEIC → JPG no navegador, validações e mensagens
-- [ ] 9.3 Tela de progresso: "Lendo seu documento…", nome do arquivo, percentual, "Cancelar", falhas e retorno ao envio
+- [x] 9.1 Layout base: barra com logotipo e seletor PT | EN, rodapé, tema claro, 404, dicionários pt/en com idioma inicial do navegador
+- [x] 9.2 Tela de envio: escolher arquivo, arrastar, colar, "Tirar foto" no celular, HEIC → JPG no navegador, validações e mensagens
+- [x] 9.3 Tela de progresso: "Lendo seu documento…", nome do arquivo, percentual, "Cancelar", falhas e retorno ao envio
 
 ## 10. Frontend — resultado e conferência (specs review-editor, document-export)
 
-- [ ] 10.1 Documento em folhas por página com "Página N de T", alinhamento, ênfase, listas, colunas, tabelas e imagens
-- [ ] 10.2 Destaque das dúvidas (âmbar + sublinhado ondulado), aviso "Confira N palavras antes de baixar" e "Conferir próxima"
-- [ ] 10.3 Quadro de conferência (popover / bottom sheet): recorte, alternativas monoespaçadas com diferença destacada, "Ou digite a correta", Esc para fechar
-- [ ] 10.4 Resolver e avançar para a próxima dúvida atravessando páginas; envio das escolhas ao servidor
-- [ ] 10.6 Aviso de baixa qualidade acima das folhas, com as páginas afetadas, sem bloquear cópia nem download
-- [ ] 10.5 "Tudo conferido" com "Copiar texto" (→ "Copiado"), "Baixar Word" e "Baixar PDF"; "Converter outro" e logotipo apagando a conversão
+- [x] 10.1 Documento em folhas por página com "Página N de T", alinhamento, ênfase, listas, colunas, tabelas e imagens
+- [x] 10.2 Destaque das dúvidas (âmbar + sublinhado ondulado), aviso "Confira N palavras antes de baixar" e "Conferir próxima"
+- [x] 10.3 Quadro de conferência (popover / bottom sheet): recorte, alternativas monoespaçadas com diferença destacada, "Ou digite a correta", Esc para fechar
+- [x] 10.4 Resolver e avançar para a próxima dúvida atravessando páginas; envio das escolhas ao servidor
+- [x] 10.6 Aviso de baixa qualidade acima das folhas, com as páginas afetadas, sem bloquear cópia nem download
+- [x] 10.5 "Tudo conferido" com "Copiar texto" (→ "Copiado"), "Baixar Word" e "Baixar PDF"; "Converter outro" e logotipo apagando a conversão
 
 ## 11. Deploy e verificação final
 
 - [ ] 11.1 Deploy do frontend na Vercel e do backend no Hugging Face Spaces (supervisord: api + worker + redis)
-- [ ] 11.2 Teste E2E (Playwright) do fluxo enviar → progresso → conferir dúvidas → baixar Word e PDF, em desktop e celular, em PT e EN
-- [ ] 11.3 Rodar `pytest`, `ruff check .` e `mypy app` no backend; `npm test`, `npm run lint` e `npx tsc --noEmit` no frontend
+- [x] 11.2 Teste E2E (Playwright) do fluxo enviar → progresso → conferir dúvidas → baixar Word e PDF, em desktop e celular, em PT e EN
+- [x] 11.3 Rodar `pytest`, `ruff check .` e `mypy app` no backend; `npm test`, `npm run lint` e `npx tsc --noEmit` no frontend

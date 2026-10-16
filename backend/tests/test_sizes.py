@@ -44,3 +44,15 @@ def test_document_without_paragraphs_keeps_sizes() -> None:
     document = Document(id="d", source_file="a.png", pages=[page])
 
     assert normalize_sizes(document).pages[0].blocks[0].rel_size == 1.5
+
+
+def test_small_variations_around_the_body_are_the_body_size() -> None:
+    # Altura de palavra varia ±10% entre parágrafos do mesmo corpo (acentos, maiúsculas).
+    blocks = [
+        block(f"p{i}", i, h, 1.0, BlockType.PARAGRAPH) for i, h in enumerate([46, 49, 51, 43, 46])
+    ]
+    page = Page(index=0, width=2480, height=3508, page_size=A4, image_ref="pages/0.png",
+                blocks=blocks)  # fmt: skip
+    result = normalize_sizes(Document(id="d", source_file="a.pdf", pages=[page]))
+
+    assert {b.rel_size for b in result.pages[0].blocks} == {1.0}

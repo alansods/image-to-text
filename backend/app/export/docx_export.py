@@ -77,6 +77,8 @@ class _Writer:
         """Palavras seguidas com a mesma ênfase viram um só trecho (run)."""
         groups: list[tuple[bool, bool, list[str]]] = []
         for word in words:
+            if not word.text:
+                continue  # palavra removida na conferência
             style = (word.bold, word.italic)
             if groups and groups[-1][:2] == style:
                 groups[-1][2].append(word.text)

@@ -16,6 +16,8 @@ def create_app() -> FastAPI:
         allow_origins=settings.cors_origins,
         allow_methods=["GET", "POST", "PATCH", "DELETE"],
         allow_headers=["*"],
+        # O navegador só lê o nome do arquivo baixado se o cabeçalho for exposto.
+        expose_headers=["Content-Disposition"],
     )
 
     application.add_exception_handler(ApiError, api_error_handler)
