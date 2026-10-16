@@ -19,11 +19,19 @@ O sistema SHALL atribuir a cada bloco uma posição na ordem de leitura natural 
 - **THEN** a página é registrada com 2 colunas e todos os blocos da coluna esquerda vêm antes dos da coluna direita na ordem de leitura
 
 ### Requirement: Alinhamento e tamanho relativo
-Para cada bloco de texto o sistema SHALL registrar o alinhamento (esquerda, centro, direita, justificado) e o tamanho relativo da letra em relação ao texto principal da página.
+Para cada bloco de texto o sistema SHALL registrar o alinhamento (esquerda, centro, direita, justificado), o tamanho da letra em pontos, medido no original, e o tamanho relativo em relação ao texto principal do documento.
 
 #### Scenario: Título centralizado
 - **WHEN** uma página tem um título centralizado em letra maior acima de parágrafos justificados
 - **THEN** o bloco título é registrado como centralizado e maior, e os parágrafos como justificados
+
+#### Scenario: Mesmo corpo, palavras diferentes
+- **WHEN** dois parágrafos com a mesma fonte de 11 pt têm, um, palavras com letras como "p" e "g" e, outro, títulos em maiúsculas
+- **THEN** os dois são registrados com tamanho de cerca de 11 pt
+
+#### Scenario: Sujeira do scanner
+- **WHEN** há um ponto de sujeira menor que uma letra no topo da página
+- **THEN** nenhum bloco de texto é criado para ele
 
 ### Requirement: Elementos não-texto preservados
 O sistema MUST classificar capas, figuras, fotos, logotipos, ilustrações, gráficos, assinaturas e carimbos como blocos "figura" e guardar o recorte do original de cada um, com sua caixa; nenhum desses elementos pode ser descartado.
@@ -31,6 +39,14 @@ O sistema MUST classificar capas, figuras, fotos, logotipos, ilustrações, grá
 #### Scenario: Documento com logo e assinatura
 - **WHEN** uma página com logotipo no topo e assinatura no fim é processada
 - **THEN** o resultado contém dois blocos "figura" com seus recortes, nas posições de leitura correspondentes
+
+#### Scenario: Assinatura e rubrica sobre a página
+- **WHEN** uma página tem uma rubrica no canto e uma assinatura cursiva que o detector marcou como texto
+- **THEN** ambas entram como blocos "figura" com o recorte do original e não geram palavras nem dúvidas
+
+#### Scenario: Preenchimento à mão
+- **WHEN** um campo "Nome:" foi preenchido à mão com letra cursiva que não pode ser lida com segurança
+- **THEN** a região entra como figura, preservando a escrita do original, sem gerar dúvidas
 
 #### Scenario: Figura com legenda
 - **WHEN** uma figura possui legenda em texto abaixo dela

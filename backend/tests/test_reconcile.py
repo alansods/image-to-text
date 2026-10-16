@@ -15,8 +15,11 @@ def doctr(text: str, x: float, y: float = 0, w: float = 80, conf: float = 0.97) 
     return ReadWord(text, BBox(x=x, y=y, w=w, h=20), conf, ReadingSource.DOCTR)
 
 
-def no_reread(bbox: BBox) -> tuple[str, str]:
-    return ("", "x")
+Snippet = tuple[str, float]
+
+
+def no_reread(bbox: BBox) -> tuple[Snippet, Snippet]:
+    return ("", 0.0), ("x", 0.95)
 
 
 class TestAgreement:
@@ -120,7 +123,7 @@ class TestAgreement:
             [doctr("m", 0, conf=0.8)],
             BLIND,
             "b0",
-            lambda b: ("n°", "nº"),
+            lambda b: (("n°", 0.95), ("nº", 0.95)),
         )
         assert (word.text, word.resolved_by) == ("nº", ResolvedBy.REREAD)
 
@@ -156,9 +159,9 @@ class TestResolution:
     def test_resolved_by_reread(self) -> None:
         seen: list[BBox] = []
 
-        def reread(bbox: BBox) -> tuple[str, str]:
+        def reread(bbox: BBox) -> tuple[Snippet, Snippet]:
             seen.append(bbox)
-            return ("Silva", "Silva")
+            return ("Silva", 0.95), ("Silva", 0.95)
 
         [word] = reconcile_block(
             [paddle("Silva", 0, conf=0.90)],
@@ -173,6 +176,51 @@ class TestResolution:
             ResolvedBy.REREAD,
         )
         assert seen == [BBox(x=0, y=0, w=80, h=20)]
+
+    def test_confident_primary_reread_wins_when_the_secondary_cannot_read(self) -> None:
+        # Título sublinhado: o segundo leitor não vê a palavra e, na releitura, lê "_".
+        [word] = reconcile_block(
+            [paddle("QUARTA", 0, conf=0.84)],
+            [],
+            BLIND,
+            "b0",
+            lambda b: (("QUARTA", 0.99), ("_", 0.18)),
+        )
+        assert (word.text, word.status, word.resolved_by) == (
+            "QUARTA",
+            WordStatus.RESOLVED,
+            ResolvedBy.REREAD,
+        )
+
+    def test_trailing_punctuation_glued_by_an_underline_is_dropped_on_reread(self) -> None:
+        [word] = reconcile_block(
+            [paddle("CLÁUSULA.", 0, conf=0.84)],
+            [],
+            BLIND,
+            "b0",
+            lambda b: (("CLÁUSULA", 0.99), ("_", 0.18)),
+        )
+        assert (word.text, word.resolved_by) == ("CLÁUSULA", ResolvedBy.REREAD)
+
+    def test_both_readers_confident_and_disagreeing_is_still_a_doubt(self) -> None:
+        [word] = reconcile_block(
+            [paddle("Silva", 0, conf=0.85)],
+            [doctr("Sllva", 0, conf=0.84)],
+            BLIND,
+            "b0",
+            lambda b: (("Silva", 0.99), ("Sllva", 0.95)),
+        )
+        assert word.status is WordStatus.UNCERTAIN
+
+    def test_confident_reread_that_changes_the_word_is_not_enough(self) -> None:
+        [word] = reconcile_block(
+            [paddle("Silva", 0, conf=0.85)],
+            [],
+            BLIND,
+            "b0",
+            lambda b: (("Silvia", 0.99), ("_", 0.1)),
+        )
+        assert word.status is WordStatus.UNCERTAIN
 
     def test_without_arbiter_divergence_stays_uncertain_with_best_reading(self) -> None:
         [word] = reconcile_block(
@@ -254,8 +302,9 @@ class TestUnpairedWords:
 
 
 def test_words_come_out_in_reading_order() -> None:
-    primary = [paddle("três", 0, y=40), paddle("dois", 100, y=1), paddle("um", 0, y=0)]
-    secondary = [doctr("um", 0, y=0), doctr("três", 0, y=41), doctr("dois", 100, y=2)]
+    # O principal lê linha a linha; a ordem do segundo leitor não importa.
+    primary = [paddle("um", 0, y=0), paddle("dois", 100, y=1), paddle("três", 0, y=40)]
+    secondary = [doctr("três", 0, y=41), doctr("dois", 100, y=2), doctr("um", 0, y=0)]
     words = reconcile_block(primary, secondary, BLIND, "b0")
     assert [w.text for w in words] == ["um", "dois", "três"]
     assert [w.id for w in words] == ["b0w0", "b0w1", "b0w2"]
@@ -267,3 +316,60 @@ def test_accepted_words_keep_both_source_readings() -> None:
         ("1ª", ReadingSource.PADDLE),
         ("13", ReadingSource.DOCTR),
     ]
+
+
+def test_curved_line_keeps_the_primary_reading_order() -> None:
+    # A 1ª linha sobe para a direita (papel curvo no scanner); a 2ª começa logo abaixo.
+    first = [
+        paddle("a", 0, y=130),
+        paddle("b", 100, y=115),
+        paddle("c", 200, y=100),
+        paddle("d", 300, y=85),
+    ]
+    second = [paddle("e", 0, y=160), paddle("f", 100, y=150)]
+    words = reconcile_block(
+        first + second,
+        [doctr(w.text, w.bbox.x, y=w.bbox.y) for w in first + second] + [doctr("g", 200, y=150)],
+        BLIND,
+        "b0",
+    )
+    assert [w.text for w in words] == ["a", "b", "c", "d", "e", "f", "g"]
+
+
+class TestUnderlinedTitles:
+    """Títulos sublinhados: o sublinhado atrapalha um leitor de cada vez (D18)."""
+
+    def test_reread_agreement_ignores_a_trailing_dash_from_the_underline(self) -> None:
+        [word] = reconcile_block(
+            [],
+            [doctr("QUARTA", 0, conf=0.81)],
+            BLIND,
+            "b0",
+            lambda b: (("QUARTA", 0.99), ("QUARTA-", 0.81)),
+        )
+        assert (word.text, word.resolved_by) == ("QUARTA", ResolvedBy.REREAD)
+
+    def test_confident_primary_reread_confirms_what_only_the_secondary_saw(self) -> None:
+        [word] = reconcile_block(
+            [],
+            [doctr("CLÁUSULA.", 0, conf=0.8)],
+            BLIND,
+            "b0",
+            lambda b: (("CLÁUSULA", 0.99), ("_", 0.17)),
+        )
+        assert (word.text, word.resolved_by) == ("CLÁUSULA", ResolvedBy.REREAD)
+
+    def test_lone_underline_piece_is_not_a_word(self) -> None:
+        words = reconcile_block(
+            [paddle("CLÁUSULA", 0), paddle("QUARTA", 200)],
+            [doctr("CLÁUSULA", 0), doctr("_", 100, w=20), doctr("QUARTA", 200)],
+            BLIND,
+            "b0",
+            lambda b: (("=", 0.13), ("_", 0.74)),
+        )
+        assert [w.text for w in words] == ["CLÁUSULA", "QUARTA"]
+
+    def test_underline_confirmed_by_both_readers_is_kept(self) -> None:
+        # Linha de preencher num formulário ("Nome: ______") é conteúdo.
+        words = reconcile_block([paddle("______", 0)], [doctr("______", 0)], BLIND, "b0")
+        assert [w.text for w in words] == ["______"]

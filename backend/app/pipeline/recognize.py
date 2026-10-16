@@ -20,6 +20,7 @@ from app.pipeline.layout import (
     LayoutBlock,
     PageLayout,
     group_lists,
+    looks_handwritten,
     relative_size,
     size_for_text,
 )
@@ -27,10 +28,15 @@ from app.pipeline.preprocess import Preprocessed, median_char_height
 from app.pipeline.quality import TEXT_TYPES, image_issues, reading_issues
 from app.pipeline.reading import Gray, Reader
 from app.pipeline.reconcile import reconcile_block
+from app.pipeline.sizes import estimate_font_pt
 from app.pipeline.tables import assign_words, table_structure, trustworthy
 
 # Tabela só vira imagem quando a estrutura não é confiável (spec table-extraction).
 IMAGE_TYPES = frozenset({BlockType.FIGURE, BlockType.FORMULA, BlockType.TABLE})
+# Principal com menos da metade das palavras do segundo leitor: relê no modo sensível.
+SENSITIVE_RATIO = 0.5
+# Largura A4 em pontos: só para chamadas sem o tamanho de folha (testes).
+PAGE_WIDTH_PT = 595.0
 # Margem em volta do bloco para não cortar acentos e descendentes.
 BLOCK_MARGIN = 8
 # Releitura (D7): recorte da palavra com margem proporcional à altura, ampliado 2 vezes.
@@ -89,12 +95,15 @@ def _read_words(normalized: Gray, region: BBox, word_prefix: str, readers: Reade
     crop, origin = _block_crop(normalized, region)
     primary = readers.primary.read_block(crop, origin)
     secondary = readers.secondary.read_block(crop, origin)
+    if len(primary) < SENSITIVE_RATIO * len(secondary):
+        # O principal viu bem menos que o segundo: relê com o detector mais sensível (D6).
+        primary = readers.primary.read_block(crop, origin, sensitive=True)
     known = set(readers.secondary.vocab)
     blind = frozenset(c for w in primary for c in w.text if c not in known and not c.isspace())
 
-    def reread(box: BBox) -> tuple[str, str]:
+    def reread(box: BBox) -> tuple[tuple[str, float], tuple[str, float]]:
         snippet = _word_crop(normalized, box)
-        return readers.primary.read_snippet(snippet)[0], readers.secondary.read_snippet(snippet)[0]
+        return readers.primary.read_snippet(snippet), readers.secondary.read_snippet(snippet)
 
     arbiter = None
     if readers.arbiter is not None:
@@ -118,11 +127,18 @@ def _illegible(word_id: str, box: BBox) -> Word:
 
 
 def _read_text_block(
-    normalized: Gray, layout_block: LayoutBlock, block_id: str, readers: Readers
+    normalized: Gray,
+    layout_block: LayoutBlock,
+    block_id: str,
+    readers: Readers,
+    points_per_pixel: float | None = None,
 ) -> Block:
     words = _read_words(normalized, layout_block.bbox, block_id, readers)
     if not words:
         words = [_illegible(f"{block_id}w0", layout_block.bbox)]
+    page_scale = (
+        PAGE_WIDTH_PT / normalized.shape[1] if points_per_pixel is None else points_per_pixel
+    )
     return Block(
         id=block_id,
         type=layout_block.type,
@@ -131,6 +147,7 @@ def _read_text_block(
         column=layout_block.column,
         align=layout_block.align,
         rel_size=size_for_text(layout_block.rel_size, " ".join(w.text for w in words)),
+        font_pt=estimate_font_pt(words, normalized, page_scale),
         words=words,
         confidence=mean(w.confidence for w in words),
     )
@@ -159,6 +176,20 @@ def _read_table(
         cells=filled,
         confidence=mean(w.confidence for w in words) if words else layout_block.score,
     )
+
+
+# Metade ou mais das palavras em dúvida + tinta sem forma de letra impressa = escrita à mão.
+HANDWRITTEN_DOUBTS = 0.5
+
+
+def _handwritten(pre: Preprocessed, block: Block, char_height: float) -> bool:
+    words = block.words
+    if not words:
+        return False
+    doubtful = sum(w.status is WordStatus.UNCERTAIN for w in words) / len(words)
+    b = block.bbox
+    crop = _crop(pre.normalized, b.x, b.y, b.x + b.w, b.y + b.h)
+    return doubtful >= HANDWRITTEN_DOUBTS and looks_handwritten(crop, char_height)
 
 
 def _reading_sort(words: list[Word]) -> list[Word]:
@@ -259,6 +290,7 @@ def recognize_page(
     readers: Readers,
 ) -> ProcessedPage:
     height, width = pre.normalized.shape[:2]
+    char_height = median_char_height(pre.normalized) if not pre.blank else 0.0
     blocks: list[Block] = []
     crops: dict[str, Image] = {}
     for layout_block in layout.blocks if layout is not None and not pre.blank else []:
@@ -286,10 +318,26 @@ def recognize_page(
                 )
             )
         else:
-            blocks.append(_read_text_block(pre.normalized, layout_block, block_id, readers))
+            block = _read_text_block(
+                pre.normalized, layout_block, block_id, readers, page.page_size.w_pt / width
+            )
+            if _handwritten(pre, block, char_height):
+                # Assinatura, rubrica ou preenchimento à mão: fica a imagem do original (D18).
+                box = block.bbox
+                crops[block_id] = _crop(pre.aligned, box.x, box.y, box.x + box.w, box.y + box.h)
+                block = Block(
+                    id=block_id,
+                    type=BlockType.FIGURE,
+                    bbox=box,
+                    order=block.order,
+                    column=block.column,
+                    align=block.align,
+                    image_ref=f"crops/{block_id}.png",
+                    confidence=layout_block.score,
+                )
+            blocks.append(block)
 
     if blocks:
-        char_height = median_char_height(pre.normalized)
         blocks = [_fill_missing_lines(pre.normalized, b, char_height, readers) for b in blocks]
         extra, extra_crops = _orphan_blocks(pre, blocks, char_height, id_prefix, readers)
         blocks = _insert_in_reading_order(blocks, extra)

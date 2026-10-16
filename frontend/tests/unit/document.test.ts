@@ -21,6 +21,7 @@ function word(id: string, text: string, status: Word["status"] = "accepted", alt
     alternatives: alts.map((t, i) => ({ text: t, confidence: 0.9 - i * 0.1, source: "paddle" })),
     status,
     resolved_by: null,
+    keep_original: false,
   };
 }
 
@@ -33,6 +34,7 @@ function block(id: string, order: number, words: Word[], extra: Partial<Block> =
     column: 0,
     align: "left",
     rel_size: 1,
+    font_pt: null,
     words,
     cells: [],
     items: [],
@@ -94,8 +96,14 @@ describe("palavras em dúvida", () => {
     expect(nextUncertain(sample, null)?.id).toBe("w1");
   });
 
+  it("manter como no original guarda o texto lido e marca a palavra", () => {
+    const kept = applyEdit(sample, "w4", { keep_original: true });
+    const found = kept.pages[0].blocks[0].words[1];
+    expect([found.text, found.status, found.keep_original]).toEqual(["SlLVA", "edited", true]);
+  });
+
   it("conferir uma palavra a torna editada com o novo texto", () => {
-    const edited = applyEdit(sample, "w4", "SILVA");
+    const edited = applyEdit(sample, "w4", { text: "SILVA" });
     const found = edited.pages[0].blocks[0].words[1];
 
     expect([found.text, found.status]).toEqual(["SILVA", "edited"]);
@@ -112,7 +120,7 @@ describe("texto para copiar", () => {
   });
 
   it("palavra removida na conferência não deixa espaço duplo", () => {
-    const removed = applyEdit(sample, "w2", "");
+    const removed = applyEdit(sample, "w2", { text: "" });
     expect(documentText(removed).split("\n\n")[0]).toBe("Primeiro");
   });
 });

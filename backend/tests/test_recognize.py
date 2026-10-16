@@ -36,7 +36,9 @@ class FakeReader:
         self.snippet_shapes: list[tuple[int, ...]] = []
         self.vocab = vocab
 
-    def read_block(self, image: Gray, origin: tuple[float, float]) -> list[ReadWord]:
+    def read_block(
+        self, image: Gray, origin: tuple[float, float], sensitive: bool = False
+    ) -> list[ReadWord]:
         ox, oy = origin
         h, w = image.shape[:2]
         return [
@@ -216,3 +218,34 @@ def test_blank_page_has_no_quality_issues() -> None:
     result = recognize_page(preprocessed(blank=True), None, page_input(), "p2-", readers([], []))
 
     assert result.page.quality_issues == []
+
+
+class ShyPrimary(FakeReader):
+    """Leitor principal que só enxerga o bloco no modo sensível (escaneamento difícil)."""
+
+    def __init__(self, words: list[tuple[str, float, float, float]]) -> None:
+        super().__init__(ReadingSource.PADDLE, words)
+        self.calls: list[bool] = []
+
+    def read_block(
+        self, image: Gray, origin: tuple[float, float], sensitive: bool = False
+    ) -> list[ReadWord]:
+        self.calls.append(sensitive)
+        return super().read_block(image, origin) if sensitive else []
+
+
+def test_primary_rereads_the_block_sensitively_when_it_sees_much_less_than_the_secondary() -> None:
+    words = [("Todos", 110, 110, 0.97), ("os", 200, 110, 0.97), ("encargos", 260, 110, 0.97)]
+    primary = ShyPrimary(words)
+    rs = Readers(primary=primary, secondary=FakeReader(ReadingSource.DOCTR, words, vocab="abc"))
+    layout = PageLayout([block(BlockType.PARAGRAPH, 0, 100, 100)], columns=1)
+
+    result = recognize_page(preprocessed(), layout, page_input(), "p2-", rs)
+
+    assert primary.calls == [False, True]
+    paragraph = result.page.blocks[0]
+    assert [(w.text, w.status) for w in paragraph.words] == [
+        ("Todos", WordStatus.ACCEPTED),
+        ("os", WordStatus.ACCEPTED),
+        ("encargos", WordStatus.ACCEPTED),
+    ]

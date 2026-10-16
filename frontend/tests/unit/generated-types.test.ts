@@ -39,6 +39,7 @@ describe("tipos gerados do formato interno", () => {
               column: 0,
               align: "justify",
               rel_size: 1,
+              font_pt: null,
               words: [
                 {
                   id: "w1",
@@ -53,6 +54,7 @@ describe("tipos gerados do formato interno", () => {
                   ],
                   status: "uncertain",
                   resolved_by: null,
+                  keep_original: false,
                 },
               ],
               cells: [],

@@ -15,8 +15,8 @@ from app.pipeline.reading import Gray
 
 # Margem em volta dos blocos já conhecidos (bordas e acentos não são órfãos).
 BLOCK_MARGIN = 10
-# Mancha menor que isto (em alturas de letra), nas duas direções, é poeira.
-MIN_CONTENT = 0.4
+# Mancha menor que isto (em alturas de letra), nas duas direções, é poeira ou risco do scanner.
+MIN_CONTENT = 0.6
 # Manchas a menos de uma altura de letra uma da outra pertencem à mesma região.
 GROUP_DISTANCE = 1.0
 # Faixa de linha: manchas com altura de letra (0,5 a 2,5 alturas típicas).

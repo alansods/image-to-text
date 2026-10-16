@@ -45,7 +45,7 @@ Word e PDF MUST ter o mesmo número de páginas do original, com o mesmo tamanho
 - **THEN** o documento baixado tem 1 página A4 em paisagem
 
 ### Requirement: Organização e formatação
-Word e PDF SHALL preservar a ordem de leitura; títulos como títulos, com tamanho relativo maior que o texto; o alinhamento de cada bloco (esquerda, centro, direita, justificado); negrito e itálico por palavra; listas com os marcadores originais e níveis; texto em múltiplas colunas como colunas; cabeçalhos e rodapés repetidos de página; e tabelas como tabelas reais, com células mescladas.
+Word e PDF SHALL preservar a ordem de leitura; títulos como títulos, com tamanho relativo maior que o texto; o tamanho da letra de cada bloco medido no original; o alinhamento de cada bloco (esquerda, centro, direita, justificado); negrito e itálico por palavra; listas com os marcadores originais e níveis; texto em múltiplas colunas como colunas; cabeçalhos e rodapés repetidos de página; e tabelas como tabelas reais, com células mescladas.
 
 #### Scenario: Título centralizado
 - **WHEN** o original tem um título centralizado acima de parágrafos justificados

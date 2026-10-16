@@ -94,6 +94,18 @@
           "exclusiveMinimum": 0,
           "type": "number"
         },
+        "font_pt": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "words": {
           "items": {
             "$ref": "#/$defs/Word"
@@ -137,6 +149,7 @@
         "column",
         "align",
         "rel_size",
+        "font_pt",
         "words",
         "cells",
         "items",
@@ -385,6 +398,10 @@
             }
           ],
           "default": null
+        },
+        "keep_original": {
+          "default": false,
+          "type": "boolean"
         }
       },
       "required": [
@@ -396,7 +413,8 @@
         "italic",
         "alternatives",
         "status",
-        "resolved_by"
+        "resolved_by",
+        "keep_original"
       ],
       "title": "Word",
       "type": "object"

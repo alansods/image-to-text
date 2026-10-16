@@ -23,12 +23,21 @@ from app.pipeline.reading import ReadWord
 # Confiança (spec): a leitura vencedora precisa ser ≥ 0,90 e superar a outra em ≥ 0,15.
 MIN_CONFIDENCE = 0.90
 MIN_MARGIN = 0.15
+# Releitura: o principal sozinho decide se repete a leitura com confiança ≥ 0,97 e o segundo
+# não consegue ler (< 0,90) — ex.: título sublinhado que o docTR lê como "_" (spec).
+SOLO_REREAD = 0.97
+SECOND_FAILED = 0.90
+# Pontuação colada pelo sublinhado no fim da palavra ("CLÁUSULA.") não conta na comparação.
+_TRAILING = ".,;:_-"
+# Pedaço de sublinhado só vira palavra se a releitura do principal o confirmar com isto.
+UNDERLINE_CONFIRM = 0.5
 # Duas caixas se ligam quando a interseção cobre ao menos isto da menor delas.
 MIN_OVERLAP = 0.5
 # Espaço entre palavras: vão de ao menos isto da altura da palavra (menos é palavra partida).
 MIN_SPACE = 0.2
 
-Reread = Callable[[BBox], tuple[str, str]]
+Snippet = tuple[str, float]  # (texto, confiança) de uma releitura
+Reread = Callable[[BBox], tuple[Snippet, Snippet]]
 Arbiter = Callable[[BBox, list[str]], str | None]
 
 _EQUIVALENT = str.maketrans(
@@ -115,6 +124,8 @@ def _union(boxes: Sequence[BBox]) -> BBox:
 class _Unit:
     primary: list[ReadWord]
     secondary: list[ReadWord]
+    # Posição da 1ª palavra do leitor principal na ordem em que ele leu (linha a linha).
+    first: int | None = None
 
     @property
     def bbox(self) -> BBox:
@@ -140,25 +151,40 @@ def _align(primary: Sequence[ReadWord], secondary: Sequence[ReadWord]) -> list[_
     groups: dict[int, _Unit] = {}
     for index, word in enumerate(words):
         unit = groups.setdefault(find(index), _Unit([], []))
-        (unit.primary if index < len(primary) else unit.secondary).append(word)
+        if index < len(primary):
+            unit.primary.append(word)
+            unit.first = index if unit.first is None else min(unit.first, index)
+        else:
+            unit.secondary.append(word)
     for unit in groups.values():
         unit.primary.sort(key=lambda w: w.bbox.x)
         unit.secondary.sort(key=lambda w: w.bbox.x)
     return _in_reading_order(list(groups.values()))
 
 
+def _same_line(a: BBox, b: BBox) -> bool:
+    overlap = min(a.y + a.h, b.y + b.h) - max(a.y, b.y)
+    return overlap > 0.5 * min(a.h, b.h)
+
+
 def _in_reading_order(units: list[_Unit]) -> list[_Unit]:
-    """Linhas de cima para baixo; dentro da linha, da esquerda para a direita."""
-    lines: list[list[_Unit]] = []
-    for unit in sorted(units, key=lambda u: u.bbox.y):
-        center = unit.bbox.y + unit.bbox.h / 2
-        if lines:
-            first = lines[-1][0].bbox
-            if first.y <= center <= first.y + first.h:
-                lines[-1].append(unit)
-                continue
-        lines.append([unit])
-    return [unit for line in lines for unit in sorted(line, key=lambda u: u.bbox.x)]
+    """Na ordem em que o leitor principal leu (ele segue a linha mesmo curva); unidades que só
+    o segundo leitor viu entram logo depois da vizinha à esquerda na mesma linha."""
+    ordered = sorted((u for u in units if u.first is not None), key=lambda u: u.first or 0)
+    for unit in sorted((u for u in units if u.first is None), key=lambda u: (u.bbox.y, u.bbox.x)):
+        box = unit.bbox
+        left = [
+            i
+            for i, other in enumerate(ordered)
+            if _same_line(other.bbox, box) and other.bbox.x < box.x
+        ]
+        if left:
+            position = max(left, key=lambda i: ordered[i].bbox.x) + 1
+        else:
+            below = [i for i, other in enumerate(ordered) if other.bbox.y > box.y]
+            position = min(below) if below else len(ordered)
+        ordered.insert(position, unit)
+    return ordered
 
 
 # ------------------------------------------------------------------ decisão
@@ -199,13 +225,24 @@ def _alternatives(readings: Sequence[_Reading], keep_empty: bool) -> list[Altern
     return result
 
 
+def _trim(text: str) -> str:
+    """Sem a pontuação que um sublinhado cola no fim da palavra ("CLÁUSULA." → "CLÁUSULA")."""
+    return text.rstrip(_TRAILING) or text
+
+
+def _underline_piece(first: "_Reading", second: "_Reading") -> bool:
+    """Só um leitor viu, e o que ele viu são só traços de sublinhado."""
+    seen = [r.text for r in (first, second) if r.text]
+    return len(seen) == 1 and set(seen[0]) <= {"_"}
+
+
 def _decide(
     unit: _Unit,
     blind: frozenset[str],
     word_id: str,
     reread: Reread | None,
     arbiter: Arbiter | None,
-) -> Word:
+) -> Word | None:
     first = _joined(unit.primary, ReadingSource.PADDLE)
     second = _joined(unit.secondary, ReadingSource.DOCTR)
     readings = (first, second)
@@ -232,14 +269,24 @@ def _decide(
     if agreed is not None:
         return word(agreed, max(first.confidence, second.confidence), WordStatus.ACCEPTED)
 
+    again: tuple[Snippet, Snippet] | None = None
+    if reread is not None and _underline_piece(first, second):
+        again = reread(bbox)
+        if again[0][1] < UNDERLINE_CONFIRM:
+            return None  # pedaço de sublinhado que só um leitor viu: formatação, não palavra
+
     best, other = sorted(readings, key=lambda r: r.confidence, reverse=True)
     if best.confidence >= MIN_CONFIDENCE and best.confidence - other.confidence >= MIN_MARGIN:
         return word(best.text, best.confidence, WordStatus.RESOLVED, ResolvedBy.CONFIDENCE)
 
     if reread is not None:
-        again_first, again_second = reread(bbox)
-        if again_first and again_second and matches(again_first, again_second, blind):
-            return word(again_first, best.confidence, WordStatus.RESOLVED, ResolvedBy.REREAD)
+        (again_first, first_conf), (again_second, second_conf) = again or reread(bbox)
+        if again_first and again_second and matches(_trim(again_first), _trim(again_second), blind):
+            return word(_trim(again_first), best.confidence, WordStatus.RESOLVED, ResolvedBy.REREAD)
+        originals = {normalize_for_compare(_trim(r.text)) for r in readings if r.text}
+        repeats = normalize_for_compare(_trim(again_first)) in originals
+        if repeats and first_conf >= SOLO_REREAD and second_conf < SECOND_FAILED:
+            return word(_trim(again_first), first_conf, WordStatus.RESOLVED, ResolvedBy.REREAD)
 
     if arbiter is not None:
         options = [a.text for a in _alternatives(readings, keep_empty=False)]
@@ -269,11 +316,12 @@ def reconcile_block(
     if reread is not None:
         original = reread
 
-        def fixed_reread(box: BBox) -> tuple[str, str]:
-            first, second = original(box)
-            return fix_ordinal(first), fix_ordinal(second)
+        def fixed_reread(box: BBox) -> tuple[Snippet, Snippet]:
+            (first, first_conf), (second, second_conf) = original(box)
+            return (fix_ordinal(first), first_conf), (fix_ordinal(second), second_conf)
 
-    return [
+    decided = [
         _decide(unit, blind, f"{id_prefix}w{index}", fixed_reread, arbiter)
         for index, unit in enumerate(_align(fixed(primary), fixed(secondary)))
     ]
+    return [w for w in decided if w is not None]

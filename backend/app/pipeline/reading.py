@@ -22,8 +22,11 @@ class ReadWord:
 class Reader(Protocol):
     source: ReadingSource
 
-    def read_block(self, image: Gray, origin: tuple[float, float]) -> list[ReadWord]:
-        """Lê um recorte de bloco; `origin` é a posição do recorte na página."""
+    def read_block(
+        self, image: Gray, origin: tuple[float, float], sensitive: bool = False
+    ) -> list[ReadWord]:
+        """Lê um recorte de bloco; `origin` é a posição do recorte na página. `sensitive` aceita
+        linhas detectadas com menos certeza (escaneamentos em que o detector hesita)."""
         ...
 
     def read_snippet(self, image: Gray) -> tuple[str, float]:

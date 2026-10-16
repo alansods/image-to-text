@@ -14,10 +14,16 @@ import cv2
 import numpy as np
 
 from app.models.document import BBox, ReadingSource
+from app.pipeline.preprocess import median_char_height
 from app.pipeline.reading import Gray, ReadWord
 
 DETECTION_MODEL = "PP-OCRv6_medium_det"
 RECOGNITION_MODEL = "PP-OCRv6_medium_rec"
+# Modo sensível: detectar as linhas numa cópia reduzida com letras de ~10 px (a leitura continua
+# na resolução original). Num contrato escaneado real o detector não achou nenhuma das 7 linhas
+# de um parágrafo no tamanho original e achou todas assim; baixar o corte de confiança das caixas
+# também as achava, mas cortando letras (D6).
+SENSITIVE_LETTER_PX = 10
 
 Point = Sequence[float]
 
@@ -103,8 +109,15 @@ def split_words(
 class PaddleReader:
     source = ReadingSource.PADDLE
 
-    def read_block(self, image: Gray, origin: tuple[float, float]) -> list[ReadWord]:
-        result = _ocr().predict(_bgr(image))[0]
+    def read_block(
+        self, image: Gray, origin: tuple[float, float], sensitive: bool = False
+    ) -> list[ReadWord]:
+        options: dict[str, Any] = {}
+        letter = median_char_height(image) if sensitive else 0.0
+        if letter > 0:
+            side = int(max(image.shape[:2]) * SENSITIVE_LETTER_PX / letter)
+            options = {"text_det_limit_side_len": side, "text_det_limit_type": "max"}
+        result = _ocr().predict(_bgr(image), **options)[0]
         words: list[ReadWord] = []
         for text, score, tokens, regions, box in zip(
             result["rec_texts"],

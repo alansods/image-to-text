@@ -147,3 +147,41 @@ def test_removed_words_leave_no_gap(tmp_path: Path) -> None:
 
     texts = [p.text for p in docx.Document(str(out)).paragraphs]
     assert "O CONTRATANTE" in texts
+
+
+def test_word_kept_as_original_is_an_inline_image_in_the_line(tmp_path: Path) -> None:
+    from PIL import Image as PILImage
+
+    document = sample_document(tmp_path)
+    (tmp_path / "pages").mkdir(exist_ok=True)
+    PILImage.new("RGB", (2480, 3508), "white").save(tmp_path / "pages" / "0.png")
+    page = document.pages[0]
+    body = next(b for b in page.blocks if b.id == "p0-b3")
+    words = [
+        w.model_copy(update={"keep_original": True}) if w.text == "declara" else w
+        for w in body.words
+    ]
+    blocks = [b.model_copy(update={"words": words}) if b is body else b for b in page.blocks]
+    document.pages[0] = page.model_copy(update={"blocks": blocks})
+    out = tmp_path / "t.docx"
+    build_docx(document, tmp_path, out)
+
+    word_doc = docx.Document(str(out))
+    paragraph = next(p for p in word_doc.paragraphs if p.text.startswith("O CONTRATANTE"))
+    assert "declara" not in paragraph.text
+    assert paragraph._p.xpath(".//pic:pic")  # imagem dentro do próprio parágrafo
+    assert len(word_doc.inline_shapes) == 4  # as 3 figuras + a palavra
+
+
+def test_measured_font_size_is_used(tmp_path: Path) -> None:
+    document = sample_document(tmp_path)
+    page = document.pages[0]
+    blocks = [b.model_copy(update={"font_pt": 13.5}) if b.id == "p0-b3" else b for b in page.blocks]
+    document.pages[0] = page.model_copy(update={"blocks": blocks})
+    out = tmp_path / "t.docx"
+    build_docx(document, tmp_path, out)
+
+    paragraph = next(
+        p for p in docx.Document(str(out)).paragraphs if p.text.startswith("O CONTRATANTE")
+    )
+    assert paragraph.runs[0].font.size.pt == 13.5

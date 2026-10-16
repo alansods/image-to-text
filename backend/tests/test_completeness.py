@@ -52,6 +52,7 @@ class TestOrphans:
         image = image.copy()
         image[20:22, 20:22] = 0  # poeira
         image[40:43, 2000:2003] = 0
+        image[60:72, 1500:1505] = 0  # risco fino do scanner (5 por 12 px), menor que uma letra
 
         assert orphan_regions(image, [everything], 30) == []
 

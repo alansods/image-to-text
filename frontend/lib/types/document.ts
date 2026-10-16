@@ -44,6 +44,7 @@ export interface Block {
   column: number;
   align: Alignment;
   rel_size: number;
+  font_pt: number | null;
   words: Word[];
   cells: Cell[];
   items: ListItem[];
@@ -69,6 +70,7 @@ export interface Word {
   alternatives: Alternative[];
   status: WordStatus;
   resolved_by: ResolvedBy | null;
+  keep_original: boolean;
 }
 /**
  * Uma leitura possível de uma palavra, mostrada na conferência.

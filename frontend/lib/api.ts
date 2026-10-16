@@ -1,4 +1,5 @@
 // Cliente da API do backend (docs/layout/rotas-e-paginas.md, seção 7).
+import type { Choice } from "@/lib/document";
 import type { UploadError } from "@/lib/i18n";
 import type { Document } from "@/lib/types/document";
 import type { Job } from "@/lib/types/job";
@@ -64,12 +65,16 @@ export async function deleteJob(id: string): Promise<void> {
   await request(`/jobs/${id}`, { method: "DELETE" }).catch(() => undefined);
 }
 
-export async function reviewWord(id: string, wordId: string, text: string): Promise<void> {
+export async function reviewWord(id: string, wordId: string, choice: Choice): Promise<void> {
   await request(`/jobs/${id}/result`, {
     method: "PATCH",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ words: [{ id: wordId, text }] }),
+    body: JSON.stringify({ words: [{ id: wordId, ...choice }] }),
   });
+}
+
+export function wordImageUrl(id: string, wordId: string): string {
+  return `${API_URL}/jobs/${id}/words/${encodeURIComponent(wordId)}/image`;
 }
 
 export function cropUrl(id: string, wordId: string): string {

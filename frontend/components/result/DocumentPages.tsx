@@ -2,7 +2,7 @@
 
 import type { CSSProperties, ReactNode } from "react";
 
-import { imageUrl } from "@/lib/api";
+import { imageUrl, wordImageUrl } from "@/lib/api";
 import { useI18n } from "@/lib/i18n";
 import { bodyFontPt, pageLayout, pageMargins } from "@/lib/sheet";
 import type { Block, Document, Page, Word } from "@/lib/types/document";
@@ -31,16 +31,36 @@ function sizeCqw(pt: number, page: Page): string {
 
 function Words({ words, ctx }: { words: Word[]; ctx: WordProps }) {
   const { t } = useI18n();
-  const visible = words.filter((w) => w.text !== "");
+  const visible = words.filter((w) => w.text !== "" || w.keep_original);
   return (
     <>
       {visible.map((word, index) => {
         const space = index < visible.length - 1 ? " " : "";
         const style = cn(word.bold && "font-semibold", word.italic && "italic");
         if (word.status !== "uncertain") {
+          const edited = word.status === "edited";
+          // Corrigida: verde e sublinhado contínuo, só na tela (nunca no Word/PDF).
+          const mark = edited && "rounded-[3px] bg-success/15 px-0.5 underline decoration-success decoration-[1.5px] underline-offset-4";
+          const content = word.keep_original ? (
+            // eslint-disable-next-line @next/next/no-img-element -- recorte do original servido pela API
+            <img
+              src={wordImageUrl(ctx.jobId, word.id)}
+              alt={word.text}
+              className="inline-block h-[1.15em] w-auto align-[-0.2em]"
+            />
+          ) : (
+            word.text
+          );
           return (
-            <span key={word.id} className={style}>
-              {word.text}
+            <span key={word.id}>
+              <span
+                id={`word-${word.id}`}
+                tabIndex={edited ? -1 : undefined}
+                aria-label={edited ? t.corrected(word.text) : undefined}
+                className={cn(style, mark)}
+              >
+                {content}
+              </span>
               {space}
             </span>
           );
@@ -76,7 +96,7 @@ function Words({ words, ctx }: { words: Word[]; ctx: WordProps }) {
 
 function BlockView({ block, page, base, ctx }: { block: Block; page: Page; base: number; ctx: WordProps }) {
   const { t } = useI18n();
-  const fontSize = sizeCqw(base * block.rel_size, page);
+  const fontSize = sizeCqw(block.font_pt ?? base * block.rel_size, page);
   if (block.image_ref) {
     return (
       <div style={{ textAlign: ALIGN[block.align] }}>

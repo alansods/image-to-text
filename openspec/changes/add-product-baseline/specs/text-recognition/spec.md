@@ -11,6 +11,14 @@ O sistema SHALL ler cada bloco de texto a partir do recorte do bloco na página 
 - **WHEN** um parágrafo de 12 linhas é lido
 - **THEN** o texto reconhecido contém as 12 linhas, na ordem
 
+#### Scenario: Letras grandes no escaneamento
+- **WHEN** um parágrafo de 7 linhas foi escaneado com letras maiores que o habitual
+- **THEN** as 7 linhas são lidas pelos dois mecanismos, na ordem
+
+#### Scenario: Linha levemente curva
+- **WHEN** a primeira linha de um parágrafo sobe para a direita por causa da curvatura do papel no scanner
+- **THEN** as palavras dessa linha saem na ordem em que estão escritas, antes das palavras da linha seguinte
+
 ### Requirement: Palavras com posição e confiança
 Para cada palavra reconhecida o sistema SHALL registrar o texto, a caixa delimitadora na página e uma confiança entre 0 e 1.
 

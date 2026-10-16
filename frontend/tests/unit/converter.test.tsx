@@ -10,7 +10,7 @@ function word(id: string, text: string, status: Word["status"] = "accepted", alt
   return {
     id, text, bbox: { x: 100, y: 100, w: 120, h: 46 }, confidence: 0.9, bold: false, italic: false,
     alternatives: alts.map((t, i) => ({ text: t, confidence: 0.9 - i * 0.1, source: "paddle" as const })),
-    status, resolved_by: null,
+    status, resolved_by: null, keep_original: false,
   };
 }
 
@@ -27,7 +27,7 @@ function documentWith(words: Word[], quality: Document["pages"][0]["quality_issu
         blocks: [
           {
             id: "b0", type: "paragraph", bbox: { x: 100, y: 100, w: 2000, h: 60 }, order: 0, column: 0,
-            align: "left", rel_size: 1, words, cells: [], items: [], image_ref: null, confidence: 0.9,
+            align: "left", rel_size: 1, font_pt: null, words, cells: [], items: [], image_ref: null, confidence: 0.9,
           },
         ],
       },
@@ -220,7 +220,7 @@ describe("conferência", () => {
     expect(doubt.className).toContain("decoration-wavy");
   });
 
-  it("escolher resolve, grava no servidor, diminui o contador e abre a próxima", async () => {
+  it("escolher resolve, grava, fica na palavra corrigida (verde) e só avança com 'Conferir próxima'", async () => {
     serverFinishing(DOUBTS);
     renderApp();
     await upload(pngFile());
@@ -236,9 +236,30 @@ describe("conferência", () => {
     expect(screen.getByText("Confira 1 palavra antes de baixar")).toBeInTheDocument();
     const patch = calls.find((c) => c.init?.method === "PATCH");
     expect(JSON.parse(String(patch?.init?.body))).toEqual({ words: [{ id: "w1", text: "SILVA" }] });
-    expect(screen.getByText("SILVA")).toBeInTheDocument();
+    expect(screen.queryByRole("dialog")).toBeNull();
+    const fixed = screen.getByText("SILVA");
+    expect(fixed.className).toContain("bg-success");
+    expect(document.activeElement).toBe(fixed);
+
+    await userEvent.click(screen.getByRole("button", { name: "Conferir próxima" }));
     const next = await screen.findByRole("dialog", { name: "Qual está certo?" });
     expect(within(next).getByRole("button", { name: "acervo" })).toBeInTheDocument();
+  });
+
+  it("'Manter como no original' mostra o recorte da imagem no lugar da palavra", async () => {
+    serverFinishing(DOUBTS);
+    renderApp();
+    await upload(pngFile());
+    await untilResult();
+
+    await userEvent.click(screen.getByRole("button", { name: "Palavra em dúvida: SlLVA" }));
+    await userEvent.click(await screen.findByRole("button", { name: "Manter como no original" }));
+
+    const patch = calls.find((c) => c.init?.method === "PATCH");
+    expect(JSON.parse(String(patch?.init?.body))).toEqual({ words: [{ id: "w1", keep_original: true }] });
+    const image = screen.getByRole("img", { name: "SlLVA" });
+    expect(image.getAttribute("src")).toContain("/jobs/j1/words/w1/image");
+    expect(screen.getByText("Confira 1 palavra antes de baixar")).toBeInTheDocument();
   });
 
   it("Esc fecha sem resolver", async () => {

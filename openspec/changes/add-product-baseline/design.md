@@ -181,6 +181,16 @@ Depois de lidas todas as páginas, `rel_size` de cada bloco de texto = altura me
 - Passo a passo para o usuário em `docs/deploy.md`.
 - Alternativas: Render/Railway grátis — pouca memória para os modelos (512 MB–1 GB); três Spaces separados (api, worker, redis) — o grátis não tem rede privada entre Spaces.
 
+### D18. Ajustes com um contrato real escaneado (teste do usuário)
+O primeiro teste com um documento real (contrato de 5 páginas escaneado, com rubricas, assinaturas e preenchimento à mão) mostrou problemas que o conjunto sintético não tinha:
+- **Detector do PaddleOCR sem nenhuma linha** em parágrafos inteiros (nada com o corte padrão; detecta tudo numa cópia reduzida). Quando o PaddleOCR vê menos da metade das palavras do docTR num bloco, relê o bloco no **modo sensível**: detecção numa cópia com letras de ~10 px e leitura na resolução original. Baixar o corte de confiança das caixas (0,4) também detectava, mas cortava letras e lia lixo — descartado.
+- **Ordem em linha curva**: as unidades seguem a ordem do leitor principal (que acompanha a linha inteira); o que só o docTR viu entra depois da vizinha à esquerda na mesma linha.
+- **Releitura com o segundo leitor falhando**: títulos sublinhados — o docTR lê "_" (0,18). Regra nova da spec: vale a releitura do principal quando ela repete a leitura dele com ≥ 0,97 e o segundo fica abaixo de 0,90; pontuação final colada pelo sublinhado ("CLÁUSULA.") não conta.
+- **Assinatura, rubrica e preenchimento à mão**: bloco com ≥ 50% de dúvidas e menos de 50% da tinta em manchas do tamanho de letra impressa vira figura (medido: impresso 0,71–1,00; à mão 0,00–0,31). Sem tinta não conta (região em branco).
+- **Sujeira do scanner**: região órfã precisa de 0,6 altura de letra (era 0,4; riscos de 4 × 11 px viravam "1" e "e").
+- **Tamanho da letra em pontos (`font_pt`)**: altura da tinta de cada palavra ÷ (topo − base das letras que ela tem: baixa 0,52; maiúscula/haste/algarismo 0,72; minúscula acentuada 0,75; maiúscula acentuada 0,90; perna 0,21), sem as linhas de sublinhado; mediana do bloco. Medido em texto renderizado: erro ≤ 5% (11 pt → 10,6–11,5; 16 pt → 15,3). No documento, diferença < 15% do corpo vira o corpo. Word, PDF e tela usam `font_pt`.
+- **Conferência** (pedido do usuário): não pula sozinha para a próxima dúvida — o quadro fecha com o foco na palavra corrigida, marcada em verde só na tela; "Conferir próxima" segue da última conferida. Opção "Manter como no original": `keep_original` na palavra; Word/PDF/tela mostram o recorte exato da palavra (`GET /jobs/{id}/words/{word_id}/image`) com a altura que ela tinha; a cópia usa o texto lido.
+
 ## Open Questions
 
 - Limites da avaliação de qualidade (D13): calibrar no conjunto de teste.

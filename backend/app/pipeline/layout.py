@@ -289,6 +289,36 @@ def _split_disguised_text(
     ]
 
 
+# ------------------------------------------------------------------ escrita à mão (D18)
+
+# Fração mínima da tinta em manchas do tamanho de uma letra para ser texto impresso. Medido num
+# contrato real: impresso de 0,71 a 1,00 (títulos sublinhados no limite de baixo); assinaturas,
+# rubricas e preenchimento à mão de 0,00 a 0,31.
+PRINTED_INK_SHARE = 0.5
+
+
+def letter_ink_share(crop: Gray, char_height: float) -> float:
+    """Fração da tinta em manchas com tamanho de letra impressa (separadas e regulares)."""
+    if crop.size == 0 or char_height <= 0:
+        return 0.0
+    stats = _ink_stats(crop)
+    if len(stats) == 0:
+        return 0.0
+    heights = stats[:, cv2.CC_STAT_HEIGHT]
+    widths = stats[:, cv2.CC_STAT_WIDTH]
+    areas = stats[:, cv2.CC_STAT_AREA]
+    letters = (heights >= 0.3 * char_height) & (heights <= 1.6 * char_height)
+    letters &= widths <= 1.6 * char_height
+    return float(areas[letters].sum() / max(int(areas.sum()), 1))
+
+
+def looks_handwritten(crop: Gray, char_height: float) -> bool:
+    """Tinta que não tem forma de letra impressa (sem tinta nenhuma não é escrita à mão)."""
+    if crop.size == 0 or len(_ink_stats(crop)) == 0:
+        return False
+    return letter_ink_share(crop, char_height) < PRINTED_INK_SHARE
+
+
 # ------------------------------------------------------------------ ordem de leitura (5.2)
 
 

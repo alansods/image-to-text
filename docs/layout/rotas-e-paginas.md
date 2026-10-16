@@ -68,8 +68,9 @@ Coluna central (máx. 760 px):
 **Quadro de conferência** (popover junto da palavra; bottom sheet no celular):
 - "Na imagem:" + recorte ampliado do original com a palavra contornada e um pouco de contexto.
 - "Qual está certo?" + uma opção por alternativa, em IBM Plex Mono grande, **com os caracteres diferentes destacados** (fundo âmbar + traço inferior).
+- Opção "Manter como no original": a palavra passa a ser o recorte da imagem original naquele ponto (na tela, no Word e no PDF).
 - Campo "Ou digite a correta" + botão ✓.
-- Escolher ou confirmar resolve a palavra (fica sem destaque) e **abre a próxima dúvida** automaticamente, atravessando páginas. Esc / fechar / clique fora fecham sem resolver.
+- Escolher ou confirmar resolve a palavra: o quadro fecha, **o foco fica na palavra corrigida**, marcada em verde com sublinhado contínuo (só na tela). "Conferir próxima" leva à próxima dúvida, atravessando páginas. Esc / fechar / clique fora fecham sem resolver.
 
 ## 6. Fluxo
 
@@ -78,7 +79,7 @@ Coluna central (máx. 760 px):
    ▼
 [Convertendo] percentual … 100%  (Cancelar → Envio)
    ▼
-[Resultado] Conferir próxima → escolhe/digita → próxima … → Tudo conferido
+[Resultado] Conferir próxima → escolhe/digita/mantém original → (vê a correção em verde) → Conferir próxima … → Tudo conferido
    → Copiar texto | Baixar Word | Baixar PDF
    → Converter outro (→ Envio, apaga a conversão)
 ```
@@ -92,6 +93,7 @@ Coluna central (máx. 760 px):
 | Convertendo, Resultado | `DELETE /jobs/{id}` | Cancelar / Converter outro / logotipo |
 | Resultado | `GET /jobs/{id}/result` | Páginas, blocos, palavras, alternativas |
 | Resultado | `GET /jobs/{id}/crops/{word_id}` | Recorte para o quadro de conferência (palavra contornada em âmbar) |
+| Resultado | `GET /jobs/{id}/words/{word_id}/image` | Recorte exato de uma palavra mantida como no original |
 | Resultado | `GET /jobs/{id}/images/{block_id}` | Imagem do original de uma figura (logotipo, assinatura, capa) nas folhas |
 | Resultado | `PATCH /jobs/{id}/result` | Gravar palavras conferidas |
 | Resultado | `GET /jobs/{id}/export?fmt=docx\|pdf` | Baixar Word ou PDF |

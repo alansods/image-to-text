@@ -53,7 +53,7 @@ Enquanto houver palavras em dúvida, o sistema SHALL mostrar, no lugar dos botõ
 - **THEN** a tela de resultado já abre com "Tudo conferido" e os três botões
 
 ### Requirement: Conferir uma palavra
-Ao acionar uma palavra em dúvida (ou "Conferir próxima"), o sistema SHALL abrir, junto da palavra (em telas estreitas, como painel na parte de baixo da tela), um quadro com: "Na imagem:" e o recorte ampliado do original com a palavra destacada e um pouco de contexto; a pergunta "Qual está certo?"; uma opção por leitura alternativa, escrita em fonte monoespaçada, com os caracteres que diferem entre as alternativas destacados; e o campo "Ou digite a correta" com um botão de confirmar.
+Ao acionar uma palavra em dúvida (ou "Conferir próxima"), o sistema SHALL abrir, junto da palavra (em telas estreitas, como painel na parte de baixo da tela), um quadro com: "Na imagem:" e o recorte ampliado do original com a palavra destacada e um pouco de contexto; a pergunta "Qual está certo?"; uma opção por leitura alternativa, escrita em fonte monoespaçada, com os caracteres que diferem entre as alternativas destacados; a opção "Manter como no original"; e o campo "Ou digite a correta" com um botão de confirmar.
 
 #### Scenario: Letras parecidas
 - **WHEN** as alternativas de uma palavra são "SILVA" e "SlLVA"
@@ -67,16 +67,27 @@ Ao acionar uma palavra em dúvida (ou "Conferir próxima"), o sistema SHALL abri
 - **WHEN** a palavra em dúvida é "[ilegível]"
 - **THEN** o quadro mostra o recorte, a opção "[ilegível]" e o campo "Ou digite a correta"
 
-### Requirement: Resolver e avançar
-Ao escolher uma opção ou confirmar um texto digitado, a palavra SHALL passar a ter esse texto com status "editada", deixar de ser destacada, o contador de dúvidas MUST diminuir em 1, e o quadro SHALL abrir automaticamente na próxima palavra em dúvida na ordem de leitura do documento (atravessando páginas); se não houver próxima, o quadro fecha.
+### Requirement: Resolver e ver a correção
+Ao escolher uma opção, confirmar um texto digitado ou escolher "Manter como no original", a palavra SHALL passar a ter essa forma com status "editada", o quadro SHALL fechar mantendo o foco na própria palavra, o contador de dúvidas MUST diminuir em 1, e a palavra SHALL aparecer marcada em verde na tela para o usuário ver como ficou; a marca verde MUST NOT aparecer na cópia nem nos documentos baixados. O sistema MUST NOT pular sozinho para a próxima dúvida: o usuário avança com "Conferir próxima", que leva à próxima palavra em dúvida na ordem de leitura do documento (atravessando páginas).
 
 #### Scenario: Escolher alternativa
 - **WHEN** há 3 dúvidas e o usuário escolhe "SILVA" na primeira
-- **THEN** a palavra fica "SILVA" sem destaque, o aviso passa a "Confira 2 palavras antes de baixar" e o quadro abre na segunda dúvida
+- **THEN** a palavra fica "SILVA" marcada em verde, o quadro fecha com o foco nela e o aviso passa a "Confira 2 palavras antes de baixar"
 
 #### Scenario: Dúvida na página seguinte
-- **WHEN** o usuário resolve a última dúvida da página 1 e a página 2 tem dúvidas
+- **WHEN** o usuário resolveu a última dúvida da página 1, a página 2 tem dúvidas e ele clica em "Conferir próxima"
 - **THEN** a tela rola até a primeira dúvida da página 2 e abre o quadro nela
+
+#### Scenario: Marca só na tela
+- **WHEN** o usuário corrigiu palavras e baixa o Word
+- **THEN** as palavras corrigidas aparecem no Word sem nenhuma cor ou marca
+
+### Requirement: Manter como no original
+O quadro de conferência SHALL oferecer a opção "Manter como no original"; escolhida, a palavra passa a ser mostrada, copiada como seu texto lido e exportada no Word e no PDF como o recorte da imagem original naquele ponto do texto, na mesma linha e com a altura da linha.
+
+#### Scenario: Símbolo que ninguém leu
+- **WHEN** as leituras de um travessão são "|}~°£" e "(nenhuma palavra)" e o usuário escolhe "Manter como no original"
+- **THEN** no Word e no PDF aparece, naquele ponto da linha, o recorte do original com o travessão
 
 ### Requirement: Fechar sem resolver
 O usuário SHALL poder fechar o quadro (botão fechar, tecla Esc ou clique fora) sem resolver a palavra, que continua em dúvida.

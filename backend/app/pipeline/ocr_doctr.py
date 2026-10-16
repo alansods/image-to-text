@@ -49,7 +49,9 @@ class DoctrReader:
     def vocab(self) -> str:
         return str(_models()[0].reco_predictor.model.vocab)
 
-    def read_block(self, image: Gray, origin: tuple[float, float]) -> list[ReadWord]:
+    def read_block(
+        self, image: Gray, origin: tuple[float, float], sensitive: bool = False
+    ) -> list[ReadWord]:
         crop_h, crop_w = image.shape[:2]
         height, width = max(crop_h, DETECTION_SIZE), max(crop_w, DETECTION_SIZE)
         canvas = np.full((height, width), 255, dtype=np.uint8)

@@ -23,7 +23,7 @@ Quando as duas leituras concordam em uma palavra, o sistema SHALL aceitá-la com
 - **THEN** a palavra final é "contrato" com status "aceita"
 
 ### Requirement: Resolução de divergências
-Quando as leituras divergem, o sistema SHALL tentar resolver na ordem: (1) aceitar a leitura cuja confiança supere a outra em pelo menos 0,15 e seja ≥ 0,90; (2) reler o trecho ampliado com ambos os mecanismos e aceitar se passarem a concordar; (3) se o árbitro estiver habilitado, consultá-lo. Uma palavra resolvida SHALL receber status "resolvida" e registrar qual etapa a resolveu.
+Quando as leituras divergem, o sistema SHALL tentar resolver na ordem: (1) aceitar a leitura cuja confiança supere a outra em pelo menos 0,15 e seja ≥ 0,90; (2) reler o trecho ampliado com ambos os mecanismos e aceitar se passarem a concordar, ou aceitar a releitura do mecanismo principal quando ela repete uma das leituras originais com confiança ≥ 0,97 e o segundo mecanismo não consegue ler o trecho (confiança abaixo de 0,90); pontuação no fim da palavra colada por um sublinhado não conta nessas comparações; (3) se o árbitro estiver habilitado, consultá-lo. Uma palavra resolvida SHALL receber status "resolvida" e registrar qual etapa a resolveu.
 
 #### Scenario: Resolvida por confiança
 - **WHEN** as leituras são "R$ 150" (0,97) e "R$ 15O" (0,71)
@@ -32,6 +32,25 @@ Quando as leituras divergem, o sistema SHALL tentar resolver na ordem: (1) aceit
 #### Scenario: Resolvida por releitura
 - **WHEN** as leituras divergem com confianças próximas e a releitura ampliada faz ambas lerem "Silva"
 - **THEN** a palavra final é "Silva" com status "resolvida" pela etapa "releitura"
+
+#### Scenario: Segundo leitor não consegue ler
+- **WHEN** um título sublinhado é lido "QUARTA" pelo mecanismo principal e o segundo não lê nada, e na releitura ampliada o principal lê "QUARTA" com confiança 0,99 e o segundo lê "_" com confiança 0,18
+- **THEN** a palavra final é "QUARTA" com status "resolvida" pela etapa "releitura"
+
+#### Scenario: Os dois leem e discordam
+- **WHEN** na releitura ampliada o principal lê "Silva" com 0,99 e o segundo lê "Sllva" com 0,95
+- **THEN** a palavra continua divergente e segue para o árbitro ou fica "em dúvida"
+
+#### Scenario: Só o segundo leitor viu a palavra
+- **WHEN** o segundo mecanismo leu "CLÁUSULA." num título sublinhado, o principal não leu nada, e na releitura ampliada o principal lê "CLÁUSULA" com 0,99 e o segundo lê "_" com 0,18
+- **THEN** a palavra final é "CLÁUSULA" com status "resolvida" pela etapa "releitura"
+
+### Requirement: Sublinhado não é palavra
+Um trecho formado só por traços de sublinhado ("_"), lido por um único mecanismo e que a releitura do outro não confirma, SHALL ser descartado como parte da formatação, sem virar palavra nem dúvida.
+
+#### Scenario: Pedaço de sublinhado
+- **WHEN** o segundo mecanismo lê "_" entre duas palavras de um título sublinhado e a releitura do principal não reconhece nada com confiança
+- **THEN** o título não ganha a palavra "_" nem uma dúvida
 
 ### Requirement: Árbitro opcional
 O sistema SHALL permitir habilitar ou desabilitar o árbitro por configuração do servidor; o árbitro recebe somente os trechos ainda divergentes, MUST escolher uma das leituras existentes ou responder "[ilegível]", e não pode introduzir texto novo.

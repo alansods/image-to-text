@@ -6,7 +6,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 import { cropUrl } from "@/lib/api";
-import { charDiff } from "@/lib/document";
+import { charDiff, type Choice } from "@/lib/document";
 import { useI18n } from "@/lib/i18n";
 import type { Word } from "@/lib/types/document";
 import { cn } from "@/lib/utils";
@@ -16,7 +16,7 @@ interface Props {
   word: Word;
   saving: boolean;
   error: string | null;
-  onResolve: (text: string) => void;
+  onResolve: (choice: Choice) => void;
   onClose: () => void;
 }
 
@@ -72,7 +72,7 @@ export function WordCheck({ jobId, word, saving, error, onResolve, onClose }: Pr
 
   const submitTyped = () => {
     const value = typed.trim();
-    if (value) onResolve(value);
+    if (value) onResolve({ text: value });
   };
 
   if (typeof document === "undefined") return null;
@@ -122,7 +122,7 @@ export function WordCheck({ jobId, word, saving, error, onResolve, onClose }: Pr
             type="button"
             data-option
             disabled={saving}
-            onClick={() => onResolve(option)}
+            onClick={() => onResolve({ text: option })}
             aria-label={option || t.noWord}
             className="flex h-12 w-full cursor-pointer items-center rounded-lg border border-border bg-card px-3.5 font-mono text-xl font-medium tracking-[0.06em] hover:border-primary hover:bg-primary-soft disabled:opacity-60"
           >
@@ -144,6 +144,14 @@ export function WordCheck({ jobId, word, saving, error, onResolve, onClose }: Pr
             )}
           </button>
         ))}
+        <button
+          type="button"
+          disabled={saving}
+          onClick={() => onResolve({ keep_original: true })}
+          className="flex h-11 w-full cursor-pointer items-center rounded-lg border border-dashed border-border-strong bg-card px-3.5 text-left text-[15px] font-medium hover:border-primary hover:bg-primary-soft disabled:opacity-60"
+        >
+          {t.keepOriginal}
+        </button>
         <form
           className="flex gap-1.5"
           onSubmit={(event) => {

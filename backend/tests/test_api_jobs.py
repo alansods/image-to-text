@@ -368,6 +368,41 @@ class TestReview:
         assert (word.text, word.status) == ("", WordStatus.EDITED)
 
 
+class TestKeepOriginal:
+    def test_keep_original_marks_the_word_and_serves_its_exact_crop(
+        self, client: TestClient, store: JobStore, settings: Settings
+    ) -> None:
+        import io
+
+        job_id = client.post("/jobs", files={"file": ("a.png", png_bytes())}).json()["id"]
+        finish_with_document(store, settings, job_id)
+
+        response = client.patch(
+            f"/jobs/{job_id}/result", json={"words": [{"id": "p0-w0", "keep_original": True}]}
+        )
+
+        word = Document.model_validate(response.json()).pages[0].blocks[0].words[0]
+        assert (word.text, word.status, word.keep_original) == ("SlLVA", WordStatus.EDITED, True)
+        image = Image.open(io.BytesIO(client.get(f"/jobs/{job_id}/words/p0-w0/image").content))
+        assert image.size == (60, 20)  # a caixa da palavra, sem contexto nem contorno
+
+    def test_choosing_a_text_later_undoes_keep_original(
+        self, client: TestClient, store: JobStore, settings: Settings
+    ) -> None:
+        job_id = client.post("/jobs", files={"file": ("a.png", png_bytes())}).json()["id"]
+        finish_with_document(store, settings, job_id)
+        client.patch(
+            f"/jobs/{job_id}/result", json={"words": [{"id": "p0-w0", "keep_original": True}]}
+        )
+
+        response = client.patch(
+            f"/jobs/{job_id}/result", json={"words": [{"id": "p0-w0", "text": "SILVA"}]}
+        )
+
+        word = Document.model_validate(response.json()).pages[0].blocks[0].words[0]
+        assert (word.text, word.keep_original) == ("SILVA", False)
+
+
 class TestExport:
     @pytest.fixture
     def fake_export(self, monkeypatch: pytest.MonkeyPatch) -> list[str]:

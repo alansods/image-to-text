@@ -112,6 +112,8 @@ class Word(_Model):
     alternatives: list[Alternative] = Field(default_factory=list)
     status: WordStatus
     resolved_by: ResolvedBy | None = None
+    # "Manter como no original": no Word/PDF e na tela entra o recorte da imagem no lugar do texto.
+    keep_original: bool = False
 
     @model_validator(mode="after")
     def _check_status_rules(self) -> Self:
@@ -171,6 +173,8 @@ class Block(_Model):
     align: Alignment = Alignment.LEFT
     # Altura da letra do bloco ÷ altura da letra do texto principal da página.
     rel_size: float = Field(default=1.0, gt=0)
+    # Tamanho da letra em pontos medido no original (texto); usado no Word, no PDF e na tela.
+    font_pt: float | None = Field(default=None, gt=0)
     words: list[Word] = Field(default_factory=list)
     cells: list[Cell] = Field(default_factory=list)
     items: list[ListItem] = Field(default_factory=list)

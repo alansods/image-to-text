@@ -7,6 +7,7 @@ import { DocumentPages } from "@/components/result/DocumentPages";
 import { WordCheck } from "@/components/result/WordCheck";
 import { ApiFailure, downloadExport, reviewWord } from "@/lib/api";
 import {
+  type Choice,
   applyEdit,
   documentText,
   lowQualityPages,
@@ -57,20 +58,25 @@ export function ResultView({ jobId, initial, onReset }: Props) {
     if (current) document.getElementById(`word-${current}`)?.focus();
   }, [openId]);
 
-  const resolve = async (word: Word, text: string) => {
+  // Última palavra conferida: "Conferir próxima" segue dali, e o foco fica nela.
+  const [cursor, setCursor] = useState<string | null>(null);
+
+  const resolve = async (word: Word, choice: Choice) => {
     setSaving(true);
     setSaveError(null);
     try {
-      await reviewWord(jobId, word.id, text);
+      await reviewWord(jobId, word.id, choice);
     } catch {
       setSaving(false);
       setSaveError(t.saveFailed);
       return;
     }
-    const updated = applyEdit(doc, word.id, text);
-    setDoc(updated);
+    setDoc(applyEdit(doc, word.id, choice));
     setSaving(false);
-    open(nextUncertain(updated, word.id)?.id ?? null);
+    setCursor(word.id);
+    setOpenId(null);
+    // Fica na palavra corrigida para o usuário ver como ficou (spec review-editor).
+    requestAnimationFrame(() => document.getElementById(`word-${word.id}`)?.focus());
   };
 
   const copy = async () => {
@@ -123,7 +129,7 @@ export function ResultView({ jobId, initial, onReset }: Props) {
             </div>
             <button
               type="button"
-              onClick={() => open(nextUncertain(doc, openId)?.id ?? pending[0].id)}
+              onClick={() => open(nextUncertain(doc, openId ?? cursor)?.id ?? pending[0].id)}
               className={`${BUTTON} w-full border-transparent bg-primary text-primary-foreground sm:w-auto`}
             >
               {t.checkNext}
@@ -184,7 +190,7 @@ export function ResultView({ jobId, initial, onReset }: Props) {
             word={word}
             saving={saving}
             error={saveError}
-            onResolve={(text) => resolve(word, text)}
+            onResolve={(choice) => resolve(word, choice)}
             onClose={close}
           />
         )}

@@ -6,7 +6,7 @@ import type { Block, Page } from "@/lib/types/document";
 function block(id: string, order: number, x: number, w: number, extra: Partial<Block> = {}): Block {
   return {
     id, type: "paragraph", bbox: { x, y: order * 100, w, h: 50 }, order, column: 0, align: "left",
-    rel_size: 1, words: [], cells: [], items: [], image_ref: null, confidence: 1, ...extra,
+    rel_size: 1, font_pt: null, words: [], cells: [], items: [], image_ref: null, confidence: 1, ...extra,
   };
 }
 

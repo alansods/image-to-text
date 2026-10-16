@@ -6,6 +6,7 @@ cada palavra mantém negrito/itálico; listas mantêm o marcador original; tabel
 figuras como imagem recortada do original, com largura proporcional.
 """
 
+import io
 from collections.abc import Sequence
 from pathlib import Path
 from statistics import median
@@ -17,6 +18,7 @@ from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_BREAK
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.shared import Pt
+from PIL import Image as PILImage
 
 from app.models.document import ILLEGIBLE, Alignment, Block, BlockType, Document, Page, Word
 
@@ -43,6 +45,14 @@ _ALIGN = {
 def body_font_size(document: Document) -> float:
     """Tamanho do texto principal: a altura das palavras, em pontos, fica perto do corpo da fonte
     (medido no conjunto de teste: 11,2 pt de palavra para fonte de 11 pt)."""
+    measured = [
+        b.font_pt
+        for page in document.pages
+        for b in page.blocks
+        if b.type is BlockType.PARAGRAPH and b.font_pt
+    ]
+    if measured:
+        return round(min(max(median(measured), MIN_SIZE), MAX_SIZE) * 2) / 2
     heights = [
         w.bbox.h * page.page_size.w_pt / page.width / block.rel_size
         for page in document.pages
@@ -60,7 +70,9 @@ class _Writer:
     def __init__(self, document: Document, assets: Path, scale: float) -> None:
         self.document = document
         self.assets = assets
+        self.scale = scale
         self.base = body_font_size(document) * scale
+        self.page_images: dict[int, PILImage.Image] = {}
         self.doc: Any = docx.Document()
         normal = self.doc.styles["Normal"]
         normal.font.name = FONT
@@ -71,26 +83,57 @@ class _Writer:
     # ------------------------------------------------------------- texto
 
     def size(self, block: Block) -> float:
-        return round(min(max(self.base * block.rel_size, MIN_SIZE), MAX_SIZE) * 2) / 2
+        """Tamanho medido no original (D18); sem medida, corpo vezes tamanho relativo."""
+        size = block.font_pt * self.scale if block.font_pt else self.base * block.rel_size
+        return round(min(max(size, MIN_SIZE), MAX_SIZE) * 2) / 2
 
-    def runs(self, paragraph: Any, words: Sequence[Word], size: float) -> None:
-        """Palavras seguidas com a mesma ênfase viram um só trecho (run)."""
-        groups: list[tuple[bool, bool, list[str]]] = []
+    def word_image(self, page: Page, word: Word) -> io.BytesIO:
+        """Recorte exato da palavra no original ("Manter como no original")."""
+        if page.index not in self.page_images:
+            with PILImage.open(self.assets / page.image_ref) as image:
+                self.page_images[page.index] = image.convert("RGB")
+        b = word.bbox
+        crop = self.page_images[page.index].crop(
+            (int(b.x), int(b.y), int(b.x + b.w), int(b.y + b.h))
+        )
+        buffer = io.BytesIO()
+        crop.save(buffer, "PNG")
+        buffer.seek(0)
+        return buffer
+
+    def runs(
+        self, paragraph: Any, words: Sequence[Word], size: float, page: Page | None = None
+    ) -> None:
+        """Palavras seguidas com a mesma ênfase viram um só trecho (run); palavra mantida como
+        no original entra como imagem na linha, com o tamanho que tinha na página."""
+        groups: list[tuple[bool, bool, list[str]] | Word] = []
         for word in words:
+            if word.keep_original and page is not None:
+                groups.append(word)
+                continue
             if not word.text:
                 continue  # palavra removida na conferência
             style = (word.bold, word.italic)
-            if groups and groups[-1][:2] == style:
-                groups[-1][2].append(word.text)
+            last = groups[-1] if groups else None
+            if isinstance(last, tuple) and last[:2] == style:
+                last[2].append(word.text)
             else:
                 groups.append((word.bold, word.italic, [word.text]))
-        for index, (bold, italic, texts) in enumerate(groups):
-            text = " ".join(texts) + (" " if index < len(groups) - 1 else "")
-            run = paragraph.add_run(text)
+        for index, group in enumerate(groups):
+            space = " " if index < len(groups) - 1 else ""
+            if isinstance(group, Word):
+                assert page is not None
+                height = group.bbox.h * page.page_size.w_pt / page.width
+                paragraph.add_run().add_picture(self.word_image(page, group), height=Pt(height))
+                if space:
+                    paragraph.add_run(space).font.size = Pt(size)
+                continue
+            bold, italic, texts = group
+            run = paragraph.add_run(" ".join(texts) + space)
             run.bold, run.italic = bold, italic
             run.font.size = Pt(size)
 
-    def text_paragraphs(self, container: Any, block: Block, space_before: float) -> Any:
+    def text_paragraphs(self, container: Any, page: Page, block: Block, space_before: float) -> Any:
         size = self.size(block)
         if block.type is BlockType.LIST:
             starts = [item.word_start for item in block.items] + [len(block.words)]
@@ -100,7 +143,7 @@ class _Writer:
                 indent = LIST_INDENT * (item.level + 1)
                 p.paragraph_format.left_indent = Pt(indent)
                 p.paragraph_format.first_line_indent = Pt(-LIST_INDENT)
-                self.runs(p, block.words[starts[index] : starts[index + 1]], size)
+                self.runs(p, block.words[starts[index] : starts[index + 1]], size, page)
                 first = first or p
             if first is not None:
                 first.paragraph_format.space_before = Pt(space_before)
@@ -108,7 +151,7 @@ class _Writer:
         p = container.add_paragraph()
         p.alignment = _ALIGN[block.align]
         p.paragraph_format.space_before = Pt(space_before)
-        self.runs(p, block.words, size)
+        self.runs(p, block.words, size, page)
         return p
 
     # ------------------------------------------------------------- tabela e figura
@@ -134,7 +177,7 @@ class _Writer:
             last = table.cell(cell.row + cell.row_span - 1, cell.col + cell.col_span - 1)
             if last is not target:
                 target = target.merge(last)
-            self.runs(target.paragraphs[0], cell.words, self.base)
+            self.runs(target.paragraphs[0], cell.words, self.base, page)
 
     @staticmethod
     def column_widths(page: Page, block: Block, cols: int, usable: float) -> list[float] | None:
@@ -191,7 +234,7 @@ class _Writer:
             for index, block in enumerate(blocks):
                 p = target if index == 0 else part.add_paragraph()
                 p.alignment = _ALIGN[block.align]
-                self.runs(p, block.words, self.size(block))
+                self.runs(p, block.words, self.size(block), page)
         return section
 
     @staticmethod
@@ -242,7 +285,7 @@ class _Writer:
             elif block.type is BlockType.TABLE and block.cells:
                 self.table(page, block, usable / max(current_columns, 1), space)
             elif block.words:
-                self.text_paragraphs(self.doc, block, space)
+                self.text_paragraphs(self.doc, page, block, space)
             last_bottom[column] = block.bbox.y + block.bbox.h
             previous_column = column
 

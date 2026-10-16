@@ -12,6 +12,10 @@ function median(values: number[]): number {
 
 /** Corpo do texto em pontos: altura das palavras dos parágrafos (≈ corpo da fonte, D16). */
 export function bodyFontPt(doc: Document): number {
+  const measured = doc.pages.flatMap((page) =>
+    page.blocks.filter((b) => b.type === "paragraph" && b.font_pt).map((b) => b.font_pt as number),
+  );
+  if (measured.length > 0) return median(measured);
   const heights = doc.pages.flatMap((page) =>
     page.blocks
       .filter((b) => b.type === "paragraph")
