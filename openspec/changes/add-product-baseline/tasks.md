@@ -14,13 +14,13 @@
 
 ## 3. Conversão e fila (specs file-upload, job-processing)
 
-- [ ] 3.1 `POST /jobs` com um arquivo: validação de formato por conteúdo, 20 MB, 50 páginas, PDF com senha, mais de um arquivo
-- [ ] 3.2 Worker Celery com estados e percentual que nunca diminui; `GET /jobs/{id}`
-- [ ] 3.3 `GET /jobs/{id}/result` e `GET /jobs/{id}/crops/{word_id}` quando concluída
-- [ ] 3.4 `DELETE /jobs/{id}` (cancelar / converter outro) com interrupção em até 10 s e remoção de arquivos
-- [ ] 3.5 Falha por página (página vira imagem + "[ilegível]") e falha total
-- [ ] 3.6 Descarte em até 1 h (Celery Beat a cada 5 min + limpeza na inicialização) e estado "expirada"
-- [ ] 3.7 Limite de 3 conversões ativas por IP
+- [x] 3.1 `POST /jobs` com um arquivo: validação de formato por conteúdo, 20 MB, 50 páginas, PDF com senha, mais de um arquivo
+- [x] 3.2 Worker Celery com estados e percentual que nunca diminui; `GET /jobs/{id}`
+- [x] 3.3 `GET /jobs/{id}/result` e `GET /jobs/{id}/crops/{word_id}` quando concluída
+- [x] 3.4 `DELETE /jobs/{id}` (cancelar / converter outro) com interrupção em até 10 s e remoção de arquivos
+- [x] 3.5 Falha por página (página vira imagem + "[ilegível]") e falha total
+- [x] 3.6 Descarte em até 1 h (Celery Beat a cada 5 min + limpeza na inicialização) e estado "expirada"
+- [x] 3.7 Limite de 3 conversões ativas por IP
 
 ## 4. Pré-processamento (spec image-preprocessing)
 

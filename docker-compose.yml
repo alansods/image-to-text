@@ -16,7 +16,12 @@ services:
 
   worker:
     build: ./backend
-    command: ["celery", "-A", "app.worker", "worker", "--loglevel=info", "--concurrency=1"]
+    # -B: agendador embutido (limpeza a cada 5 min). Um único worker, então não há agendamento duplicado.
+    command:
+      [
+        "celery", "-A", "app.worker", "worker", "-B",
+        "--schedule=/tmp/celerybeat-schedule", "--loglevel=info", "--concurrency=1",
+      ]
     environment:
       ITT_REDIS_URL: redis://redis:6379/0
       ITT_DATA_DIR: /data/jobs

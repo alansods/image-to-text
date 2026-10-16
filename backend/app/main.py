@@ -3,7 +3,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.api.jobs import router as jobs_router
 from app.config import get_settings
+from app.errors import ApiError, api_error_handler
 
 
 def create_app() -> FastAPI:
@@ -15,6 +17,9 @@ def create_app() -> FastAPI:
         allow_methods=["GET", "POST", "PATCH", "DELETE"],
         allow_headers=["*"],
     )
+
+    application.add_exception_handler(ApiError, api_error_handler)
+    application.include_router(jobs_router)
 
     @application.get("/health")
     def health() -> dict[str, str]:

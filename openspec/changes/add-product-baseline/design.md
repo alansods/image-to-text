@@ -30,6 +30,8 @@ Um repositório, dois projetos. Os tipos do `Document` são definidos em Pydanti
 FastAPI recebe o upload e serve resultados; um worker Celery executa o pipeline por página e publica o percentual no Redis; o cliente consulta `GET /jobs/{id}` a cada 1,5 s.
 - Alternativas: RQ (sem cancelamento robusto/`revoke`); SSE/WebSocket (melhor UX, mas HF Spaces e proxies gratuitos derrubam conexões longas). Pode evoluir para SSE sem mudar specs.
 - Em HF Spaces (um contêiner só), api + worker + redis rodam juntos via `supervisord`; localmente, `docker-compose` separa os três.
+- O agendador (Celery Beat, limpeza a cada 5 min) roda embutido no worker (`-B`): há um único worker, então não há agendamento duplicado.
+- A API e o worker não conhecem o OCR: o worker chama `Pipeline.load_pages` e `Pipeline.process_page` (funções puras) e o orquestrador grava imagens, publica o percentual e trata falhas e cancelamento.
 - O percentual é calculado como (páginas concluídas + fração da etapa atual) / total e guardado como máximo já publicado, para nunca diminuir.
 
 ### D3. Arquivos em disco local, descartados em até 1 hora
