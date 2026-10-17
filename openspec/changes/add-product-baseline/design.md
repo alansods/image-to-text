@@ -209,6 +209,14 @@ O primeiro teste com um documento real (contrato de 5 páginas escaneado, com ru
 - **Acessibilidade**: o azul do protótipo (`#2F6FED`) dá 4,4:1 com texto branco; usamos `#2563D9` (5,4:1). O âmbar passa a valer também para o aviso de baixa qualidade e a contagem de dúvidas (spec "Aparência única").
 - **Descartado**: uma rota separada para "Como funciona" (mais um clique; o envio deve continuar no topo).
 
+### D21. Grau, ordinal ou letra "o" decididos pela forma
+- **Problema** (contrato real): o artigo "o" foi lido como "°" pelo PaddleOCR, e o docTR não leu nada ("até ° último", "que ° Termo"). A dúvida oferecia só "°" e "(nenhuma palavra)", sem a resposta certa.
+- **Decisão**: quando as leituras só divergem em sinais redondos ("o", "O", "0", "°", "º"), ou uma é um sinal redondo sozinho e a outra está vazia, mede-se a marca na imagem (`pipeline/rings.py`). A medida é a altura do fundo da mancha acima da linha de base das letras vizinhas, em alturas de maiúscula: até 0,15 é letra ou algarismo; de 0,35 para cima é "°", que vira "º" colado em letra (regra de D7). Entre as duas faixas, ou sem letras em volta, valem as regras normais. `resolved_by = "shape"` quando os leitores divergiam. A linha de base e a altura das maiúsculas vêm da mesma medida usada para os traços (D19).
+- **Opção parecida**: se ainda ficar dúvida, entra como alternativa a forma que faltar ("o" ↔ "°"), com origem `similar`, para a resposta certa sempre estar entre as opções.
+- **Cuidados**: só conta a maior mancha dentro da caixa (pingos de "i" e acentos das linhas vizinhas, na mesma coluna, faziam o "o" parecer suspenso). Se nenhum leitor leu "°"/"º", a medida "linha de base" não desfaz a dúvida, porque não separa "o" de "0".
+- **Resultado no contrato**: "até o último" e "que o Termo" saem certos, sem dúvida (dúvidas 13 → 11); "nº" e os "o" que já estavam certos não mudam.
+- **Fora**: "O" × "0" ("1.1. O objeto" × "1.1.0"), porque têm a mesma altura e a medida não os separa.
+
 ## Open Questions
 
 - Limites da avaliação de qualidade (D13): calibrar no conjunto de teste.

@@ -7,7 +7,7 @@ export type QualityIssue = "resolution" | "blur" | "contrast" | "uncertain_readi
 export type BlockType =
   "heading" | "paragraph" | "list" | "table" | "figure" | "formula" | "header" | "footer";
 export type Alignment = "left" | "center" | "right" | "justify";
-export type ReadingSource = "paddle" | "doctr" | "arbiter";
+export type ReadingSource = "paddle" | "doctr" | "arbiter" | "similar";
 export type WordStatus = "accepted" | "resolved" | "uncertain" | "edited";
 export type ResolvedBy = "confidence" | "reread" | "shape" | "arbiter";
 

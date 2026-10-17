@@ -340,7 +340,8 @@
       "enum": [
         "paddle",
         "doctr",
-        "arbiter"
+        "arbiter",
+        "similar"
       ],
       "title": "ReadingSource",
       "type": "string"

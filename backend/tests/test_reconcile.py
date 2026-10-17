@@ -490,3 +490,89 @@ def test_pieces_starting_at_the_same_height_are_read_left_to_right() -> None:
     )
     # O "_" é o sublinhado logo abaixo do traço: some (spec "Sublinhado sem traço é descartado").
     assert [w.text for w in words] == ["CLÁUSULA", "PRIMEIRA", "-", "OBJETO"]
+
+
+class TestRoundSignsByShape:
+    """Grau, ordinal ou letra "o" decididos pela forma (spec): a medida vem de função falsa."""
+
+    def test_degree_read_where_the_article_sits_on_the_baseline_is_the_letter(self) -> None:
+        [word] = reconcile_block(
+            [paddle("°", 100, w=20, conf=0.6)],
+            [],
+            BLIND,
+            "b0",
+            no_reread,
+            ring=lambda box: "base",
+        )
+        assert (word.text, word.status, word.resolved_by) == (
+            "o",
+            WordStatus.RESOLVED,
+            ResolvedBy.SHAPE,
+        )
+
+    def test_a_raised_ring_is_the_degree_sign(self) -> None:
+        [word] = reconcile_block(
+            [paddle("25oC", 100, conf=0.8)],
+            [doctr("25°C", 100, conf=0.8)],
+            BLIND,
+            "b0",
+            no_reread,
+            ring=lambda box: "raised",
+        )
+        assert (word.text, word.resolved_by) == ("25°C", ResolvedBy.SHAPE)
+
+    def test_a_raised_ring_after_a_letter_is_the_ordinal(self) -> None:
+        [word] = reconcile_block(
+            [paddle("no", 100, conf=0.8)],
+            [doctr("n°", 100, conf=0.8)],
+            BLIND,
+            "b0",
+            no_reread,
+            ring=lambda box: "raised",
+        )
+        assert word.text == "nº"
+
+    def test_the_measure_looks_only_at_the_diverging_sign(self) -> None:
+        boxes: list[BBox] = []
+
+        def ring(box: BBox) -> str:
+            boxes.append(box)
+            return "raised"
+
+        reconcile_block(
+            [paddle("25oC", 100, w=80, conf=0.8)],
+            [doctr("25°C", 100, w=80, conf=0.8)],
+            BLIND,
+            "b0",
+            no_reread,
+            ring=ring,
+        )
+        [box] = boxes
+        assert 140 <= box.x + box.w / 2 <= 160  # 3º de 4 caracteres numa caixa de 100 a 180
+
+    def test_a_letter_on_the_baseline_does_not_settle_a_doubt_nobody_read_as_degree(
+        self,
+    ) -> None:
+        [word] = reconcile_block(
+            [paddle("0", 100, w=20, conf=0.6)],
+            [],
+            BLIND,
+            "b0",
+            no_reread,
+            ring=lambda box: "base",
+        )
+        assert (word.text, word.status) == ("0", WordStatus.UNCERTAIN)
+
+    def test_without_a_measure_the_doubt_offers_the_similar_sign(self) -> None:
+        [word] = reconcile_block(
+            [paddle("°", 100, w=20, conf=0.6)],
+            [],
+            BLIND,
+            "b0",
+            no_reread,
+            ring=lambda box: None,
+        )
+        assert word.status is WordStatus.UNCERTAIN
+        options = [(a.text, a.source) for a in word.alternatives]
+        assert ("°", ReadingSource.PADDLE) in options
+        assert ("o", ReadingSource.SIMILAR) in options

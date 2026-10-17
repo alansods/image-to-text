@@ -29,6 +29,7 @@ from app.pipeline.preprocess import Preprocessed, median_char_height
 from app.pipeline.quality import TEXT_TYPES, image_issues, reading_issues
 from app.pipeline.reading import Gray, Reader
 from app.pipeline.reconcile import reconcile_block
+from app.pipeline.rings import Height, ring_height
 from app.pipeline.sizes import estimate_font_pt
 from app.pipeline.tables import assign_words, table_structure, trustworthy
 
@@ -123,7 +124,10 @@ def _read_words(normalized: Gray, region: BBox, word_prefix: str, readers: Reade
     def shape(box: BBox) -> tuple[str, BBox | None] | None:
         return dash_shape(normalized, box)
 
-    return reconcile_block(primary, secondary, blind, word_prefix, reread, arbiter, shape)
+    def ring(box: BBox) -> Height | None:
+        return ring_height(normalized, box)
+
+    return reconcile_block(primary, secondary, blind, word_prefix, reread, arbiter, shape, ring)
 
 
 def _illegible(word_id: str, box: BBox) -> Word:

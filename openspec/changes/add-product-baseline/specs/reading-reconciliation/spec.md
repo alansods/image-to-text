@@ -77,6 +77,24 @@ Um trecho de símbolos soltos sem traço na altura do meio das letras (só a lin
 - **WHEN** a palavra lida é "mão-de-obra"
 - **THEN** ela segue as regras normais de reconciliação, sem medida de traço
 
+### Requirement: Grau, ordinal ou letra o decididos pela forma
+Quando as leituras de um trecho divergem só em sinais redondos ("o", "O", "0", "°", "º"), ou um leitor lê só um sinal redondo e o outro não lê nada, o sistema SHALL medir a marca redonda na imagem. Apoiada na linha de base, é letra ou algarismo: vale a leitura que tiver "o", "O" ou "0", ou "o" se nenhuma tiver. Suspensa no alto da linha, é "°" ("º" quando colada numa letra).
+
+#### Scenario: Grau no lugar do artigo
+- **WHEN** um leitor lê "°" no artigo de "até o último", o outro não lê nada, e a marca está apoiada na linha de base
+- **THEN** a palavra final é "o" com status "resolvida" pela etapa "forma", sem dúvida
+
+#### Scenario: Grau de verdade
+- **WHEN** um leitor lê "25oC" e o outro "25°C", e a marca redonda está no alto da linha
+- **THEN** a palavra final é "25°C"
+
+### Requirement: Opção parecida na dúvida
+Se a palavra continuar em dúvida e tiver um sinal redondo, as alternativas SHALL incluir a forma parecida que nenhum leitor deu: "o" quando só "°" ou "º" foi lido, e "°" quando só "o" foi lido.
+
+#### Scenario: Sem como medir
+- **WHEN** um leitor lê "°", o outro não lê nada e não há letras em volta para medir
+- **THEN** a palavra fica em dúvida, e as alternativas incluem "°" e "o"
+
 ### Requirement: Árbitro opcional
 O sistema SHALL permitir habilitar ou desabilitar o árbitro por configuração do servidor; o árbitro recebe somente os trechos ainda divergentes, MUST escolher uma das leituras existentes ou responder "[ilegível]", e não pode introduzir texto novo.
 

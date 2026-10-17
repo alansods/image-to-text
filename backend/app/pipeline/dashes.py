@@ -7,6 +7,8 @@ comprimento com a altura das maiúsculas da linha. Medido em contratos reais e n
 teste: hífen 0,32 a 0,45, travessão curto 0,72 a 0,77, travessão longo 1,28 a 1,65.
 """
 
+from dataclasses import dataclass
+
 import cv2
 import numpy as np
 
@@ -48,12 +50,24 @@ def _symbol(length: float) -> str:
     return "–" if length <= EN_DASH_MAX else "—"  # noqa: RUF001
 
 
-def dash_shape(gray: Gray, box: BBox) -> tuple[str, BBox | None] | None:
-    """Símbolo do traço na caixa e onde está o traço na página.
+@dataclass(frozen=True)
+class LineInk:
+    """Tinta em volta de uma caixa, sem as linhas de sublinhado, e as medidas da linha."""
 
-    `("", None)`: não há traço na altura das letras (só sublinhado) — o trecho é formatação.
-    `None`: não há letras em volta para comparar; a reconciliação segue as regras normais.
-    """
+    x0: int  # canto da região na página
+    y0: int
+    stats: np.ndarray  # manchas (x, y, w, h, área), já sem o fundo
+    cap: float  # altura das maiúsculas
+    letters: list[np.ndarray]  # manchas com altura de letra
+
+    def baseline(self, center_y: float) -> float | None:
+        """Linha de base pelas letras da mesma linha (a janela pega a linha de cima)."""
+        beside = [s[1] + s[3] for s in self.letters if s[1] <= center_y <= s[1] + s[3]]
+        return float(np.median(beside)) if len(beside) >= 2 else None
+
+
+def line_ink(gray: Gray, box: BBox) -> LineInk | None:
+    """Medidas da linha em volta da caixa; `None` sem letras em volta para comparar."""
     size = max(box.h, 10)
     reach = size * CONTEXT
     x0, x1 = max(int(box.x - reach), 0), min(int(box.x + box.w + reach), gray.shape[1])
@@ -80,23 +94,34 @@ def dash_shape(gray: Gray, box: BBox) -> tuple[str, BBox | None] | None:
     letters = [s for s in stats[1:count] if s[3] >= 0.6 * cap]
     if len(letters) < MIN_LETTERS:
         return None
+    return LineInk(x0, y0, stats[1:count], cap, letters)
 
-    left, right = box.x - x0, box.x + box.w - x0
+
+def dash_shape(gray: Gray, box: BBox) -> tuple[str, BBox | None] | None:
+    """Símbolo do traço na caixa e onde está o traço na página.
+
+    `("", None)`: não há traço na altura das letras (só sublinhado) — o trecho é formatação.
+    `None`: não há letras em volta para comparar; a reconciliação segue as regras normais.
+    """
+    line = line_ink(gray, box)
+    if line is None:
+        return None
+    cap = line.cap
+    left, right = box.x - line.x0, box.x + box.w - line.x0
     strokes = []
-    for x, y, w, h, area in stats[1:count]:
+    for x, y, w, h, area in line.stats:
         center_x, center_y = x + w / 2, y + h / 2
         if not left - 2 <= center_x <= right + 2 or area < 4:
             continue
         if w < MIN_ELONGATION * h or h > MAX_THICKNESS * cap:
             continue
-        # Linha de base pelas letras da mesma linha do traço (a janela pega a linha de cima).
-        beside = [s[1] + s[3] for s in letters if s[1] <= center_y <= s[1] + s[3]]
-        if len(beside) < 2:
+        baseline = line.baseline(center_y)
+        if baseline is None:
             continue
-        height = (float(np.median(beside)) - center_y) / cap
+        height = (baseline - center_y) / cap
         if STROKE_LOW <= height <= STROKE_HIGH:
             strokes.append((int(w), int(x), int(y), int(h)))
     if not strokes:
         return "", None
     w, x, y, h = max(strokes)
-    return _symbol(w / cap), BBox(x=x + x0, y=y + y0, w=w, h=h)
+    return _symbol(w / cap), BBox(x=x + line.x0, y=y + line.y0, w=w, h=h)

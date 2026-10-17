@@ -57,7 +57,7 @@ class WordStatus(StrEnum):
 class ResolvedBy(StrEnum):
     CONFIDENCE = "confidence"
     REREAD = "reread"
-    SHAPE = "shape"  # traço medido na imagem (hífen ou travessões)
+    SHAPE = "shape"  # medido na imagem (hífen, travessões, grau ou letra "o")
     ARBITER = "arbiter"
 
 
@@ -65,6 +65,7 @@ class ReadingSource(StrEnum):
     PADDLE = "paddle"
     DOCTR = "doctr"
     ARBITER = "arbiter"
+    SIMILAR = "similar"  # forma parecida que nenhum leitor deu ("°" ou "o")
 
 
 class QualityIssue(StrEnum):

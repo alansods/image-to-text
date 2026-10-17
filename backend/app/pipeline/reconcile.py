@@ -20,6 +20,7 @@ from app.models.document import (
 )
 from app.pipeline.dashes import is_dash_reading
 from app.pipeline.reading import ReadWord
+from app.pipeline.rings import BASE_CHARS, RAISED_CHARS, Height, round_slots
 
 # Confiança (spec): a leitura vencedora precisa ser ≥ 0,90 e superar a outra em ≥ 0,15.
 MIN_CONFIDENCE = 0.90
@@ -42,6 +43,8 @@ Reread = Callable[[BBox], tuple[Snippet, Snippet]]
 Arbiter = Callable[[BBox, list[str]], str | None]
 # Medida do traço na imagem (ver `dashes.dash_shape`): símbolo e onde está o traço.
 Shape = Callable[[BBox], tuple[str, BBox | None] | None]
+# Altura da marca redonda na imagem (ver `rings.ring_height`): letra "o" ou grau.
+Ring = Callable[[BBox], Height | None]
 
 _EQUIVALENT = str.maketrans(
     {
@@ -244,7 +247,50 @@ def _alternatives(readings: Sequence[_Reading], keep_empty: bool) -> list[Altern
             continue
         seen.add(r.text)
         result.append(Alternative(text=r.text, confidence=r.confidence, source=r.source))
+    if keep_empty:  # dúvida: a forma parecida ("°" ou "o") também entra entre as opções
+        for option in list(result):
+            similar = _similar(option.text)
+            if similar is not None and similar not in seen:
+                seen.add(similar)
+                result.append(
+                    Alternative(text=similar, confidence=0.0, source=ReadingSource.SIMILAR)
+                )
     return result
+
+
+def _similar(text: str) -> str | None:
+    """ "°"/"º" trocados pela letra "o"; o "o" sozinho trocado por "°"."""
+    if text == "o":
+        return "°"
+    if set(text) & RAISED_CHARS:
+        return "".join("o" if c in RAISED_CHARS else c for c in text)
+    return None
+
+
+def _round_by_shape(first: str, second: str, bbox: BBox, ring: Ring) -> str | None:
+    """Texto com cada sinal redondo divergente decidido pela altura dele na imagem."""
+    found = round_slots(first, second)
+    if found is None:
+        return None
+    text, slots = found
+    chars = list(text)
+    width = bbox.w / len(text)
+    for index in slots:
+        # Só a fatia do caractere divergente, com folga de um quarto para cada lado.
+        piece = BBox(x=bbox.x + width * (index - 0.25), y=bbox.y, w=width * 1.5, h=bbox.h)
+        height = ring(piece)
+        if height is None:
+            return None
+        if height == "raised":
+            chars[index] = "°"
+        elif not any(len(t) == len(text) and t[index] in RAISED_CHARS for t in (first, second)):
+            return None  # ninguém leu "°": a letra na linha de base não desfaz a dúvida
+        else:
+            base = [
+                t[index] for t in (first, second) if len(t) == len(text) and t[index] in BASE_CHARS
+            ]
+            chars[index] = base[0] if base else "o"
+    return fix_ordinal("".join(chars))
 
 
 def _trim(text: str) -> str:
@@ -266,6 +312,7 @@ def _decide(
     arbiter: Arbiter | None,
     shape: Shape | None = None,
     strokes: list[BBox] | None = None,
+    ring: Ring | None = None,
 ) -> Word | None:
     first = _joined(unit.primary, ReadingSource.PADDLE)
     second = _joined(unit.secondary, ReadingSource.DOCTR)
@@ -303,6 +350,17 @@ def _decide(
                 return word(symbol, max(first.confidence, second.confidence), WordStatus.ACCEPTED)
             return word(
                 symbol,
+                max(first.confidence, second.confidence),
+                WordStatus.RESOLVED,
+                ResolvedBy.SHAPE,
+            )
+
+    # Só "°"/"º" contra "o" divergentes: a altura da marca redonda decide (letra ou grau).
+    if ring is not None:
+        decided = _round_by_shape(first.text, second.text, bbox, ring)
+        if decided is not None:
+            return word(
+                decided,
                 max(first.confidence, second.confidence),
                 WordStatus.RESOLVED,
                 ResolvedBy.SHAPE,
@@ -354,6 +412,7 @@ def reconcile_block(
     reread: Reread | None = None,
     arbiter: Arbiter | None = None,
     shape: Shape | None = None,
+    ring: Ring | None = None,
 ) -> list[Word]:
     """Palavras finais de um bloco, na ordem de leitura, com status e alternativas."""
 
@@ -370,7 +429,7 @@ def reconcile_block(
 
     strokes: list[BBox] = []
     decided = [
-        _decide(unit, blind, f"{id_prefix}w{index}", fixed_reread, arbiter, shape, strokes)
+        _decide(unit, blind, f"{id_prefix}w{index}", fixed_reread, arbiter, shape, strokes, ring)
         for index, unit in enumerate(_align(fixed(primary), fixed(secondary)))
     ]
     words = [w for w in decided if w is not None]
