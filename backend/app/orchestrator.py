@@ -15,7 +15,7 @@ from app.models.document import (
     Word,
     WordStatus,
 )
-from app.models.job import JobState
+from app.models.job import JobStage, JobState
 from app.pipeline.base import Image, PageInput, Pipeline, PipelineUnavailableError
 from app.pipeline.sizes import normalize_sizes
 from app.storage import JobFiles
@@ -81,7 +81,7 @@ def run_job(job_id: str, store: JobStore, files: JobFiles, pipeline: Pipeline) -
     job = store.get(job_id)
     if job is None or job.state is not JobState.QUEUED:
         return
-    store.update(job_id, state=JobState.PROCESSING, progress=0)
+    store.update(job_id, state=JobState.PROCESSING, progress=0, stage=JobStage.PREPARING)
 
     try:
         inputs = pipeline.load_pages(files.find_source())
@@ -102,9 +102,9 @@ def run_job(job_id: str, store: JobStore, files: JobFiles, pipeline: Pipeline) -
             return
         index = page_input.index
 
-        def report(fraction: float, index: int = index) -> None:
+        def report(fraction: float, stage: JobStage, index: int = index) -> None:
             fraction = min(max(fraction, 0.0), 1.0)
-            store.set_progress(job_id, _percent(index + fraction, total))
+            store.set_progress(job_id, _percent(index + fraction, total), stage, index + 1, total)
 
         try:
             result = pipeline.process_page(page_input, f"p{index}-", report)
@@ -129,6 +129,7 @@ def run_job(job_id: str, store: JobStore, files: JobFiles, pipeline: Pipeline) -
         store.update(job_id, state=JobState.FAILED, error="unreadable")
         return
 
+    store.set_progress(job_id, _percent(total, total), JobStage.FINISHING, total, total)
     document = normalize_sizes(Document(id=job_id, source_file=job.source_file, pages=pages))
     files.result.write_text(document.model_dump_json(), encoding="utf-8")
     store.update(job_id, state=JobState.DONE, progress=100)

@@ -20,7 +20,7 @@ from app.models.document import (
     Word,
     WordStatus,
 )
-from app.models.job import Job, JobState
+from app.models.job import Job, JobStage, JobState
 from app.orchestrator import run_job
 from app.pipeline.base import PageInput, PipelineUnavailableError, ProcessedPage
 from app.storage import JobFiles
@@ -92,11 +92,11 @@ class FakePipeline:
         return [page_input(i) for i in range(self.pages)]
 
     def process_page(
-        self, page: PageInput, id_prefix: str, report: Callable[[float], None]
+        self, page: PageInput, id_prefix: str, report: Callable[[float, JobStage], None]
     ) -> ProcessedPage:
         if self.on_page:
             self.on_page(page.index)
-        report(0.5)
+        report(0.5, JobStage.READING)
         if page.index in self.fail_on:
             raise RuntimeError("página corrompida")
         self.processed.append(page.index)
@@ -151,6 +151,30 @@ def test_progress_grows_page_by_page_and_never_goes_down(
 
     assert seen == sorted(seen)
     assert seen[0] == 0 and 40 <= seen[2] <= 60
+
+
+def test_progress_says_which_stage_and_page(
+    store: JobStore, files: JobFiles, job: Job, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    steps: list[tuple[JobStage | None, int | None, int | None]] = []
+    original = store.set_progress
+
+    def spy(
+        job_id: str,
+        progress: int,
+        stage: JobStage | None = None,
+        page: int | None = None,
+        pages: int | None = None,
+    ) -> None:
+        steps.append((stage, page, pages))
+        original(job_id, progress, stage, page, pages)
+
+    monkeypatch.setattr(store, "set_progress", spy)
+    run_job(job.id, store, files, FakePipeline(pages=2))
+
+    assert (JobStage.READING, 1, 2) in steps
+    assert (JobStage.READING, 2, 2) in steps
+    assert steps[-1] == (JobStage.FINISHING, 2, 2)
 
 
 def test_failed_page_becomes_original_image_with_illegible_doubt(
@@ -245,12 +269,18 @@ def test_worker_pipeline_reads_real_pages(tmp_path: Path) -> None:
     source.write_bytes(pdf_bytes(pages=2))
     pipeline = DocumentPipeline()
     reported: list[float] = []
+    stages: list[JobStage] = []
+
+    def report(fraction: float, stage: JobStage) -> None:
+        reported.append(fraction)
+        stages.append(stage)
 
     pages = pipeline.load_pages(source)
-    result = pipeline.process_page(pages[1], "p1-", reported.append)
+    result = pipeline.process_page(pages[1], "p1-", report)
 
     assert [p.index for p in pages] == [0, 1]
     words = [w.text for b in result.page.blocks for w in b.all_words()]
     assert words == ["Página", "2"]
     assert result.page.blocks[0].id.startswith("p1-")
     assert reported == sorted(reported) and reported[-1] == 1.0
+    assert stages[:3] == [JobStage.PREPARING, JobStage.LAYOUT, JobStage.READING]

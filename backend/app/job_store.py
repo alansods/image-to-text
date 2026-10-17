@@ -6,7 +6,7 @@ from typing import Any
 
 from redis import Redis
 
-from app.models.job import JOB_TTL, Job, JobState
+from app.models.job import JOB_TTL, Job, JobStage, JobState
 
 # A chave vive o dobro do prazo, para que, depois de 1 hora, a conversão ainda responda "expirada"
 # em vez de "não encontrada". Os arquivos em disco somem em até 1 hora (limpeza periódica).
@@ -62,10 +62,20 @@ class JobStore:
         self.save(updated)
         return updated
 
-    def set_progress(self, job_id: str, progress: int) -> None:
+    def set_progress(
+        self,
+        job_id: str,
+        progress: int,
+        stage: JobStage | None = None,
+        page: int | None = None,
+        pages: int | None = None,
+    ) -> None:
         job = self._load(job_id)
-        if job is not None and job.state is JobState.PROCESSING:
-            self.save(job.with_progress(progress))
+        if job is None or job.state is not JobState.PROCESSING:
+            return
+        job = job.with_progress(progress)
+        step = {"stage": stage, "page": page, "pages": pages}
+        self.save(job.model_copy(update={k: v for k, v in step.items() if v is not None}))
 
     def set_task_id(self, job_id: str, task_id: str) -> None:
         self.redis.set(f"{self._key(job_id)}:task", task_id, ex=_KEY_TTL)

@@ -5,7 +5,7 @@ from datetime import UTC, datetime, timedelta
 import pytest
 from pydantic import ValidationError
 
-from app.models.job import JOB_TTL, Job, JobState
+from app.models.job import JOB_TTL, Job, JobStage, JobState
 
 CREATED = datetime(2026, 10, 15, 12, 0, tzinfo=UTC)
 
@@ -21,6 +21,7 @@ def test_new_job_is_queued_at_zero_percent() -> None:
 
     assert job.state is JobState.QUEUED
     assert job.progress == 0
+    assert (job.stage, job.page, job.pages) == (JobStage.QUEUED, 0, 0)
 
 
 def test_progress_is_between_0_and_100() -> None:

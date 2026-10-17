@@ -1,11 +1,11 @@
 """Pipeline usado pelo worker: carrega, pré-processa, detecta o layout e lê o texto.
 Completude e tabelas entram na task 7."""
 
-from collections.abc import Callable
 from pathlib import Path
 
 from app.config import get_settings
-from app.pipeline.base import PageInput, ProcessedPage
+from app.models.job import JobStage
+from app.pipeline.base import PageInput, ProcessedPage, Report
 from app.pipeline.layout import analyze_layout
 from app.pipeline.preprocess import load_pages, preprocess
 from app.pipeline.recognize import Readers, recognize_page
@@ -36,13 +36,12 @@ class DocumentPipeline:
     def load_pages(self, source: Path) -> list[PageInput]:
         return load_pages(source)
 
-    def process_page(
-        self, page: PageInput, id_prefix: str, report: Callable[[float], None]
-    ) -> ProcessedPage:
+    def process_page(self, page: PageInput, id_prefix: str, report: Report) -> ProcessedPage:
+        report(0.0, JobStage.PREPARING)
         pre = preprocess(page)
-        report(0.1)
+        report(0.1, JobStage.LAYOUT)
         layout = None if pre.blank else analyze_layout(pre.aligned, pre.normalized)
-        report(0.3)
+        report(0.3, JobStage.READING)
         result = recognize_page(pre, layout, page, id_prefix, self.readers)
-        report(1.0)
+        report(1.0, JobStage.READING)
         return result

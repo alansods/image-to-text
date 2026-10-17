@@ -12,6 +12,8 @@ import {
   type ReactNode,
 } from "react";
 
+import type { JobStage } from "@/lib/types/job";
+
 export type Lang = "pt" | "en";
 
 function listPages(pages: number[], and: string): string {
@@ -30,6 +32,28 @@ const pt = {
   orDrag: "ou arraste aqui, ou cole com",
   limits: "JPG, PNG, WEBP, HEIC ou PDF · até 20 MB",
   reading: "Lendo seu documento…",
+  stage: (stage: JobStage, page: number, pages: number): string => {
+    const many = pages > 1;
+    switch (stage) {
+      case "queued":
+        return "Na fila, já vai começar…";
+      case "preparing":
+        return many ? `Preparando a página ${page} de ${pages}` : "Preparando a imagem";
+      case "layout":
+        return "Encontrando títulos, parágrafos, tabelas e imagens";
+      case "reading":
+        return many ? `Lendo o texto da página ${page} de ${pages}` : "Lendo o texto";
+      case "finishing":
+        return "Montando o documento";
+    }
+  },
+  tips: [
+    "Cada palavra é lida duas vezes, por dois leitores diferentes, para conferir.",
+    "As palavras com dúvida vão aparecer marcadas para você conferir.",
+    "Títulos, negrito, tabelas e imagens ficam no mesmo lugar do original.",
+    "Nada fica guardado: seu arquivo é apagado em até 1 hora.",
+    "No fim, você pode copiar o texto ou baixar em Word e PDF.",
+  ],
   progress: "Progresso",
   cancel: "Cancelar",
   another: "Converter outro",
@@ -91,6 +115,28 @@ const en: Dictionary = {
   orDrag: "or drag it here, or paste with",
   limits: "JPG, PNG, WEBP, HEIC or PDF · up to 20 MB",
   reading: "Reading your document…",
+  stage: (stage: JobStage, page: number, pages: number): string => {
+    const many = pages > 1;
+    switch (stage) {
+      case "queued":
+        return "In line, starting soon…";
+      case "preparing":
+        return many ? `Preparing page ${page} of ${pages}` : "Preparing the image";
+      case "layout":
+        return "Finding headings, paragraphs, tables and images";
+      case "reading":
+        return many ? `Reading the text of page ${page} of ${pages}` : "Reading the text";
+      case "finishing":
+        return "Putting the document together";
+    }
+  },
+  tips: [
+    "Every word is read twice, by two different readers, to double-check it.",
+    "Words we are unsure about will be marked for you to check.",
+    "Headings, bold text, tables and images stay where they were in the original.",
+    "Nothing is kept: your file is deleted within 1 hour.",
+    "At the end you can copy the text or download it as Word and PDF.",
+  ],
   progress: "Progress",
   cancel: "Cancel",
   another: "Convert another",

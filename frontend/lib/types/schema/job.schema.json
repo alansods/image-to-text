@@ -1,5 +1,17 @@
 {
   "$defs": {
+    "JobStage": {
+      "description": "Etapa real da conversão, mostrada na tela de progresso (spec job-processing).",
+      "enum": [
+        "queued",
+        "preparing",
+        "layout",
+        "reading",
+        "finishing"
+      ],
+      "title": "JobStage",
+      "type": "string"
+    },
     "JobState": {
       "enum": [
         "queued",
@@ -35,6 +47,20 @@
       "minimum": 0,
       "type": "integer"
     },
+    "stage": {
+      "$ref": "#/$defs/JobStage",
+      "default": "queued"
+    },
+    "page": {
+      "default": 0,
+      "minimum": 0,
+      "type": "integer"
+    },
+    "pages": {
+      "default": 0,
+      "minimum": 0,
+      "type": "integer"
+    },
     "error": {
       "anyOf": [
         {
@@ -53,6 +79,9 @@
     "created_at",
     "state",
     "progress",
+    "stage",
+    "page",
+    "pages",
     "error"
   ],
   "title": "Job",

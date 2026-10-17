@@ -26,6 +26,21 @@ Enquanto a conversão não termina, a tela SHALL mostrar "Lendo seu documento…
 - **WHEN** há outras conversões à frente
 - **THEN** a tela mostra "Lendo seu documento…" com 0%
 
+### Requirement: O que está acontecendo
+Durante o progresso, a tela SHALL mostrar uma ilustração animada de uma folha sendo lida e uma frase sobre a etapa real da conversão, informada pelo servidor junto com a página atual: na fila, preparando a página, encontrando a estrutura, lendo o texto ou montando o documento. Enquanto o texto é lido, uma segunda frase SHALL alternar dicas verdadeiras sobre o produto. Com "reduzir movimento" ativado no sistema, a ilustração MUST ficar parada e as dicas MUST NOT trocar sozinhas.
+
+#### Scenario: Lendo a segunda página
+- **WHEN** o servidor está lendo o texto da página 2 de 5
+- **THEN** a tela mostra "Lendo o texto da página 2 de 5" e uma dica abaixo, que troca depois de alguns segundos
+
+#### Scenario: Na fila
+- **WHEN** a conversão aguarda na fila
+- **THEN** a tela mostra "Na fila, já vai começar…"
+
+#### Scenario: Reduzir movimento
+- **WHEN** o sistema do usuário pede movimento reduzido
+- **THEN** a ilustração fica parada e a dica não troca sozinha
+
 ### Requirement: Conclusão
 Quando todas as páginas terminam, o sistema SHALL levar o usuário automaticamente à tela de resultado, sem ação dele.
 

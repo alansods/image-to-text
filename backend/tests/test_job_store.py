@@ -7,7 +7,7 @@ import fakeredis
 import pytest
 
 from app.job_store import JobStore
-from app.models.job import Job, JobState
+from app.models.job import Job, JobStage, JobState
 from app.storage import JobFiles, new_job_id
 
 T0 = datetime(2026, 10, 15, 12, 0, tzinfo=UTC)
@@ -61,6 +61,16 @@ class TestJobStore:
 
         job = store.get("j1")
         assert job is not None and job.progress == 60
+
+    def test_progress_carries_the_stage_and_page(self, store: JobStore) -> None:
+        store.create(new_job(), client_ip="1.2.3.4")
+        store.update("j1", state=JobState.PROCESSING)
+
+        store.set_progress("j1", 30, JobStage.READING, page=2, pages=5)
+
+        job = store.get("j1")
+        assert job is not None
+        assert (job.progress, job.stage, job.page, job.pages) == (30, JobStage.READING, 2, 5)
 
     def test_job_reads_as_expired_after_one_hour(self, store: JobStore, clock: Clock) -> None:
         store.create(new_job(), client_ip="1.2.3.4")

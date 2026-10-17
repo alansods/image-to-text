@@ -107,7 +107,7 @@ def pipeline() -> DocumentPipeline:
 
 
 def tables_of(page: PageInput) -> list[Block]:
-    result = pipeline().process_page(page, "p0-", lambda _f: None)
+    result = pipeline().process_page(page, "p0-", lambda _f, _s: None)
     return [b for b in result.page.blocks if b.type is BlockType.TABLE]
 
 
@@ -154,7 +154,7 @@ def test_unstructurable_table_stays_as_image(monkeypatch: pytest.MonkeyPatch) ->
 
     monkeypatch.setattr(recognize, "table_structure", lambda image, origin: [])
     result = pipeline().process_page(
-        load_pages(FIXTURES / "recibo_tabela" / "input.pdf")[0], "p0-", lambda _f: None
+        load_pages(FIXTURES / "recibo_tabela" / "input.pdf")[0], "p0-", lambda _f, _s: None
     )
 
     assert not [b for b in result.page.blocks if b.type is BlockType.TABLE]

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { ConvertingProgress } from "@/components/progress/ConvertingProgress";
+import { ConvertingProgress, type Step } from "@/components/progress/ConvertingProgress";
 import { ResultView } from "@/components/result/ResultView";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { SiteHeader } from "@/components/site/SiteHeader";
@@ -13,10 +13,11 @@ import type { UploadError } from "@/lib/i18n";
 import type { Document } from "@/lib/types/document";
 
 const POLL_MS = 1500;
+const QUEUED: Step = { stage: "queued", page: 0, pages: 0 };
 
 type Screen =
   | { kind: "upload"; error: UploadError | null }
-  | { kind: "converting"; jobId: string; fileName: string; progress: number }
+  | { kind: "converting"; jobId: string; fileName: string; progress: number; step: Step }
   | { kind: "result"; jobId: string; doc: Document };
 
 /** Um endereço, três telas: envio → convertendo → resultado (spec site-interface).
@@ -40,7 +41,13 @@ export function ConverterApp() {
         const prepared = await prepareFile(file);
         const job = await createJob(prepared.blob, prepared.name);
         active.current = job.id;
-        setScreen({ kind: "converting", jobId: job.id, fileName: job.source_file, progress: 0 });
+        setScreen({
+          kind: "converting",
+          jobId: job.id,
+          fileName: job.source_file,
+          progress: 0,
+          step: QUEUED,
+        });
       } catch (error) {
         const code = error instanceof ApiFailure ? error.code : "unreadable";
         setScreen({ kind: "upload", error: code === "unreadable" ? "unreadable" : uploadErrorFor(code) });
@@ -72,7 +79,11 @@ export function ConverterApp() {
         }
         setScreen((s) =>
           s.kind === "converting" && s.jobId === jobId
-            ? { ...s, progress: Math.max(s.progress, job.progress) }
+            ? {
+                ...s,
+                progress: Math.max(s.progress, job.progress),
+                step: { stage: job.stage, page: job.page, pages: job.pages },
+              }
             : s,
         );
       } catch (error) {
@@ -99,6 +110,7 @@ export function ConverterApp() {
           <ConvertingProgress
             fileName={screen.fileName}
             progress={screen.progress}
+            step={screen.step}
             onCancel={() => reset()}
           />
         )}

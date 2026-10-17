@@ -13,6 +13,10 @@ import numpy as np
 from numpy.typing import NDArray
 
 from app.models.document import Page, PageSize
+from app.models.job import JobStage
+
+# Andamento dentro da página (0 a 1) e a etapa em curso, para a tela de progresso.
+Report = Callable[[float, JobStage], None]
 
 Image = NDArray[np.uint8]
 
@@ -42,10 +46,8 @@ class PipelineUnavailableError(RuntimeError):
 class Pipeline(Protocol):
     def load_pages(self, source: Path) -> list[PageInput]: ...
 
-    def process_page(
-        self, page: PageInput, id_prefix: str, report: Callable[[float], None]
-    ) -> ProcessedPage:
-        """`report(fração)` informa o andamento dentro da página (0 a 1)."""
+    def process_page(self, page: PageInput, id_prefix: str, report: Report) -> ProcessedPage:
+        """`report(fração, etapa)` informa o andamento dentro da página (0 a 1) e a etapa."""
         ...
 
 
@@ -55,7 +57,5 @@ class UnavailablePipeline:
     def load_pages(self, source: Path) -> list[PageInput]:
         raise PipelineUnavailableError
 
-    def process_page(
-        self, page: PageInput, id_prefix: str, report: Callable[[float], None]
-    ) -> ProcessedPage:
+    def process_page(self, page: PageInput, id_prefix: str, report: Report) -> ProcessedPage:
         raise PipelineUnavailableError

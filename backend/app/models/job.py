@@ -22,6 +22,16 @@ class JobState(StrEnum):
 ACTIVE_STATES = frozenset({JobState.QUEUED, JobState.PROCESSING})
 
 
+class JobStage(StrEnum):
+    """Etapa real da conversão, mostrada na tela de progresso (spec job-processing)."""
+
+    QUEUED = "queued"
+    PREPARING = "preparing"  # endireitar e limpar a imagem
+    LAYOUT = "layout"  # achar títulos, parágrafos, tabelas e figuras
+    READING = "reading"  # as duas leituras e a reconciliação
+    FINISHING = "finishing"  # montar o documento
+
+
 class Job(BaseModel):
     model_config = ConfigDict(
         extra="forbid", frozen=True, json_schema_serialization_defaults_required=True
@@ -32,6 +42,10 @@ class Job(BaseModel):
     created_at: datetime
     state: JobState = JobState.QUEUED
     progress: int = Field(default=0, ge=0, le=100)
+    stage: JobStage = JobStage.QUEUED
+    # Página em andamento (a partir de 1) e total; 0 enquanto o arquivo não foi aberto.
+    page: int = Field(default=0, ge=0)
+    pages: int = Field(default=0, ge=0)
     # Código do motivo da falha; o texto mostrado ao usuário fica no frontend (PT/EN).
     error: str | None = None
 

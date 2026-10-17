@@ -99,7 +99,8 @@ function serverFinishing(doc: Document) {
     }
     if (url.endsWith("/jobs/j1")) {
       polls += 1;
-      return { body: { id: "j1", source_file: doc.source_file, created_at: "", state: polls > 1 ? "done" : "processing", progress: polls > 1 ? 100 : 40, error: null } };
+      const done = polls > 1;
+      return { body: { id: "j1", source_file: doc.source_file, created_at: "", state: done ? "done" : "processing", progress: done ? 100 : 40, stage: done ? "finishing" : "reading", page: 1, pages: 1, error: null } };
     }
     if (url.endsWith("/jobs/j1/result") && init?.method === "PATCH") return { body: doc };
     if (url.endsWith("/jobs/j1/result")) return { body: doc };
@@ -131,6 +132,99 @@ describe("moldura e idioma", () => {
     handler = () => undefined;
     renderApp();
     expect(screen.getByRole("contentinfo")).toHaveTextContent(`© ${new Date().getFullYear()} image-to-text`);
+  });
+});
+
+/** Servidor que fica em `job` (etapa, página) sem terminar. */
+function serverAt(job: { state: string; stage: string; page: number; pages: number; progress: number }) {
+  handler = (url, init) => {
+    if (url.endsWith("/jobs") && init?.method === "POST") {
+      return { status: 201, body: { id: "j1", source_file: "contrato.pdf", created_at: "", state: "queued", progress: 0, stage: "queued", page: 0, pages: 0, error: null } };
+    }
+    if (url.endsWith("/jobs/j1")) return { body: { id: "j1", source_file: "contrato.pdf", created_at: "", error: null, ...job } };
+    return undefined;
+  };
+}
+
+function reducedMotion(reduce: boolean) {
+  vi.stubGlobal("matchMedia", (query: string) => ({
+    matches: reduce && query.includes("prefers-reduced-motion"),
+    media: query,
+    addEventListener: () => undefined,
+    removeEventListener: () => undefined,
+  }));
+}
+
+async function poll() {
+  await screen.findByRole("progressbar");
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(1600);
+  });
+}
+
+describe("progresso", () => {
+  it("mostra a etapa real com a página, uma ilustração e dicas que trocam", async () => {
+    reducedMotion(false);
+    serverAt({ state: "processing", stage: "reading", page: 2, pages: 5, progress: 30 });
+    renderApp();
+    await upload(pngFile());
+    await poll();
+
+    expect(screen.getByText("Lendo o texto da página 2 de 5")).toBeInTheDocument();
+    expect(screen.getByTestId("reading-illustration")).toBeInTheDocument();
+    const tip = screen.getByTestId("progress-tip");
+    const first = tip.textContent;
+    expect(first).toBeTruthy();
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(6100);
+    });
+    expect(screen.getByTestId("progress-tip").textContent).not.toBe(first);
+  });
+
+  it("na fila avisa que já vai começar, sem dica", async () => {
+    reducedMotion(false);
+    serverAt({ state: "queued", stage: "queued", page: 0, pages: 0, progress: 0 });
+    renderApp();
+    await upload(pngFile());
+    await poll();
+
+    expect(screen.getByText("Na fila, já vai começar…")).toBeInTheDocument();
+    expect(screen.queryByTestId("progress-tip")).toBeNull();
+  });
+
+  it("documento de uma página não fala em 'página 1 de 1'", async () => {
+    reducedMotion(false);
+    serverAt({ state: "processing", stage: "preparing", page: 1, pages: 1, progress: 5 });
+    renderApp();
+    await upload(pngFile());
+    await poll();
+
+    expect(screen.getByText("Preparando a imagem")).toBeInTheDocument();
+  });
+
+  it("com 'reduzir movimento' a dica não troca sozinha", async () => {
+    reducedMotion(true);
+    serverAt({ state: "processing", stage: "reading", page: 1, pages: 3, progress: 20 });
+    renderApp();
+    await upload(pngFile());
+    await poll();
+    const first = screen.getByTestId("progress-tip").textContent;
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(13000);
+    });
+    expect(screen.getByTestId("progress-tip").textContent).toBe(first);
+  });
+
+  it("em inglês", async () => {
+    reducedMotion(false);
+    serverAt({ state: "processing", stage: "layout", page: 3, pages: 4, progress: 60 });
+    renderApp("en");
+    await upload(pngFile());
+    await poll();
+
+    expect(screen.getByText("Finding headings, paragraphs, tables and images")).toBeInTheDocument();
   });
 });
 

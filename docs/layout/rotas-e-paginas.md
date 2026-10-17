@@ -53,7 +53,7 @@ Erros aparecem logo abaixo da área, em vermelho: formato não suportado, maior 
 
 ### 5.2 Convertendo
 
-Centralizado: "Lendo seu documento…", barra de progresso (máx. 420 px), "contrato.pdf · 62%" (percentual em mono), botão discreto "Cancelar" (volta ao Envio e apaga a conversão). Ao chegar a 100%, troca sozinho para **Resultado**.
+Centralizado: ilustração animada (folha com uma faixa de leitura descendo e linhas de texto aparecendo; parada com "reduzir movimento"), "Lendo seu documento…", frase da etapa real ("Na fila, já vai começar…", "Preparando a página 2 de 5", "Encontrando títulos, parágrafos, tabelas e imagens", "Lendo o texto da página 2 de 5", "Montando o documento"), durante a leitura uma dica menor que troca a cada ~6 s, barra de progresso (máx. 420 px), "contrato.pdf · 62%" (percentual em mono), botão discreto "Cancelar" (volta ao Envio e apaga a conversão). Ao chegar a 100%, troca sozinho para **Resultado**.
 
 ### 5.3 Resultado
 
@@ -78,7 +78,7 @@ Coluna central (máx. 760 px):
    ▼
 [Convertendo] percentual … 100%  (Cancelar → Envio)
    ▼
-[Resultado] Conferir próxima → escolhe/digita/mantém original → (vê a correção em verde) → Conferir próxima … → Tudo conferido
+[Resultado] Conferir próxima → escolhe/digita (pode trocar depois) → (vê a correção em verde) → Conferir próxima … → Tudo conferido
    → Copiar texto | Baixar Word | Baixar PDF
    → Converter outro (→ Envio, apaga a conversão)
 ```
