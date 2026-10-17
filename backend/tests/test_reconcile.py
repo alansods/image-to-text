@@ -318,13 +318,13 @@ def test_accepted_words_keep_both_source_readings() -> None:
     ]
 
 
-def test_curved_line_keeps_the_primary_reading_order() -> None:
+def test_curved_line_keeps_its_words_in_order() -> None:
     # A 1ª linha sobe para a direita (papel curvo no scanner); a 2ª começa logo abaixo.
     first = [
         paddle("a", 0, y=130),
-        paddle("b", 100, y=115),
-        paddle("c", 200, y=100),
-        paddle("d", 300, y=85),
+        paddle("b", 100, y=120),
+        paddle("c", 200, y=110),
+        paddle("d", 300, y=100),
     ]
     second = [paddle("e", 0, y=160), paddle("f", 100, y=150)]
     words = reconcile_block(
@@ -373,3 +373,32 @@ class TestUnderlinedTitles:
         # Linha de preencher num formulário ("Nome: ______") é conteúdo.
         words = reconcile_block([paddle("______", 0)], [doctr("______", 0)], BLIND, "b0")
         assert [w.text for w in words] == ["______"]
+
+
+def test_curved_line_split_by_the_reader_is_put_back_together() -> None:
+    # O leitor partiu a 1ª linha (que sobe) em dois pedaços e entregou o da direita primeiro.
+    a, b = paddle("a", 0, y=130), paddle("b", 100, y=120)
+    c, d = paddle("c", 200, y=110), paddle("d", 300, y=100)
+    e, f = paddle("e", 0, y=170), paddle("f", 100, y=160)
+    words = reconcile_block([c, d, a, b, e, f], [], BLIND, "b0")
+    assert [w.text for w in words] == ["a", "b", "c", "d", "e", "f"]
+
+
+def test_pieces_starting_at_the_same_height_are_read_left_to_right() -> None:
+    # Título sublinhado (caixas reais): o "_" do sublinhado separa "PRIMEIRA" de "- OBJETO".
+    def word(text: str, x: float, y: float, w: float, h: float) -> ReadWord:
+        return ReadWord(text, BBox(x=x, y=y, w=w, h=h), 0.97, ReadingSource.PADDLE)
+
+    words = reconcile_block(
+        [
+            word("-", 623, 1939, 12, 44),
+            word("OBJETO", 644, 1939, 137, 44),
+            word("CLÁUSULA", 222, 1939, 194, 47),
+            word("PRIMEIRA", 423, 1939, 184, 44),
+            word("_", 609, 1959, 30, 16),
+        ],
+        [],
+        BLIND,
+        "b0",
+    )
+    assert [w.text for w in words] == ["CLÁUSULA", "PRIMEIRA", "_", "-", "OBJETO"]

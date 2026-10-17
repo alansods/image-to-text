@@ -4,7 +4,7 @@ import type { CSSProperties, ReactNode } from "react";
 
 import { imageUrl, wordImageUrl } from "@/lib/api";
 import { useI18n } from "@/lib/i18n";
-import { bodyFontPt, pageLayout, pageMargins } from "@/lib/sheet";
+import { bodyFontPt, edgeAlign, gapCqw, pageLayout, pageMargins } from "@/lib/sheet";
 import type { Block, Document, Page, Word } from "@/lib/types/document";
 import { cn } from "@/lib/utils";
 
@@ -94,18 +94,32 @@ function Words({ words, ctx }: { words: Word[]; ctx: WordProps }) {
   );
 }
 
-function BlockView({ block, page, base, ctx }: { block: Block; page: Page; base: number; ctx: WordProps }) {
+function BlockView({
+  block,
+  page,
+  base,
+  ctx,
+  laneLeft,
+}: {
+  block: Block;
+  page: Page;
+  base: number;
+  ctx: WordProps;
+  laneLeft: number;
+}) {
   const { t } = useI18n();
   const fontSize = sizeCqw(block.font_pt ?? base * block.rel_size, page);
   if (block.image_ref) {
+    // Mesma posição horizontal do original: recuo a partir do início do conteúdo.
+    const indent = Math.max(0, ((block.bbox.x - laneLeft) / page.width) * 100);
     return (
-      <div style={{ textAlign: ALIGN[block.align] }}>
+      <div>
         {/* eslint-disable-next-line @next/next/no-img-element -- recorte servido pela API */}
         <img
           src={imageUrl(ctx.jobId, block.id)}
           alt={t.figureAlt}
-          className="inline-block max-w-full"
-          style={{ width: `${(block.bbox.w / page.width) * 100}cqw` }}
+          className="block max-w-full"
+          style={{ width: `${(block.bbox.w / page.width) * 100}cqw`, marginLeft: `min(${indent}cqw, calc(100% - ${(block.bbox.w / page.width) * 100}cqw))` }}
         />
       </div>
     );
@@ -188,7 +202,13 @@ function PageSheet({ page, total, base, ctx }: { page: Page; total: number; base
         >
           {layout.header.map((block) => (
             <div key={block.id} style={{ fontSize: small }}>
-              <BlockView block={block} page={page} base={base * 0.8} ctx={ctx} />
+              <BlockView
+                block={{ ...block, align: edgeAlign(page, block) }}
+                page={page}
+                base={base * 0.8}
+                ctx={ctx}
+                laneLeft={block.bbox.x}
+              />
             </div>
           ))}
           {layout.body.map((group, index) => (
@@ -201,9 +221,18 @@ function PageSheet({ page, total, base, ctx }: { page: Page; total: number; base
               }}
             >
               {group.lanes.map((lane, laneIndex) => (
-                <div key={laneIndex} className="flex flex-col" style={{ gap: sizeCqw(base * 0.6, page) }}>
-                  {lane.map((block) => (
-                    <BlockView key={block.id} block={block} page={page} base={base} ctx={ctx} />
+                <div key={laneIndex} className="flex flex-col">
+                  {lane.map((block, i) => (
+                    // Mesmo vão vertical do original (assinatura no pé da página fica no pé).
+                    <div key={block.id} style={{ marginTop: i === 0 ? 0 : gapCqw(lane[i - 1], block, page, base) }}>
+                      <BlockView
+                        block={block}
+                        page={page}
+                        base={base}
+                        ctx={ctx}
+                        laneLeft={Math.min(...lane.map((b) => b.bbox.x))}
+                      />
+                    </div>
                   ))}
                 </div>
               ))}
@@ -211,7 +240,14 @@ function PageSheet({ page, total, base, ctx }: { page: Page; total: number; base
           ))}
           <div className="mt-auto flex flex-col gap-1 pt-4">
             {layout.footer.map((block) => (
-              <BlockView key={block.id} block={block} page={page} base={base * 0.8} ctx={ctx} />
+              <BlockView
+                key={block.id}
+                block={{ ...block, align: edgeAlign(page, block) }}
+                page={page}
+                base={base * 0.8}
+                ctx={ctx}
+                laneLeft={block.bbox.x}
+              />
             ))}
             <span className="text-center font-sans text-[13px] text-muted-foreground">
               {page.index + 1}

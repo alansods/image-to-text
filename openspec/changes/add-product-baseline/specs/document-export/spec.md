@@ -74,6 +74,14 @@ Todo elemento que não é texto — capa, logotipo, foto, ilustração, gráfico
 - **WHEN** a página 1 do original é uma capa formada por uma ilustração
 - **THEN** a página 1 do documento baixado contém essa ilustração, ocupando a página na mesma proporção
 
+#### Scenario: Texto dentro de uma assinatura
+- **WHEN** uma assinatura foi feita sobre o nome impresso "EMPRESA EXEMPLO" e encosta na linha da data
+- **THEN** o nome aparece uma vez só (dentro da imagem da assinatura) e a data aparece uma vez só, como texto
+
+#### Scenario: Rubrica à direita
+- **WHEN** a página tem uma rubrica no canto inferior direito
+- **THEN** no documento baixado a rubrica aparece no canto inferior direito daquela página
+
 #### Scenario: Nenhuma figura perdida
 - **WHEN** o original tem 4 elementos que não são texto
 - **THEN** o documento baixado contém as 4 imagens

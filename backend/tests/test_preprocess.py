@@ -108,6 +108,20 @@ class TestOrientation:
 
         assert detect_orientation(image) == 180
 
+    def test_unsure_classifier_leaves_the_page_as_it_is(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        # Página quase só com escrita à mão: o classificador "acha" 270° com 37% de certeza.
+        import app.pipeline.preprocess as preprocess_module
+
+        class Unsure:
+            def predict(self, image, batch_size=1):  # type: ignore[no-untyped-def]
+                return [{"label_names": ["270"], "scores": [0.37]}]
+
+        monkeypatch.setattr(preprocess_module, "_orientation_model", lambda: Unsure())
+
+        assert detect_orientation(fixture_pages("contrato_impresso")[0].image) == 0
+
 
 class TestDeskew:
     @pytest.mark.parametrize("tilt", [7.0, -4.0])

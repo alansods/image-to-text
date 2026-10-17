@@ -32,6 +32,10 @@ FULL_WIDTH = 0.6
 LIST_INDENT = 18.0
 # Entrelinha simples do Word já deixa ~0,3 do corpo entre linhas; o resto do vão vira espaço.
 LEADING_GAP = 0.3
+# Maior espaço vertical antes de um bloco (fração da altura da folha).
+MAX_GAP = 0.6
+# Cabeçalho/rodapé mais estreito que isto (fração da página) segue a posição na página.
+SHORT_EDGE = 0.3
 IMAGE_TYPES = {BlockType.FIGURE, BlockType.FORMULA}
 
 _ALIGN = {
@@ -64,6 +68,16 @@ def body_font_size(document: Document) -> float:
     if not heights:
         return DEFAULT_SIZE
     return round(min(max(median(heights), MIN_SIZE), MAX_SIZE) * 2) / 2
+
+
+def _edge_align(page: Page, block: Block) -> Alignment:
+    """Cabeçalho/rodapé curto (número da página) alinha pela posição dele na página."""
+    if block.bbox.w >= SHORT_EDGE * page.width:
+        return block.align
+    center = (block.bbox.x + block.bbox.w / 2) / page.width
+    if center > 0.6:
+        return Alignment.RIGHT
+    return Alignment.LEFT if center < 0.4 else Alignment.CENTER
 
 
 class _Writer:
@@ -192,12 +206,25 @@ class _Writer:
         shrink = min(1.0, usable / sum(widths))
         return [w * shrink for w in widths]
 
-    def picture(self, page: Page, block: Block, usable_width: float, space_before: float) -> None:
+    def picture(
+        self,
+        page: Page,
+        block: Block,
+        usable_width: float,
+        space_before: float,
+        lane_left: float,
+    ) -> None:
+        """Imagem do original na mesma posição horizontal: recuo = distância do início do
+        conteúdo (`lane_left`, em px) na página original."""
         if block.image_ref is None:
             return
-        width = min(block.bbox.w * page.page_size.w_pt / page.width, usable_width)
+        k = page.page_size.w_pt / page.width
+        width = min(block.bbox.w * k, usable_width)
         p = self.doc.add_paragraph()
-        p.alignment = _ALIGN[block.align]
+        p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+        p.paragraph_format.left_indent = Pt(
+            min(max(0.0, (block.bbox.x - lane_left) * k), usable_width - width)
+        )
         p.paragraph_format.space_before = Pt(space_before)
         p.add_run().add_picture(str(self.assets / block.image_ref), width=Pt(width))
 
@@ -233,7 +260,7 @@ class _Writer:
             target = part.paragraphs[0] if part.paragraphs else part.add_paragraph()
             for index, block in enumerate(blocks):
                 p = target if index == 0 else part.add_paragraph()
-                p.alignment = _ALIGN[block.align]
+                p.alignment = _ALIGN[_edge_align(page, block)]
                 self.runs(p, block.words, self.size(block), page)
         return section
 
@@ -276,12 +303,26 @@ class _Writer:
             # Espaço antes = vão do original, menos a folga que a própria linha já ocupa.
             above = last_bottom.get(column)
             space = 0.0 if above is None else (block.bbox.y - above) * k - LEADING_GAP * self.base
-            space = min(max(space, 0.0), 3 * self.base)
+            # Vão grande (assinatura no pé da página) é mantido; a conferência de paginação
+            # reduz as fontes se algo transbordar.
+            space = min(max(space, 0.0), MAX_GAP * page.page_size.h_pt)
             if current_columns > 1 and previous_column >= 0 and column > previous_column:
                 breaker = self.doc.add_paragraph()
                 breaker.add_run().add_break(WD_BREAK.COLUMN)
             if block.type in IMAGE_TYPES:
-                self.picture(page, block, usable / max(current_columns, 1), space)
+                lane_left = (
+                    left
+                    if spans_all
+                    else min(
+                        (
+                            b.bbox.x
+                            for b in body
+                            if b.column == column and b.bbox.w < FULL_WIDTH * content_width
+                        ),
+                        default=left,
+                    )
+                )
+                self.picture(page, block, usable / max(current_columns, 1), space, lane_left)
             elif block.type is BlockType.TABLE and block.cells:
                 self.table(page, block, usable / max(current_columns, 1), space)
             elif block.words:

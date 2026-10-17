@@ -144,10 +144,16 @@ def _orientation_model() -> Any:
     return DocImgOrientationClassification(model_name="PP-LCNet_x1_0_doc_ori")
 
 
+# Medido: páginas impressas 92%-93%; página com quase só escrita à mão, 37% (e errado).
+MIN_ORIENTATION_CONFIDENCE = 0.6
+
+
 def detect_orientation(image: Image) -> int:
     """Rotação da página em graus (0, 90, 180 ou 270), pelo classificador do PaddleOCR."""
     rgb = image if image.ndim == 3 else cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
     result = _orientation_model().predict(np.ascontiguousarray(rgb), batch_size=1)[0]
+    if float(result["scores"][0]) < MIN_ORIENTATION_CONFIDENCE:
+        return 0  # na dúvida, não gira (página quase só com assinaturas: 37% para 270°)
     return int(result["label_names"][0])
 
 

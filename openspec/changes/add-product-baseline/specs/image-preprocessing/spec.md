@@ -25,6 +25,10 @@ O sistema SHALL detectar páginas giradas (90°, 180°, 270°) e inclinadas e en
 - **WHEN** uma página escaneada de cabeça para baixo é processada
 - **THEN** o texto reconhecido sai na orientação correta de leitura
 
+#### Scenario: Página só com assinaturas
+- **WHEN** uma página tem quase só assinaturas e escrita à mão, e não é possível saber com segurança se está girada
+- **THEN** a página é mantida na orientação em que foi enviada
+
 #### Scenario: Página inclinada
 - **WHEN** uma página inclinada em 7° é processada
 - **THEN** a página normalizada fica com inclinação residual de no máximo 0,5°

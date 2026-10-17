@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { pageLayout } from "@/lib/sheet";
+import { edgeAlign, gapCqw, pageLayout } from "@/lib/sheet";
 import type { Block, Page } from "@/lib/types/document";
 
 function block(id: string, order: number, x: number, w: number, extra: Partial<Block> = {}): Block {
@@ -39,5 +39,19 @@ describe("layout da folha", () => {
       [["t"]],
       [["l"], ["r"]],
     ]);
+  });
+});
+
+describe("posição na folha", () => {
+  it("número da página no canto direito fica à direita", () => {
+    const footer = block("f", 9, 2127, 18, { type: "footer", align: "left" });
+    expect(edgeAlign(page([footer]), footer)).toBe("right");
+  });
+
+  it("vão grande do original é mantido (assinatura no pé da página)", () => {
+    const top = block("a", 0, 300, 1800);
+    const bottom = { ...block("b", 1, 300, 400), bbox: { x: 300, y: 3000, w: 400, h: 200 } };
+    // 2950 px de vão = ~708 pt, limitado a 60% da folha (505 pt) = 85% da largura.
+    expect(parseFloat(gapCqw(top, bottom, page([top, bottom]), 11))).toBeCloseTo(84.9, 0);
   });
 });

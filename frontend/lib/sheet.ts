@@ -70,3 +70,19 @@ export function pageMargins(page: Page): { x: number; top: number; bottom: numbe
     bottom: clamp((page.height - Math.max(...body.map((b) => b.bbox.y + b.bbox.h))) * k),
   };
 }
+
+/** Vão vertical do original entre dois blocos, menos a folga que a linha já ocupa (como no
+ * Word: backend app/export/docx_export.py). */
+export function gapCqw(previous: Block, block: Block, page: Page, base: number): string {
+  const gapPt = ((block.bbox.y - (previous.bbox.y + previous.bbox.h)) * page.page_size.w_pt) / page.width;
+  const pt = Math.min(Math.max(gapPt - 0.3 * base, 0), 0.6 * page.page_size.h_pt);
+  return `${((pt / page.page_size.w_pt) * 100).toFixed(3)}cqw`;
+}
+
+/** Cabeçalho/rodapé curto (número da página) alinha pela posição na página. */
+export function edgeAlign(page: Page, block: Block): Block["align"] {
+  if (block.bbox.w >= 0.3 * page.width) return block.align;
+  const center = (block.bbox.x + block.bbox.w / 2) / page.width;
+  return center > 0.6 ? "right" : center < 0.4 ? "left" : "center";
+}
+

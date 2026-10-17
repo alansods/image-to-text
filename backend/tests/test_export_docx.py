@@ -9,7 +9,7 @@ from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml.ns import qn
 
 from app.export.docx_export import build_docx
-from app.models.document import BBox
+from app.models.document import Alignment, BBox
 from tests.export_samples import sample_document
 
 
@@ -185,3 +185,53 @@ def test_measured_font_size_is_used(tmp_path: Path) -> None:
         p for p in docx.Document(str(out)).paragraphs if p.text.startswith("O CONTRATANTE")
     )
     assert paragraph.runs[0].font.size.pt == 13.5
+
+
+def test_figure_keeps_its_horizontal_position(tmp_path: Path) -> None:
+    document = sample_document(tmp_path)
+    page = document.pages[0]
+    signature = next(b for b in page.blocks if b.id == "p0-logo")
+    moved = signature.model_copy(
+        update={"bbox": BBox(x=1500, y=signature.bbox.y, w=signature.bbox.w, h=signature.bbox.h)}
+    )
+    document.pages[0] = page.model_copy(
+        update={"blocks": [moved if b is signature else b for b in page.blocks]}
+    )
+    out = tmp_path / "t.docx"
+    build_docx(document, tmp_path, out)
+
+    paragraph = next(p for p in docx.Document(str(out)).paragraphs if p._p.xpath(".//pic:pic"))
+    # 1500 menos 300 (início do conteúdo) = 1200 px de 2480 → ~288 pt da margem
+    assert paragraph.paragraph_format.left_indent.pt == pytest.approx(288, abs=3)
+
+
+def test_short_footer_follows_its_position_on_the_page(tmp_path: Path) -> None:
+    from docx.enum.text import WD_ALIGN_PARAGRAPH as A
+
+    document = sample_document(tmp_path)
+    page = document.pages[0]
+    footer = next(b for b in page.blocks if b.id == "p0-f")
+    number = footer.model_copy(
+        update={"bbox": BBox(x=2127, y=3300, w=18, h=29), "align": Alignment.LEFT}
+    )
+    document.pages[0] = page.model_copy(
+        update={"blocks": [number if b is footer else b for b in page.blocks]}
+    )
+    out = tmp_path / "t.docx"
+    build_docx(document, tmp_path, out)
+
+    section = docx.Document(str(out)).sections[0]
+    assert section.footer.paragraphs[0].alignment == A.RIGHT
+
+
+def test_big_vertical_gaps_are_kept(tmp_path: Path) -> None:
+    document = sample_document(tmp_path)
+    page = document.pages[2]
+    signature = next(b for b in page.blocks if b.id == "p2-sig")
+    out = tmp_path / "t.docx"
+    build_docx(document, tmp_path, out)
+
+    paragraph = [p for p in docx.Document(str(out)).paragraphs if p._p.xpath(".//pic:pic")][1]
+    gap_px = signature.bbox.y - (500 + 60)  # depois das colunas (y 500, altura 60)
+    expected = gap_px * page.page_size.w_pt / page.width
+    assert paragraph.paragraph_format.space_before.pt > 0.8 * expected

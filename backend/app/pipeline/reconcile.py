@@ -162,29 +162,48 @@ def _align(primary: Sequence[ReadWord], secondary: Sequence[ReadWord]) -> list[_
     return _in_reading_order(list(groups.values()))
 
 
-def _same_line(a: BBox, b: BBox) -> bool:
-    overlap = min(a.y + a.h, b.y + b.h) - max(a.y, b.y)
-    return overlap > 0.5 * min(a.h, b.h)
+# Duas palavras vizinhas estão na mesma linha se as alturas se sobrepõem ao menos isto.
+LINE_OVERLAP = 0.25
+
+
+def _vertical_overlap(a: BBox, b: BBox) -> float:
+    return min(a.y + a.h, b.y + b.h) - max(a.y, b.y)
 
 
 def _in_reading_order(units: list[_Unit]) -> list[_Unit]:
-    """Na ordem em que o leitor principal leu (ele segue a linha mesmo curva); unidades que só
-    o segundo leitor viu entram logo depois da vizinha à esquerda na mesma linha."""
-    ordered = sorted((u for u in units if u.first is not None), key=lambda u: u.first or 0)
-    for unit in sorted((u for u in units if u.first is None), key=lambda u: (u.bbox.y, u.bbox.x)):
+    """Linhas montadas da esquerda para a direita, cada palavra presa à vizinha de altura
+    parecida (acompanha linha curva e linha que o leitor partiu em pedaços); as linhas vão na
+    ordem da altura em que começam."""
+    lines: list[list[_Unit]] = []
+    for unit in sorted(units, key=lambda u: (u.bbox.x, u.bbox.y)):
         box = unit.bbox
-        left = [
-            i
-            for i, other in enumerate(ordered)
-            if _same_line(other.bbox, box) and other.bbox.x < box.x
-        ]
-        if left:
-            position = max(left, key=lambda i: ordered[i].bbox.x) + 1
+
+        def fits(line: list[_Unit], box: BBox = box) -> float:
+            last = line[-1].bbox
+            if last.x + last.w > box.x + 0.5 * box.w:
+                return -1.0
+            overlap = _vertical_overlap(last, box)
+            return overlap if overlap > LINE_OVERLAP * min(last.h, box.h) else -1.0
+
+        best = max(lines, key=fits, default=None)
+        if best is not None and fits(best) > 0:
+            best.append(unit)
         else:
-            below = [i for i, other in enumerate(ordered) if other.bbox.y > box.y]
-            position = min(below) if below else len(ordered)
-        ordered.insert(position, unit)
-    return ordered
+            lines.append([unit])
+    lines.sort(key=lambda line: line[0].bbox.y + line[0].bbox.h / 2)
+    # Pedaços que começam na mesma altura (ex.: separados por um sublinhado) são a mesma
+    # linha visual: da esquerda para a direita.
+    rows: list[list[list[_Unit]]] = []
+    for line in lines:
+        start = line[0].bbox
+        if rows and _vertical_overlap(rows[-1][0][0].bbox, start) > 0.5 * min(
+            rows[-1][0][0].bbox.h, start.h
+        ):
+            rows[-1].append(line)
+        else:
+            rows.append([line])
+    ordered = [line for row in rows for line in sorted(row, key=lambda ln: ln[0].bbox.x)]
+    return [unit for line in ordered for unit in line]
 
 
 # ------------------------------------------------------------------ decisão

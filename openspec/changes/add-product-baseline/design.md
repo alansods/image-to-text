@@ -189,6 +189,11 @@ O primeiro teste com um documento real (contrato de 5 páginas escaneado, com ru
 - **Assinatura, rubrica e preenchimento à mão**: bloco com ≥ 50% de dúvidas e menos de 50% da tinta em manchas do tamanho de letra impressa vira figura (medido: impresso 0,71–1,00; à mão 0,00–0,31). Sem tinta não conta (região em branco).
 - **Sujeira do scanner**: região órfã precisa de 0,6 altura de letra (era 0,4; riscos de 4 × 11 px viravam "1" e "e").
 - **Tamanho da letra em pontos (`font_pt`)**: altura da tinta de cada palavra ÷ (topo − base das letras que ela tem: baixa 0,52; maiúscula/haste/algarismo 0,72; minúscula acentuada 0,75; maiúscula acentuada 0,90; perna 0,21), sem as linhas de sublinhado; mediana do bloco. Medido em texto renderizado: erro ≤ 5% (11 pt → 10,6–11,5; 16 pt → 15,3). No documento, diferença < 15% do corpo vira o corpo. Word, PDF e tela usam `font_pt`.
+- **Orientação**: só gira com confiança ≥ 60% do classificador (páginas impressas 92–93%; a página de assinaturas deu 37% para 270° e saía deitada).
+- **Ordem das palavras**: linhas montadas encadeando da esquerda para a direita cada palavra à vizinha com altura sobreposta (≥ 25%), linhas ordenadas pela altura do começo — o PaddleOCR às vezes parte uma linha curva e entrega primeiro o pedaço da direita (mais alto). Pedaços que começam na mesma altura (separados por um sublinhado) vão da esquerda para a direita.
+- **Cabeçalho/rodapé curto** (número da página) alinha pela posição na página; **vãos verticais** do original são mantidos até 60% da folha (Word e tela), e a conferência de paginação reduz fontes se algo transbordar.
+- **Texto × figura**: texto com ≥ 50% da área dentro de uma figura fica só na imagem; o que só encosta continua texto e é pintado de branco no recorte da figura (a página original não é alterada).
+- **Posição horizontal das imagens**: no Word/PDF e na tela, recuo = distância do início do conteúdo (a rubrica volta para a direita).
 - **Conferência** (pedido do usuário): não pula sozinha para a próxima dúvida — o quadro fecha com o foco na palavra corrigida, marcada em verde só na tela; "Conferir próxima" segue da última conferida. Opção "Manter como no original": `keep_original` na palavra; Word/PDF/tela mostram o recorte exato da palavra (`GET /jobs/{id}/words/{word_id}/image`) com a altura que ela tinha; a cópia usa o texto lido.
 
 ## Open Questions

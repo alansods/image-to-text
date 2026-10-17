@@ -192,6 +192,41 @@ def _handwritten(pre: Preprocessed, block: Block, char_height: float) -> bool:
     return doubtful >= HANDWRITTEN_DOUBTS and looks_handwritten(crop, char_height)
 
 
+# Texto com ao menos metade da área dentro de uma figura faz parte da imagem (D18).
+INSIDE_FIGURE = 0.5
+
+
+def _overlap_box(a: BBox, b: BBox) -> tuple[float, float, float, float] | None:
+    x1, y1 = max(a.x, b.x), max(a.y, b.y)
+    x2, y2 = min(a.x + a.w, b.x + b.w), min(a.y + a.h, b.y + b.h)
+    return (x1, y1, x2, y2) if x2 > x1 and y2 > y1 else None
+
+
+def _settle_figure_overlaps(blocks: list[Block], crops: dict[str, Image]) -> list[Block]:
+    """Texto não aparece duas vezes: o que está (quase) todo dentro de uma figura fica só na
+    imagem; o que só encosta continua texto e é apagado (branco) do recorte da figura."""
+    figures = [b for b in blocks if b.id in crops]
+    result = []
+    for block in blocks:
+        if block.id in crops or not block.words:
+            result.append(block)
+            continue
+        area = block.bbox.w * block.bbox.h
+        overlaps = [(f, _overlap_box(block.bbox, f.bbox)) for f in figures]
+        inside = max(((o[2] - o[0]) * (o[3] - o[1]) / area for _, o in overlaps if o), default=0.0)
+        if inside >= INSIDE_FIGURE:
+            continue
+        for figure, o in overlaps:
+            if o is None:
+                continue
+            crop = crops[figure.id] = np.array(crops[figure.id], copy=True)
+            x1, y1 = int(o[0] - figure.bbox.x), int(o[1] - figure.bbox.y)
+            x2, y2 = int(np.ceil(o[2] - figure.bbox.x)), int(np.ceil(o[3] - figure.bbox.y))
+            crop[max(0, y1) : y2, max(0, x1) : x2] = 255
+        result.append(block)
+    return result
+
+
 def _reading_sort(words: list[Word]) -> list[Word]:
     """Linhas de cima para baixo; dentro da linha, da esquerda para a direita."""
     lines: list[list[Word]] = []
@@ -342,6 +377,7 @@ def recognize_page(
         extra, extra_crops = _orphan_blocks(pre, blocks, char_height, id_prefix, readers)
         blocks = _insert_in_reading_order(blocks, extra)
         crops.update(extra_crops)
+        blocks = _settle_figure_overlaps(blocks, crops)
     blocks = group_lists(mark_emphasis(blocks, pre.normalized))
     issues = []
     if layout is not None and not pre.blank:

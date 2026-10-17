@@ -249,3 +249,30 @@ def test_primary_rereads_the_block_sensitively_when_it_sees_much_less_than_the_s
         ("os", WordStatus.ACCEPTED),
         ("encargos", WordStatus.ACCEPTED),
     ]
+
+
+def test_text_inside_a_signature_image_is_not_repeated_and_touching_text_is_erased_from_it() -> (
+    None
+):
+    # Assinatura (figura) sobre "EMPRESA EXEMPLO" (inteiro dentro) e encostando na data.
+    aligned = np.zeros((1000, 800, 3), dtype=np.uint8)  # tinta em tudo: dá para ver o apagado
+    normalized = np.full((1000, 800), 255, dtype=np.uint8)
+    pre = Preprocessed(aligned, normalized, False, 0, 0.0, 1.0, False)
+    layout = PageLayout(
+        [
+            block(BlockType.PARAGRAPH, 0, 50, 100, w=300, h=40),  # data: metade dentro
+            block(BlockType.FIGURE, 1, 200, 110, w=400, h=300),  # assinatura
+            block(BlockType.PARAGRAPH, 2, 300, 350, w=150, h=40),  # nome, todo dentro
+        ],
+        columns=1,
+    )
+    words = [("15", 60, 105, 0.97), ("março", 260, 105, 0.97), ("EMPRESA", 310, 355, 0.97)]
+    result = recognize_page(pre, layout, page_input(), "p2-", readers(words, words))
+
+    kinds = [(b.id, b.type) for b in result.page.blocks]
+    assert ("p2-b2", BlockType.PARAGRAPH) not in kinds
+    assert ("p2-b0", BlockType.PARAGRAPH) in kinds
+    crop = result.crops["p2-b1"]
+    assert (crop[0:30, 0:150] == 255).all()  # pedaço da data apagado da imagem
+    assert (crop[100:200, 100:200] == 0).all()  # o resto da assinatura intacto
+    assert (result.aligned == 0).all()  # a página original não é alterada
