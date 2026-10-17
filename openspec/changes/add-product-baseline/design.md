@@ -203,6 +203,12 @@ O primeiro teste com um documento real (contrato de 5 páginas escaneado, com ru
 - **Fora**: hífen dentro de palavra ("mão-de-obra", CPF) já sai certo e não é medido; "______" lido pelos dois leitores (linha de preencher) continua conteúdo.
 - **Resultado no contrato**: todos os títulos com "–" (antes "-"), sem "_"/lixo, dúvidas 17 → 13.
 
+### D20. Visual "Contraste" e página inicial que ensina
+- **Pedido** do usuário: página inicial mostrando como funciona (referência: outro projeto dele) e resultado com downloads em destaque; entre três estilos prototipados (discreto, editorial, contraste), escolheu o **contraste** — protótipo aprovado em https://claude.ai/artifact/WGvcPwBMbZwz3cNzo5p8gH.
+- **Como**: tokens novos em `globals.css` (`--navy*`, `--on-navy*`, `--success-on-navy`, `--doubt-on-navy`), componente `Band` (faixa escura que continua a barra superior) e cartões com margem negativa; a tela de envio virou a página inicial (`UploadDropzone` + `home/HowItWorks`); o endereço continua só `/`.
+- **Acessibilidade**: o azul do protótipo (`#2F6FED`) dá 4,4:1 com texto branco; usamos `#2563D9` (5,4:1). O âmbar passa a valer também para o aviso de baixa qualidade e a contagem de dúvidas (spec "Aparência única").
+- **Descartado**: uma rota separada para "Como funciona" (mais um clique; o envio deve continuar no topo).
+
 ## Open Questions
 
 - Limites da avaliação de qualidade (D13): calibrar no conjunto de teste.

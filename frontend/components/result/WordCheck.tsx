@@ -92,11 +92,11 @@ export function WordCheck({ jobId, word, saving, error, onResolve, onClose }: Pr
         aria-modal="true"
         aria-label={t.whichRight}
         className={cn(
-          "z-50 flex flex-col gap-2.5 border border-border bg-popover p-4 font-sans text-sm leading-snug text-popover-foreground shadow-[0_12px_36px_rgba(20,18,14,.2)]",
+          "z-50 flex flex-col gap-2.5 border border-border bg-popover p-4 font-sans text-sm leading-snug text-popover-foreground shadow-[0_20px_50px_rgba(15,35,71,.22)]",
           // celular: painel inferior
-          "fixed inset-x-0 bottom-0 rounded-t-2xl pb-6",
+          "fixed inset-x-0 bottom-0 rounded-t-3xl pb-7",
           // telas maiores: popover abaixo da palavra
-          "sm:absolute sm:inset-x-auto sm:top-(--pop-top) sm:bottom-auto sm:left-(--pop-left) sm:w-[300px] sm:rounded-[10px] sm:pb-4",
+          "sm:absolute sm:inset-x-auto sm:top-(--pop-top) sm:bottom-auto sm:left-(--pop-left) sm:w-[320px] sm:rounded-[18px] sm:pb-4",
           // até saber onde fica a palavra, não aparece no topo da página
           !position && "sm:invisible",
         )}
@@ -113,7 +113,7 @@ export function WordCheck({ jobId, word, saving, error, onResolve, onClose }: Pr
             type="button"
             onClick={onClose}
             aria-label={t.close}
-            className="-mr-2 inline-flex size-11 cursor-pointer items-center justify-center rounded-lg text-muted-foreground hover:bg-muted sm:size-8"
+            className="-mr-1 inline-flex size-11 cursor-pointer items-center justify-center rounded-full bg-background text-muted-foreground hover:bg-muted sm:size-9"
           >
             <X className="size-4" aria-hidden="true" />
           </button>
@@ -122,7 +122,7 @@ export function WordCheck({ jobId, word, saving, error, onResolve, onClose }: Pr
         <img
           src={cropUrl(jobId, word.id)}
           alt={t.cropAlt}
-          className="max-h-28 w-full rounded-md border border-border bg-paper object-contain p-2"
+          className="max-h-28 w-full rounded-xl border border-border bg-paper object-contain p-2"
         />
         <span className="font-semibold">{t.whichRight}</span>
         {options.map((option, index) => (
@@ -134,7 +134,7 @@ export function WordCheck({ jobId, word, saving, error, onResolve, onClose }: Pr
             onClick={() => onResolve({ text: option })}
             aria-label={option || t.noWord}
             aria-pressed={edited ? chosen === index : undefined}
-            className="flex h-12 w-full cursor-pointer items-center rounded-lg border border-border bg-card px-3.5 font-mono text-xl font-medium tracking-[0.06em] hover:border-primary hover:bg-primary-soft disabled:opacity-60 aria-pressed:border-success aria-pressed:bg-success/10"
+            className="flex h-[52px] w-full cursor-pointer items-center rounded-xl border-[1.5px] border-border bg-card px-3.5 font-mono text-xl font-medium tracking-[0.06em] hover:border-primary hover:bg-primary-soft disabled:opacity-60 aria-pressed:border-success aria-pressed:bg-success/10"
           >
             {option === "" ? (
               <span className="text-base tracking-normal text-muted-foreground">{t.noWord}</span>
@@ -167,13 +167,13 @@ export function WordCheck({ jobId, word, saving, error, onResolve, onClose }: Pr
             onChange={(e) => setTyped(e.target.value)}
             aria-label={t.typeIt}
             placeholder={t.typeIt}
-            className="h-12 min-w-0 flex-1 rounded-lg border border-border bg-card px-3 font-mono text-base sm:h-11"
+            className="h-[52px] min-w-0 flex-1 rounded-xl border-[1.5px] border-border bg-card px-3.5 font-mono text-base sm:h-12"
           />
           <button
             type="submit"
             aria-label={t.useTyped}
             disabled={saving || !typed.trim()}
-            className="inline-flex size-12 cursor-pointer items-center justify-center rounded-lg border border-border bg-card hover:bg-muted disabled:opacity-50 sm:size-11"
+            className="inline-flex size-[52px] cursor-pointer items-center justify-center rounded-xl bg-primary-soft text-navy hover:bg-[#d6e3ff] disabled:opacity-50 sm:size-12"
           >
             <Check className="size-4" aria-hidden="true" />
           </button>

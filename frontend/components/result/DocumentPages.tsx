@@ -203,7 +203,7 @@ function PageSheet({ page, total, base, ctx }: { page: Page; total: number; base
       </div>
       <article
         aria-label={t.pageAria(page.index + 1)}
-        className="@container flex flex-col rounded-[4px] border border-border bg-card font-serif text-foreground shadow-[0_2px_10px_rgba(20,18,14,.08)]"
+        className="@container flex flex-col rounded-lg bg-paper font-serif text-foreground shadow-[0_6px_24px_rgba(15,35,71,.08)]"
         style={{ aspectRatio: `${page.page_size.w_pt} / ${page.page_size.h_pt}` }}
       >
         <div

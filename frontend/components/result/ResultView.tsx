@@ -1,9 +1,10 @@
 "use client";
 
-import { AlertCircle, Check, Copy, Download, FileText, Info } from "lucide-react";
+import { Check, Copy, Download, RefreshCw, TriangleAlert } from "lucide-react";
 import { useCallback, useState } from "react";
 
 import { DocumentPages } from "@/components/result/DocumentPages";
+import { Band } from "@/components/site/Band";
 import { WordCheck } from "@/components/result/WordCheck";
 import { ApiFailure, downloadExport, reviewWord } from "@/lib/api";
 import {
@@ -16,6 +17,7 @@ import {
 } from "@/lib/document";
 import { useI18n } from "@/lib/i18n";
 import type { Document, Word } from "@/lib/types/document";
+import { cn } from "@/lib/utils";
 
 interface Props {
   jobId: string;
@@ -24,7 +26,9 @@ interface Props {
 }
 
 const BUTTON =
-  "inline-flex h-11 cursor-pointer items-center justify-center gap-2 rounded-lg border px-[18px] font-medium whitespace-nowrap disabled:opacity-60";
+  "inline-flex min-h-[50px] cursor-pointer items-center justify-center gap-2 rounded-full px-4 font-semibold whitespace-nowrap disabled:opacity-60";
+const PRIMARY =
+  "min-h-[52px] bg-primary px-6 text-base text-primary-foreground shadow-[0_8px_20px_rgba(37,99,217,.3)] hover:bg-[#1f55c4]";
 
 export function ResultView({ jobId, initial, onReset }: Props) {
   const { t } = useI18n();
@@ -60,7 +64,10 @@ export function ResultView({ jobId, initial, onReset }: Props) {
   const close = useCallback(() => {
     const current = openId;
     setOpenId(null);
-    if (current) document.getElementById(`word-${current}`)?.focus({ preventScroll: true });
+    if (current)
+      document
+        .getElementById(`word-${current}`)
+        ?.focus({ preventScroll: true });
   }, [openId]);
 
   // Última palavra conferida: "Conferir próxima" segue dali, e o foco fica nela.
@@ -82,7 +89,9 @@ export function ResultView({ jobId, initial, onReset }: Props) {
     setOpenId(null);
     // Fica na palavra corrigida para o usuário ver como ficou (spec review-editor).
     requestAnimationFrame(() =>
-      document.getElementById(`word-${word.id}`)?.focus({ preventScroll: true }),
+      document
+        .getElementById(`word-${word.id}`)
+        ?.focus({ preventScroll: true }),
     );
   };
 
@@ -97,111 +106,161 @@ export function ResultView({ jobId, initial, onReset }: Props) {
     try {
       await downloadExport(jobId, fmt, baseName);
     } catch (error) {
-      if (error instanceof ApiFailure || error instanceof Error) setExportError(true);
+      if (error instanceof ApiFailure || error instanceof Error)
+        setExportError(true);
     } finally {
       setExporting(null);
     }
   };
 
+  const reset = (
+    <button
+      type="button"
+      onClick={onReset}
+      className={`${BUTTON} bg-primary-soft px-5 text-[15px] text-navy hover:bg-[#d6e3ff]`}
+    >
+      <RefreshCw className="size-[18px]" aria-hidden="true" />
+      {t.another}
+    </button>
+  );
+
   return (
-    <div className="mx-auto flex w-full max-w-[760px] flex-col gap-4 px-4 pt-6 pb-24 sm:px-6 sm:pt-10">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-2 text-sm text-muted-foreground">
-          <FileText className="size-4 shrink-0" aria-hidden="true" />
-          <span className="truncate">{doc.source_file}</span>
+    <div className="flex flex-col">
+      <Band className="pb-[84px] sm:pb-24">
+        <div className="mx-auto flex max-w-[780px] flex-col gap-1.5 px-5 pt-4 sm:gap-2 sm:px-6 sm:pt-7">
+          <span
+            aria-live="polite"
+            className={cn(
+              "inline-flex items-center gap-2 text-sm font-semibold sm:text-[15px]",
+              pending.length > 0
+                ? "text-doubt-on-navy"
+                : "text-success-on-navy",
+            )}
+          >
+            {pending.length === 0 && (
+              <Check
+                className="size-[18px]"
+                strokeWidth={2.6}
+                aria-hidden="true"
+              />
+            )}
+            {pending.length > 0 ? t.almostReady : t.allChecked}
+          </span>
+          <h1 className="text-2xl font-bold tracking-[-0.015em] [overflow-wrap:anywhere] sm:text-[30px]">
+            {doc.source_file}
+          </h1>
         </div>
-        <button
-          type="button"
-          onClick={onReset}
-          className="inline-flex h-11 cursor-pointer items-center rounded-lg px-2.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground sm:h-9"
-        >
-          {t.another}
-        </button>
-      </div>
+      </Band>
 
-      {lowQuality.length > 0 && (
-        <p className="flex items-start gap-2.5 rounded-xl border border-border bg-card px-4 py-3 text-sm text-muted-foreground">
-          <Info className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-          {t.quality(lowQuality, doc.pages.length)}
-        </p>
-      )}
-
-      <div role="status" aria-live="polite">
-        {pending.length > 0 ? (
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-3 rounded-xl border border-doubt-line bg-doubt px-4 py-3.5">
-            <AlertCircle className="size-[18px] shrink-0 text-doubt-foreground" aria-hidden="true" />
-            <div className="min-w-60 flex-1">
-              <div className="font-semibold">{t.gate(pending.length)}</div>
-              <div className="text-sm text-doubt-foreground">{t.gateSub}</div>
-            </div>
-            <button
-              type="button"
-              onClick={() => open(nextUncertain(doc, openId ?? cursor)?.id ?? pending[0].id)}
-              className={`${BUTTON} w-full border-transparent bg-primary text-primary-foreground sm:w-auto`}
-            >
-              {t.checkNext}
-            </button>
-          </div>
-        ) : (
-          <div className="flex flex-col gap-2.5">
-            <p className="m-0 flex items-center gap-2 font-medium text-success">
-              <Check className="size-[18px]" aria-hidden="true" />
-              {t.allChecked}
+      <div className="mx-auto -mt-[60px] flex w-full max-w-[780px] flex-col gap-4 px-4 pb-24 sm:-mt-[72px] sm:px-6">
+        <div className="flex flex-col gap-3.5 rounded-[22px] bg-card p-4 shadow-[0_20px_50px_rgba(15,35,71,.16)] sm:p-5">
+          {lowQuality.length > 0 && (
+            <p className="flex items-start gap-2.5 rounded-[14px] bg-doubt px-3.5 py-3 text-sm leading-normal text-doubt-foreground">
+              <TriangleAlert
+                className="mt-px size-[18px] shrink-0"
+                aria-hidden="true"
+              />
+              {t.quality(lowQuality, doc.pages.length)}
             </p>
-            <div className="flex flex-wrap gap-2.5">
-              <button
-                type="button"
-                onClick={copy}
-                className={`${BUTTON} flex-[1_1_200px] border-transparent bg-primary text-primary-foreground`}
-              >
-                {copied ? <Check className="size-[18px]" aria-hidden="true" /> : <Copy className="size-[18px]" aria-hidden="true" />}
-                {copied ? t.copied : t.copy}
-              </button>
-              <button
-                type="button"
-                disabled={exporting !== null}
-                onClick={() => download("docx")}
-                className={`${BUTTON} flex-[1_1_160px] border-border bg-card hover:bg-muted`}
-              >
-                <Download className="size-[18px]" aria-hidden="true" />
-                {t.downloadWord}
-              </button>
-              <button
-                type="button"
-                disabled={exporting !== null}
-                onClick={() => download("pdf")}
-                className={`${BUTTON} flex-[1_1_160px] border-border bg-card hover:bg-muted`}
-              >
-                <Download className="size-[18px]" aria-hidden="true" />
-                {t.downloadPdf}
-              </button>
-            </div>
-            {exportError && (
-              <p role="alert" className="m-0 text-sm font-medium text-destructive">
-                {t.exportFailed}
-              </p>
+          )}
+
+          <div role="status" aria-live="polite">
+            {pending.length > 0 ? (
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
+                <span
+                  aria-hidden="true"
+                  className="flex size-11 shrink-0 items-center justify-center rounded-full bg-doubt text-[17px] font-bold text-doubt-foreground"
+                >
+                  {pending.length}
+                </span>
+                <div className="min-w-56 flex-1">
+                  <div className="text-[17px] font-semibold">
+                    {t.gate(pending.length)}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    {t.gateSub}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    open(
+                      nextUncertain(doc, openId ?? cursor)?.id ?? pending[0].id,
+                    )
+                  }
+                  className={`${BUTTON} ${PRIMARY} w-full sm:w-auto`}
+                >
+                  {t.checkNext}
+                </button>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2.5">
+                <div className="grid grid-cols-2 gap-2.5">
+                  <button
+                    type="button"
+                    disabled={exporting !== null}
+                    onClick={() => download("pdf")}
+                    className={`${BUTTON} ${PRIMARY}`}
+                  >
+                    <Download className="size-[18px]" aria-hidden="true" />
+                    {t.downloadPdf}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={exporting !== null}
+                    onClick={() => download("docx")}
+                    className={`${BUTTON} ${PRIMARY}`}
+                  >
+                    <Download className="size-[18px]" aria-hidden="true" />
+                    {t.downloadWord}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={copy}
+                    className={`${BUTTON} bg-primary-soft text-[15px] text-navy hover:bg-[#d6e3ff]`}
+                  >
+                    {copied ? (
+                      <Check className="size-[18px]" aria-hidden="true" />
+                    ) : (
+                      <Copy className="size-[18px]" aria-hidden="true" />
+                    )}
+                    {copied ? t.copied : t.copy}
+                  </button>
+                  {reset}
+                </div>
+                {exportError && (
+                  <p
+                    role="alert"
+                    className="m-0 text-sm font-medium text-destructive"
+                  >
+                    {t.exportFailed}
+                  </p>
+                )}
+              </div>
             )}
           </div>
-        )}
-      </div>
+        </div>
 
-      <DocumentPages
-        doc={doc}
-        jobId={jobId}
-        openId={openId}
-        onOpen={(id) => open(openId === id ? null : id)}
-        renderCheck={(word) => (
-          <WordCheck
-            key={word.id}
-            jobId={jobId}
-            word={word}
-            saving={saving}
-            error={saveError}
-            onResolve={(choice) => resolve(word, choice)}
-            onClose={close}
-          />
-        )}
-      />
+        {pending.length > 0 && <div className="flex">{reset}</div>}
+
+        <DocumentPages
+          doc={doc}
+          jobId={jobId}
+          openId={openId}
+          onOpen={(id) => open(openId === id ? null : id)}
+          renderCheck={(word) => (
+            <WordCheck
+              key={word.id}
+              jobId={jobId}
+              word={word}
+              saving={saving}
+              error={saveError}
+              onResolve={(choice) => resolve(word, choice)}
+              onClose={close}
+            />
+          )}
+        />
+      </div>
     </div>
   );
 }

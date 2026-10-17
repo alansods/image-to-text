@@ -10,7 +10,7 @@ import { useI18n } from "@/lib/i18n";
 export function SiteHeader({ onHome }: { onHome?: () => void }) {
   const { t } = useI18n();
   return (
-    <header className="border-b border-border bg-card">
+    <header className="bg-navy text-on-navy">
       <div className="mx-auto flex h-16 max-w-[1120px] items-center justify-between gap-4 px-4 sm:px-6">
         <Link
           href="/"
@@ -20,7 +20,7 @@ export function SiteHeader({ onHome }: { onHome?: () => void }) {
             event.preventDefault();
             onHome();
           }}
-          className="flex min-h-11 items-center gap-2.5 rounded-md text-base font-semibold text-foreground no-underline"
+          className="flex min-h-11 items-center gap-2.5 rounded-md text-[17px] font-bold text-on-navy no-underline"
         >
           <LogoMark />
           image-to-text

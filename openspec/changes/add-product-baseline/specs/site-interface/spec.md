@@ -41,11 +41,22 @@ Todas as telas SHALL ter um rodapé com o logotipo e "© <ano atual> image-to-te
 - **THEN** o rodapé mostra o logotipo e "© <ano atual> image-to-text"
 
 ### Requirement: Aparência única
-O site SHALL ter um único tema claro, sem opção de tema escuro, e o âmbar MUST ser usado apenas para indicar palavras em dúvida.
+O site SHALL ter um único tema claro, sem opção de tema escuro: toda tela começa com uma faixa azul-escura (barra superior e título da tela) e o conteúdo principal num cartão branco que avança sobre a faixa. O âmbar MUST ser usado apenas para o que pede atenção: palavras em dúvida, a contagem de dúvidas e o aviso de baixa qualidade.
 
 #### Scenario: Sistema em modo escuro
 - **WHEN** o sistema operacional do usuário está em modo escuro
 - **THEN** o site aparece no tema claro
+
+### Requirement: Página inicial ensina a usar
+A tela de envio SHALL ser a página inicial: título, subtítulo e a etiqueta "Grátis · sem cadastro · nada fica guardado" na faixa; a área de envio no cartão; abaixo, "Como funciona" com quatro passos em ordem (envie o arquivo; a leitura começa sozinha; confira as dúvidas; baixe ou copie), cada um com ícone, título e uma frase; e, por fim, a chamada "Pronto para começar?" com um botão que abre a escolha de arquivo. Os textos MUST descrever só o que o produto faz.
+
+#### Scenario: Primeira visita
+- **WHEN** o usuário abre `/`
+- **THEN** vê a área de envio no topo e, rolando, os quatro passos de "Como funciona" e a chamada "Pronto para começar?"
+
+#### Scenario: Botão da chamada final
+- **WHEN** o usuário clica em "Escolher arquivo" na chamada "Pronto para começar?"
+- **THEN** abre a mesma escolha de arquivo da área de envio
 
 ### Requirement: Celular
 Todas as telas SHALL funcionar em telas a partir de 360 px de largura sem rolagem horizontal da página, com alvos de toque de pelo menos 44 px.

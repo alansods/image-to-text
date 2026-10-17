@@ -1,6 +1,6 @@
 # image-to-text — Rotas, telas e fluxo (prompt de layout)
 
-> Descreve o layout aprovado no protótipo (canvas "image-to-text — Fluxo de telas", 2026-10-15). Comportamentos detalhados estão nas specs em `openspec/`; em caso de conflito, a spec vence e este documento deve ser atualizado.
+> Descreve o layout aprovado no protótipo (canvas "image-to-text — Fluxo completo (Contraste)", 2026-10-17; substitui o de 2026-10-15). Comportamentos detalhados estão nas specs em `openspec/`; em caso de conflito, a spec vence e este documento deve ser atualizado.
 
 ## 1. Produto
 
@@ -15,8 +15,8 @@ O diferencial visível: o sistema **marca as palavras em que tem dúvida** e só
 ## 2. Direção visual
 
 - **Tom**: ferramenta calma e direta, sem marketing. Pouca informação na tela.
-- **Tema**: só claro. Fundo papel quente `#FAF8F4`, superfícies brancas, bordas `#E3DED5`, texto `#1C1B19` / secundário `#5F5B54`.
-- **Cores**: acento azul-tinta `#1F4E9C`; **âmbar exclusivo para "em dúvida"** (fundo `#FCEFC7`, texto `#7A4F00`, sublinhado `#D49400`); verde `#2B6634` para "Tudo conferido"; vermelho `#A8261B` só para erro.
+- **Tema**: só claro, estilo "Contraste". Toda tela começa com uma **faixa azul-escura** `#0F2347` (barra superior + título da tela, texto `#E8EEF9` / secundário `#B8C6E2`) e o conteúdo principal num **cartão branco que sobe sobre a faixa** (cantos 22–24 px, sombra suave). Fundo `#F3F5FA`, bordas `#DBE1EC`, texto `#121A2B` / secundário `#4F5B72`.
+- **Cores**: ações em azul `#2563D9` (botões em pílula; um tom mais escuro que o `#2F6FED` do protótipo para o texto branco passar de 4,5:1), secundárias em azul-claro `#E5EEFF` com texto azul-escuro; **âmbar só para o que pede atenção** (palavras em dúvida, contagem de dúvidas, aviso de baixa qualidade: fundo `#FCEFC7`, texto `#7A4F00`, sublinhado `#D49400`); verde `#1F7A45` para corrigido (`#8FE0B0` sobre a faixa); vermelho `#B42318` só para erro.
 - **Tipografia**: IBM Plex Sans na interface; **Source Serif 4 no documento convertido**; IBM Plex Mono para percentuais e para as **opções de conferência** (diferencia I/l/1 e O/0).
 - **Componentes**: shadcn/ui (cantos 8 px, bordas finas, sombras sutis). Ícones Lucide.
 - **Acessibilidade**: WCAG 2.1 AA; foco visível; tudo por teclado; dúvida **nunca só por cor** (fundo âmbar + sublinhado ondulado); alvos de toque ≥ 44 px.
@@ -24,46 +24,46 @@ O diferencial visível: o sistema **marca as palavras em que tem dúvida** e só
 
 ## 3. Estrutura global
 
-**Barra superior** (todas as telas): logotipo "image-to-text" à esquerda (volta ao envio; apaga a conversão em andamento) e seletor de idioma **PT | EN** à direita (controle segmentado, troca instantânea). Nada mais.
+**Barra superior** (todas as telas, sobre a faixa escura): logotipo "image-to-text" (quadrado azul com a folha) à esquerda — volta ao envio e apaga a conversão em andamento — e seletor de idioma **PT | EN** em pílula à direita (troca instantânea). Nada mais.
 
-**Rodapé** (todas as telas): logotipo à esquerda e "© 2026 image-to-text" à direita. Nada mais.
+**Rodapé** (todas as telas, branco): logotipo à esquerda e "© 2026 image-to-text" à direita. Nada mais.
 
 ## 4. Rotas
 
 | Rota | Conteúdo |
 |---|---|
 | `/` | As três telas, que se substituem no mesmo endereço: **Envio → Convertendo → Resultado** |
-| `*` | "Página não encontrada" + "Voltar ao início" |
+| `*` | Faixa escura em tela cheia: "404", "Página não encontrada", "Esse endereço não existe. O site tem uma página só: a de enviar o arquivo." + botão "Voltar ao início" |
 
 Recarregar a página volta para o Envio vazio (nada é guardado).
 
 ## 5. Telas
 
-### 5.1 Envio
+### 5.1 Envio (página inicial)
 
-Coluna central (máx. 760 px):
-1. Título: "Transforme imagens em texto" / "Turn images into text".
-2. Subtítulo: "Envie uma foto, print ou PDF escaneado. Em instantes você tem o texto pronto para copiar ou baixar em Word ou PDF."
-3. **Área de envio** grande, borda tracejada, clicável inteira: ícone de upload, botão primário "Escolher arquivo", "ou arraste aqui, ou cole com Ctrl+V", "JPG, PNG, WEBP, HEIC ou PDF · até 20 MB".
-4. No celular, no lugar da área: botões grandes "Tirar foto" (primário) e "Escolher arquivo", e a linha de formatos.
+1. **Faixa**: etiqueta "Grátis · sem cadastro · nada fica guardado"; título "Transforme imagens em texto" / "Turn images into text"; subtítulo "Envie uma foto, print ou PDF escaneado. Em instantes você tem o texto pronto para copiar ou baixar em Word ou PDF."
+2. **Cartão de envio** (sobe sobre a faixa, máx. 720 px): área tracejada clicável inteira com ícone, botão em pílula "Escolher arquivo", "ou arraste aqui, ou cole com Ctrl+V" e as etiquetas JPG · PNG · WEBP · HEIC · PDF · até 20 MB. No celular, no lugar da área: "Tirar foto" (primário) e "Escolher arquivo" (azul-claro) e a linha de formatos.
+3. **Como funciona** — "Da imagem ao documento em quatro passos": linha do tempo com ícone em círculo, "PASSO N", título e uma frase — Envie o arquivo · A leitura começa sozinha · Confira as dúvidas · Baixe ou copie. Horizontal em telas largas, vertical no celular.
+4. **Chamada final** (bloco azul): "Pronto para começar?" / "Sem cadastro e sem custo. Seu arquivo é apagado em até 1 hora." + botão branco "Escolher arquivo" (abre a mesma escolha).
 
 Ao receber um arquivo válido, vai direto para **Convertendo** (sem botão "Converter", sem opções).
 
-Erros aparecem logo abaixo da área, em vermelho: formato não suportado, maior que 20 MB, mais de 50 páginas, PDF com senha, mais de um arquivo, falha de envio, limite de conversões simultâneas, "Não foi possível ler esse arquivo." (falha total).
+Erros aparecem dentro do cartão, abaixo da área, em vermelho: formato não suportado, maior que 20 MB, mais de 50 páginas, PDF com senha, mais de um arquivo, falha de envio, limite de conversões simultâneas, "Não foi possível ler esse arquivo." (falha total).
 
 ### 5.2 Convertendo
 
-Centralizado: ilustração animada (folha com uma faixa de leitura descendo e linhas de texto aparecendo; parada com "reduzir movimento"), "Lendo seu documento…", frase da etapa real ("Na fila, já vai começar…", "Preparando a página 2 de 5", "Encontrando títulos, parágrafos, tabelas e imagens", "Lendo o texto da página 2 de 5", "Montando o documento"), durante a leitura uma dica menor que troca a cada ~6 s, barra de progresso (máx. 420 px), "contrato.pdf · 62%" (percentual em mono), botão discreto "Cancelar" (volta ao Envio e apaga a conversão). Ao chegar a 100%, troca sozinho para **Resultado**.
+Faixa: "Lendo seu documento…" + "Pode deixar esta página aberta. O resultado aparece aqui quando terminar." Cartão (máx. 640 px): ilustração animada (folha com uma faixa de leitura descendo e linhas de texto aparecendo; parada com "reduzir movimento"); frase da etapa real ("Na fila, já vai começar…", "Preparando a página 2 de 5", "Encontrando títulos, parágrafos, tabelas e imagens", "Lendo o texto da página 2 de 5", "Montando o documento"); durante a leitura, uma dica menor que troca a cada ~6 s; barra de progresso com "contrato.pdf … 62%" (percentual em mono); etapas "Preparar · Estrutura · Leitura · Montagem" (feitas em azul-claro, a atual em azul); botão discreto "Cancelar" (volta ao Envio e apaga a conversão). Ao chegar a 100%, troca sozinho para **Resultado**.
 
 ### 5.3 Resultado
 
-Coluna central (máx. 760 px):
-1. Linha superior: ícone + nome do arquivo à esquerda; "Converter outro" (botão discreto) à direita.
-2. **Se alguma página tiver baixa qualidade**: aviso discreto "A imagem tem baixa qualidade. Confira o texto e a formatação (negrito, itálico) com atenção." — em documentos com várias páginas, cita as páginas ("páginas 2 e 3"). Não bloqueia copiar nem baixar.
-3. **Enquanto houver dúvidas**: aviso âmbar "Confira N palavras antes de baixar" / "Elas estão marcadas no texto. Escolha a forma certa de cada uma." + botão primário "Conferir próxima". **Não há** botões de copiar nem baixar.
-4. **Sem dúvidas**: "✓ Tudo conferido" em verde e três botões: "Copiar texto" (primário; vira "Copiado"), "Baixar Word", "Baixar PDF".
-5. **Documento**: uma folha A4 (proporção da página original) por página, com rótulo "PÁGINA N DE T" acima e o número no rodapé da folha. Texto em Source Serif, com títulos, alinhamento, negrito/itálico, listas, colunas, tabelas e imagens (logotipo, assinatura, capa) como no original.
-6. **Palavras em dúvida**: fundo âmbar + sublinhado ondulado, são botões.
+Faixa: situação ("Quase pronto" em âmbar enquanto houver dúvidas; "✓ Tudo conferido" em verde depois) e o **nome do arquivo como título**. Coluna central (máx. 780 px):
+1. **Cartão** (sobe sobre a faixa):
+   - **Se alguma página tiver baixa qualidade**: aviso **amarelo** com ícone de alerta, "A página 5 tem baixa qualidade. Confira o texto e a formatação (negrito, itálico) com atenção." (cita as páginas; em imagem única, "A imagem tem baixa qualidade…"). Não bloqueia copiar nem baixar.
+   - **Enquanto houver dúvidas**: círculo âmbar com o número + "Confira N palavras antes de baixar" / "Elas estão marcadas no texto. Escolha a forma certa de cada uma." + botão "Conferir próxima". **Não há** copiar nem baixar.
+   - **Sem dúvidas**: grade 2×2 ocupando a largura — **"Baixar PDF" e "Baixar Word"** em azul (destaque) na primeira linha; "Copiar texto" (vira "Copiado") e "Converter outro" em azul-claro na segunda.
+2. **Enquanto houver dúvidas**, "Converter outro" fica **fora do cartão**, numa linha própria abaixo dele.
+3. **Documento**: uma folha (proporção da página original) por página, com rótulo "PÁGINA N DE T" acima e o número no rodapé da folha. Texto em Source Serif, com títulos, alinhamento, negrito/itálico, listas, colunas, tabelas e imagens (logotipo, assinatura, capa) como no original.
+4. **Palavras em dúvida**: fundo âmbar + sublinhado ondulado, são botões.
 
 **Quadro de conferência** (popover junto da palavra; bottom sheet no celular):
 - "Na imagem:" + recorte ampliado do original com a palavra contornada e um pouco de contexto.

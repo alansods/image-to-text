@@ -18,7 +18,7 @@ export function SiteFooter() {
     <footer className="border-t border-border bg-card">
       <div className="mx-auto flex max-w-[1120px] flex-wrap items-center justify-between gap-x-8 gap-y-3 px-4 py-7 sm:px-6">
         <span className="flex items-center gap-2 font-semibold">
-          <LogoMark size={22} />
+          <LogoMark size={24} />
           image-to-text
         </span>
         <span className="text-[13px] text-muted-foreground">

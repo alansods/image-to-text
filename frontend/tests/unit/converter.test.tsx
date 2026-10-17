@@ -217,6 +217,18 @@ describe("progresso", () => {
     expect(screen.getByTestId("progress-tip").textContent).toBe(first);
   });
 
+  it("mostra as quatro etapas com a atual destacada", async () => {
+    reducedMotion(false);
+    serverAt({ state: "processing", stage: "reading", page: 1, pages: 1, progress: 50 });
+    renderApp();
+    await upload(pngFile());
+    await poll();
+
+    const steps = within(screen.getByRole("list", { name: "Etapas" })).getAllByRole("listitem");
+    expect(steps.map((li) => li.textContent)).toEqual(["Preparar", "Estrutura", "Leitura", "Montagem"]);
+    expect(steps.map((li) => li.getAttribute("aria-current"))).toEqual([null, null, "step", null]);
+  });
+
   it("em inglês", async () => {
     reducedMotion(false);
     serverAt({ state: "processing", stage: "layout", page: 3, pages: 4, progress: 60 });
@@ -225,6 +237,35 @@ describe("progresso", () => {
     await poll();
 
     expect(screen.getByText("Finding headings, paragraphs, tables and images")).toBeInTheDocument();
+  });
+});
+
+describe("página inicial", () => {
+  it("ensina a usar: quatro passos e a chamada final", () => {
+    handler = () => undefined;
+    renderApp();
+
+    const how = screen.getByRole("region", { name: "Da imagem ao documento em quatro passos" });
+    expect(within(how).getAllByRole("listitem").map((li) => within(li).getByRole("heading").textContent)).toEqual([
+      "Envie o arquivo",
+      "A leitura começa sozinha",
+      "Confira as dúvidas",
+      "Baixe ou copie",
+    ]);
+    expect(screen.getByRole("heading", { name: "Pronto para começar?" })).toBeInTheDocument();
+    expect(screen.getByText("Grátis · sem cadastro · nada fica guardado")).toBeInTheDocument();
+  });
+
+  it("o botão da chamada final abre a mesma escolha de arquivo", async () => {
+    handler = () => undefined;
+    renderApp();
+    const input = screen.getByTestId("file-input") as HTMLInputElement;
+    const click = vi.spyOn(input, "click");
+
+    const cta = screen.getByRole("region", { name: "Pronto para começar?" });
+    await userEvent.click(within(cta).getByRole("button", { name: "Escolher arquivo" }));
+
+    expect(click).toHaveBeenCalled();
   });
 });
 
@@ -481,6 +522,30 @@ describe("conferência", () => {
 });
 
 describe("aviso de qualidade", () => {
+  it("tudo conferido: PDF e Word em destaque primeiro, depois copiar e converter outro", async () => {
+    serverFinishing(documentWith([word("w0", "assinado")]));
+    renderApp();
+    await upload(pngFile());
+    await untilResult();
+
+    const actions = within(screen.getAllByRole("status").find((s) => within(s).queryByText("Baixar PDF"))!).getAllByRole("button");
+    expect(actions.map((b) => b.textContent)).toEqual(["Baixar PDF", "Baixar Word", "Copiar texto", "Converter outro"]);
+    expect(actions[0].className).toContain("bg-primary ");
+    expect(actions[2].className).not.toContain("bg-primary ");
+  });
+
+  it("com dúvidas, 'Converter outro' fica fora do bloco das dúvidas", async () => {
+    serverFinishing(DOUBTS);
+    renderApp();
+    await upload(pngFile());
+    await untilResult();
+
+    const gate = screen.getAllByRole("status").find((s) => within(s).queryByText("Confira 2 palavras antes de baixar"))!;
+    expect(within(gate).queryByRole("button", { name: "Converter outro" })).toBeNull();
+    expect(screen.getByRole("button", { name: "Converter outro" })).toBeInTheDocument();
+    expect(screen.getByText("Quase pronto")).toBeInTheDocument();
+  });
+
   it("aparece em imagem ruim e não bloqueia o download", async () => {
     serverFinishing(documentWith([word("w0", "texto")], ["resolution"]));
     renderApp();

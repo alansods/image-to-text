@@ -5,7 +5,7 @@ Mostra o resultado da conversão como o documento que será baixado e faz o usu�
 ## ADDED Requirements
 
 ### Requirement: Documento em páginas
-A tela de resultado SHALL mostrar o documento em folhas, uma por página do original e na mesma ordem, com o rótulo "Página N de T" acima de cada folha e o número da página no rodapé da folha, preservando títulos, alinhamento, negrito, itálico, listas, colunas, tabelas e imagens como serão exportados. O nome do arquivo enviado e o botão "Converter outro" SHALL aparecer acima do documento.
+A tela de resultado SHALL mostrar o documento em folhas, uma por página do original e na mesma ordem, com o rótulo "Página N de T" acima de cada folha e o número da página no rodapé da folha, preservando títulos, alinhamento, negrito, itálico, listas, colunas, tabelas e imagens como serão exportados. O nome do arquivo enviado SHALL aparecer como título da tela, acima do documento, junto da situação ("Quase pronto" enquanto houver dúvidas, "Tudo conferido" depois).
 
 #### Scenario: PDF de 3 páginas
 - **WHEN** a conversão de um PDF de 3 páginas termina
@@ -16,7 +16,7 @@ A tela de resultado SHALL mostrar o documento em folhas, uma por página do orig
 - **THEN** a tela mostra 1 folha rotulada "Página 1 de 1"
 
 ### Requirement: Aviso de baixa qualidade
-Quando alguma página tiver baixa qualidade, a tela de resultado SHALL mostrar, acima das folhas, um aviso de que a imagem tem baixa qualidade e de que o texto e a formatação (negrito, itálico) devem ser conferidos com atenção; em documentos com mais de uma página, o aviso SHALL indicar quais páginas. O aviso MUST NOT bloquear a cópia nem o download.
+Quando alguma página tiver baixa qualidade, a tela de resultado SHALL mostrar, acima das folhas, um aviso de que a imagem tem baixa qualidade e de que o texto e a formatação (negrito, itálico) devem ser conferidos com atenção; em documentos com mais de uma página, o aviso SHALL indicar quais páginas. O aviso SHALL ser amarelo, com ícone de alerta, e MUST NOT bloquear a cópia nem o download.
 
 #### Scenario: Imagem nítida
 - **WHEN** nenhuma página do resultado tem baixa qualidade
@@ -36,6 +36,17 @@ Palavras "em dúvida" SHALL aparecer destacadas no texto com fundo âmbar e tamb
 #### Scenario: Três dúvidas
 - **WHEN** o documento tem 3 palavras em dúvida
 - **THEN** as 3 palavras aparecem com fundo âmbar e sublinhado ondulado, e cada uma pode receber foco pelo teclado
+
+### Requirement: Ações do resultado
+Com tudo conferido, "Baixar PDF" e "Baixar Word" SHALL ser as ações em destaque, na primeira linha; "Copiar texto" e "Converter outro" SHALL vir na linha de baixo, com menos destaque, todas ocupando a largura disponível. Enquanto houver dúvidas, o bloco das dúvidas SHALL ter só a contagem e "Conferir próxima", e "Converter outro" SHALL ficar numa linha separada, abaixo dele.
+
+#### Scenario: Tudo conferido
+- **WHEN** não há dúvidas
+- **THEN** a primeira linha tem "Baixar PDF" e "Baixar Word" em destaque e a segunda "Copiar texto" e "Converter outro"
+
+#### Scenario: Com dúvidas
+- **WHEN** há 3 dúvidas
+- **THEN** o bloco mostra "Confira 3 palavras antes de baixar" e "Conferir próxima", e "Converter outro" aparece abaixo, fora do bloco
 
 ### Requirement: Conferência obrigatória antes de baixar
 Enquanto houver palavras em dúvida, o sistema SHALL mostrar, no lugar dos botões de cópia e download, o aviso "Confira N palavras antes de baixar" (ou "Confira 1 palavra antes de baixar") com o botão "Conferir próxima", e MUST NOT oferecer cópia nem download. Quando não restar nenhuma dúvida, SHALL mostrar "Tudo conferido" e os botões "Copiar texto", "Baixar Word" e "Baixar PDF".

@@ -41,6 +41,13 @@ Durante o progresso, a tela SHALL mostrar uma ilustração animada de uma folha 
 - **WHEN** o sistema do usuário pede movimento reduzido
 - **THEN** a ilustração fica parada e a dica não troca sozinha
 
+### Requirement: Etapas visíveis
+Durante o progresso, a tela SHALL mostrar as quatro etapas em ordem — "Preparar", "Estrutura", "Leitura" e "Montagem" — com a etapa atual destacada e as anteriores marcadas como feitas; na fila, nenhuma está destacada. A tela SHALL dizer que o resultado aparece ali mesmo quando terminar.
+
+#### Scenario: Lendo o texto
+- **WHEN** o servidor está na etapa de leitura
+- **THEN** "Preparar" e "Estrutura" aparecem como feitas, "Leitura" destacada e "Montagem" ainda por fazer
+
 ### Requirement: Conclusão
 Quando todas as páginas terminam, o sistema SHALL levar o usuário automaticamente à tela de resultado, sem ação dele.
 

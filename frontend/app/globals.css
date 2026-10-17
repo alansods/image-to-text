@@ -34,6 +34,12 @@
   --color-doubt-line: var(--doubt-line);
   --color-success: var(--success);
   --color-paper: var(--paper);
+  --color-navy: var(--navy);
+  --color-navy-soft: var(--navy-soft);
+  --color-on-navy: var(--on-navy);
+  --color-on-navy-soft: var(--on-navy-soft);
+  --color-success-on-navy: var(--success-on-navy);
+  --color-doubt-on-navy: var(--doubt-on-navy);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -45,31 +51,40 @@
 
 :root {
   color-scheme: light;
-  --background: #faf8f4;
-  --foreground: #1c1b19;
+  /* Estilo "Contraste" (protótipo aprovado em 2026-10-17): faixa azul-escura no topo de
+     cada tela, cartões brancos por cima, ações em azul. O azul é um tom mais escuro que o
+     do protótipo (#2f6fed) para o texto branco dos botões passar de 4,5:1 (WCAG AA). */
+  --background: #f3f5fa;
+  --foreground: #121a2b;
   --card: #ffffff;
-  --card-foreground: #1c1b19;
+  --card-foreground: #121a2b;
   --popover: #ffffff;
-  --popover-foreground: #1c1b19;
-  --primary: #1f4e9c;
+  --popover-foreground: #121a2b;
+  --primary: #2563d9;
   --primary-foreground: #ffffff;
-  --primary-soft: #e7edf7;
-  --secondary: #f2efe9;
-  --secondary-foreground: #1c1b19;
-  --muted: #f2efe9;
-  --muted-foreground: #5f5b54;
-  --accent: #f2efe9;
-  --accent-foreground: #1c1b19;
-  --destructive: #a8261b;
-  --border: #e3ded5;
-  --border-strong: #c9c2b5;
-  --input: #e3ded5;
-  --ring: #1f4e9c;
+  --primary-soft: #e5eeff;
+  --secondary: #eef1f7;
+  --secondary-foreground: #121a2b;
+  --muted: #eef1f7;
+  --muted-foreground: #4f5b72;
+  --accent: #eef1f7;
+  --accent-foreground: #121a2b;
+  --destructive: #b42318;
+  --border: #dbe1ec;
+  --border-strong: #c3cbdb;
+  --input: #dbe1ec;
+  --ring: #2563d9;
   --doubt: #fcefc7;
   --doubt-foreground: #7a4f00;
   --doubt-line: #d49400;
-  --success: #2b6634;
+  --success: #1f7a45;
   --paper: #fffefb;
+  --navy: #0f2347;
+  --navy-soft: #1b3462;
+  --on-navy: #e8eef9;
+  --on-navy-soft: #b8c6e2;
+  --success-on-navy: #8fe0b0;
+  --doubt-on-navy: #f5cf6b;
   --radius: 0.5rem;
 }
 

@@ -31,6 +31,7 @@ const pt = {
   takePhoto: "Tirar foto",
   orDrag: "ou arraste aqui, ou cole com",
   limits: "JPG, PNG, WEBP, HEIC ou PDF · até 20 MB",
+  upTo: "até 20 MB",
   reading: "Lendo seu documento…",
   stage: (stage: JobStage, page: number, pages: number): string => {
     const many = pages > 1;
@@ -89,6 +90,35 @@ const pt = {
   saveFailed: "Não foi possível salvar. Verifique sua conexão.",
   notFound: "Página não encontrada",
   backHome: "Voltar ao início",
+  notFoundText: "Esse endereço não existe. O site tem uma página só: a de enviar o arquivo.",
+  badge: "Grátis · sem cadastro · nada fica guardado",
+  howEyebrow: "Como funciona",
+  howTitle: "Da imagem ao documento em quatro passos",
+  step: (n: number) => `Passo ${n}`,
+  steps: [
+    {
+      title: "Envie o arquivo",
+      text: "Foto, print ou PDF escaneado. Arraste, cole ou, no celular, tire a foto na hora.",
+    },
+    {
+      title: "A leitura começa sozinha",
+      text: "Cada palavra é lida duas vezes. Títulos, negrito, tabelas e imagens ficam no lugar.",
+    },
+    {
+      title: "Confira as dúvidas",
+      text: "Palavras incertas ficam marcadas em amarelo. Escolha a certa ou digite; dá para trocar depois.",
+    },
+    {
+      title: "Baixe ou copie",
+      text: "PDF ou Word com a mesma paginação do original, ou só o texto.",
+    },
+  ],
+  ctaTitle: "Pronto para começar?",
+  ctaText: "Sem cadastro e sem custo. Seu arquivo é apagado em até 1 hora.",
+  readingSub: "Pode deixar esta página aberta. O resultado aparece aqui quando terminar.",
+  stepNames: { preparing: "Preparar", layout: "Estrutura", reading: "Leitura", finishing: "Montagem" },
+  stepsLabel: "Etapas",
+  almostReady: "Quase pronto",
   errors: {
     unsupported_format: "Esse arquivo não é uma imagem nem PDF. Tente JPG, PNG, HEIC ou PDF.",
     file_too_large: "O arquivo passa do limite de 20 MB.",
@@ -114,6 +144,7 @@ const en: Dictionary = {
   takePhoto: "Take photo",
   orDrag: "or drag it here, or paste with",
   limits: "JPG, PNG, WEBP, HEIC or PDF · up to 20 MB",
+  upTo: "up to 20 MB",
   reading: "Reading your document…",
   stage: (stage: JobStage, page: number, pages: number): string => {
     const many = pages > 1;
@@ -172,6 +203,35 @@ const en: Dictionary = {
   saveFailed: "Could not save. Check your connection.",
   notFound: "Page not found",
   backHome: "Back to home",
+  notFoundText: "This address does not exist. The site has a single page: the one to upload your file.",
+  badge: "Free · no sign-up · nothing is kept",
+  howEyebrow: "How it works",
+  howTitle: "From image to document in four steps",
+  step: (n: number) => `Step ${n}`,
+  steps: [
+    {
+      title: "Upload the file",
+      text: "Photo, screenshot or scanned PDF. Drag it, paste it or, on a phone, take the photo right away.",
+    },
+    {
+      title: "Reading starts on its own",
+      text: "Every word is read twice. Headings, bold text, tables and images stay in place.",
+    },
+    {
+      title: "Check the doubts",
+      text: "Uncertain words are marked in yellow. Pick the right one or type it; you can change it later.",
+    },
+    {
+      title: "Download or copy",
+      text: "PDF or Word with the same pages as the original, or just the text.",
+    },
+  ],
+  ctaTitle: "Ready to start?",
+  ctaText: "No sign-up and no cost. Your file is deleted within 1 hour.",
+  readingSub: "You can keep this page open. The result shows up here when it is done.",
+  stepNames: { preparing: "Prepare", layout: "Structure", reading: "Reading", finishing: "Assembly" },
+  stepsLabel: "Steps",
+  almostReady: "Almost done",
   errors: {
     unsupported_format: "This file is not an image or PDF. Try JPG, PNG, HEIC or PDF.",
     file_too_large: "The file is over the 20 MB limit.",
