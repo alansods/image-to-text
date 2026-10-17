@@ -119,6 +119,9 @@ const pt = {
   stepNames: { preparing: "Preparar", layout: "Estrutura", reading: "Leitura", finishing: "Montagem" },
   stepsLabel: "Etapas",
   almostReady: "Quase pronto",
+  barLabel: "Andamento da conferência",
+  barLeft: (n: number) => (n === 1 ? "Falta 1 palavra para conferir" : `Faltam ${n} palavras para conferir`),
+  barDone: "Seu documento está pronto.",
   errors: {
     unsupported_format: "Esse arquivo não é uma imagem nem PDF. Tente JPG, PNG, HEIC ou PDF.",
     file_too_large: "O arquivo passa do limite de 20 MB.",
@@ -232,6 +235,9 @@ const en: Dictionary = {
   stepNames: { preparing: "Prepare", layout: "Structure", reading: "Reading", finishing: "Assembly" },
   stepsLabel: "Steps",
   almostReady: "Almost done",
+  barLabel: "Review progress",
+  barLeft: (n: number) => (n === 1 ? "1 word left to check" : `${n} words left to check`),
+  barDone: "Your document is ready.",
   errors: {
     unsupported_format: "This file is not an image or PDF. Try JPG, PNG, HEIC or PDF.",
     file_too_large: "The file is over the 20 MB limit.",

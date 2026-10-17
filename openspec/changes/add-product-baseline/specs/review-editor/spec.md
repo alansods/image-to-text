@@ -38,7 +38,7 @@ Palavras "em dúvida" SHALL aparecer destacadas no texto com fundo âmbar e tamb
 - **THEN** as 3 palavras aparecem com fundo âmbar e sublinhado ondulado, e cada uma pode receber foco pelo teclado
 
 ### Requirement: Ações do resultado
-Com tudo conferido, "Baixar PDF" e "Baixar Word" SHALL ser as ações em destaque, na primeira linha; "Copiar texto" e "Converter outro" SHALL vir na linha de baixo, com menos destaque, todas ocupando a largura disponível. Enquanto houver dúvidas, o bloco das dúvidas SHALL ter só a contagem e "Conferir próxima", e "Converter outro" SHALL ficar numa linha separada, abaixo dele.
+Com tudo conferido, "Baixar PDF" e "Baixar Word" SHALL ser as ações em destaque, na primeira linha; "Copiar texto" e "Converter outro" SHALL vir na linha de baixo, com menos destaque, todas ocupando a largura disponível. Enquanto houver dúvidas, o bloco das dúvidas SHALL ter só a contagem e "Conferir próxima", e "Converter outro" MUST NOT aparecer: ele só surge depois de tudo conferido (o logotipo continua voltando ao envio).
 
 #### Scenario: Tudo conferido
 - **WHEN** não há dúvidas
@@ -46,7 +46,21 @@ Com tudo conferido, "Baixar PDF" e "Baixar Word" SHALL ser as ações em destaqu
 
 #### Scenario: Com dúvidas
 - **WHEN** há 3 dúvidas
-- **THEN** o bloco mostra "Confira 3 palavras antes de baixar" e "Conferir próxima", e "Converter outro" aparece abaixo, fora do bloco
+- **THEN** o bloco mostra "Confira 3 palavras antes de baixar" e "Conferir próxima", e "Converter outro" não aparece na tela
+
+### Requirement: Barra fixa de andamento
+Quando o cartão de ações do topo do resultado não está visível (o usuário rolou até o documento), o sistema SHALL mostrar uma barra presa ao pé da tela: enquanto houver dúvidas, com a quantidade que falta ("Faltam N palavras para conferir") e "Conferir próxima"; quando não restar nenhuma, com "Tudo conferido", "Seu documento está pronto." e os botões "Baixar PDF" e "Baixar Word".
+
+#### Scenario: Última dúvida resolvida lá embaixo
+- **WHEN** o usuário está na página 3, longe do topo, e resolve a última palavra em dúvida
+- **THEN** a barra do pé da tela passa de "Falta 1 palavra para conferir" a "Tudo conferido" com "Baixar PDF" e "Baixar Word", sem a página rolar
+
+### Requirement: Barra discreta
+A barra fixa MUST NOT aparecer quando o cartão do topo está visível nem enquanto o quadro de conferência está aberto, MUST NOT rolar a página nem tirar o foco da palavra corrigida, e sua animação de entrada MUST ficar parada com "reduzir movimento".
+
+#### Scenario: Topo visível
+- **WHEN** o cartão de ações do topo está na tela
+- **THEN** a barra não aparece
 
 ### Requirement: Conferência obrigatória antes de baixar
 Enquanto houver palavras em dúvida, o sistema SHALL mostrar, no lugar dos botões de cópia e download, o aviso "Confira N palavras antes de baixar" (ou "Confira 1 palavra antes de baixar") com o botão "Conferir próxima", e MUST NOT oferecer cópia nem download. Quando não restar nenhuma dúvida, SHALL mostrar "Tudo conferido" e os botões "Copiar texto", "Baixar Word" e "Baixar PDF".

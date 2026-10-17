@@ -1,7 +1,7 @@
 "use client";
 
 import { Check, Copy, Download, RefreshCw, TriangleAlert } from "lucide-react";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { DocumentPages } from "@/components/result/DocumentPages";
 import { Band } from "@/components/site/Band";
@@ -39,6 +39,18 @@ export function ResultView({ jobId, initial, onReset }: Props) {
   const [copied, setCopied] = useState(false);
   const [exporting, setExporting] = useState<"docx" | "pdf" | null>(null);
   const [exportError, setExportError] = useState(false);
+  // Barra fixa do pé da tela: só quando o cartão de ações do topo saiu da tela.
+  const topCard = useRef<HTMLDivElement>(null);
+  const [topVisible, setTopVisible] = useState(true);
+  useEffect(() => {
+    const card = topCard.current;
+    if (!card || typeof IntersectionObserver === "undefined") return;
+    const observer = new IntersectionObserver(([entry]) =>
+      setTopVisible(entry.isIntersecting),
+    );
+    observer.observe(card);
+    return () => observer.disconnect();
+  }, []);
 
   const pending = uncertainWords(doc);
   const lowQuality = lowQualityPages(doc);
@@ -152,8 +164,11 @@ export function ResultView({ jobId, initial, onReset }: Props) {
         </div>
       </Band>
 
-      <div className="mx-auto -mt-[60px] flex w-full max-w-[780px] flex-col gap-4 px-4 pb-24 sm:-mt-[72px] sm:px-6">
-        <div className="flex flex-col gap-3.5 rounded-[22px] bg-card p-4 shadow-[0_20px_50px_rgba(15,35,71,.16)] sm:p-5">
+      <div className="mx-auto -mt-[60px] flex w-full max-w-[780px] flex-col gap-4 px-4 pb-36 sm:-mt-[72px] sm:px-6">
+        <div
+          ref={topCard}
+          className="flex flex-col gap-3.5 rounded-[22px] bg-card p-4 shadow-[0_20px_50px_rgba(15,35,71,.16)] sm:p-5"
+        >
           {lowQuality.length > 0 && (
             <p className="flex items-start gap-2.5 rounded-[14px] bg-doubt px-3.5 py-3 text-sm leading-normal text-doubt-foreground">
               <TriangleAlert
@@ -241,8 +256,6 @@ export function ResultView({ jobId, initial, onReset }: Props) {
           </div>
         </div>
 
-        {pending.length > 0 && <div className="flex">{reset}</div>}
-
         <DocumentPages
           doc={doc}
           jobId={jobId}
@@ -261,6 +274,94 @@ export function ResultView({ jobId, initial, onReset }: Props) {
           )}
         />
       </div>
+
+      {!topVisible && openId === null && (
+        <ProgressBar
+          left={pending.length}
+          busy={exporting !== null}
+          onNext={() => open(nextUncertain(doc, cursor)?.id ?? pending[0].id)}
+          onDownload={download}
+        />
+      )}
     </div>
+  );
+}
+
+/** Barra presa ao pé da tela (spec "Barra fixa de andamento"): quantas faltam e "Conferir
+ * próxima"; sem dúvidas, "Tudo conferido" com os downloads. Não rouba o foco nem rola. */
+function ProgressBar({
+  left,
+  busy,
+  onNext,
+  onDownload,
+}: {
+  left: number;
+  busy: boolean;
+  onNext: () => void;
+  onDownload: (fmt: "docx" | "pdf") => void;
+}) {
+  const { t } = useI18n();
+  const done = left === 0;
+  return (
+    <section
+      aria-label={t.barLabel}
+      className="fixed inset-x-0 bottom-0 z-30 sm:bottom-6 sm:px-6"
+    >
+      <div
+        key={done ? "done" : "left"}
+        className={cn(
+          "bar-rise mx-auto flex max-w-[732px] flex-wrap items-center gap-3 rounded-t-[22px] px-4 pt-3 pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))] shadow-[0_-10px_34px_rgba(15,35,71,.18)] sm:flex-nowrap sm:gap-3.5 sm:rounded-[20px] sm:py-3 sm:pr-3 sm:pl-4 sm:shadow-[0_16px_44px_rgba(15,35,71,.22)]",
+          done ? "bg-navy text-on-navy" : "border border-border bg-card",
+        )}
+      >
+        {done ? (
+          <>
+            <span
+              aria-hidden="true"
+              className="flex size-10 shrink-0 items-center justify-center rounded-full bg-success-on-navy text-navy"
+            >
+              <Check className="size-5" strokeWidth={2.8} />
+            </span>
+            <span className="flex min-w-0 flex-1 flex-col leading-tight">
+              <span className="font-bold">{t.allChecked}</span>
+              <span className="text-[13px] text-on-navy-soft">{t.barDone}</span>
+            </span>
+            <div className="grid w-full grid-cols-2 gap-2.5 sm:flex sm:w-auto">
+              {(["pdf", "docx"] as const).map((fmt) => (
+                <button
+                  key={fmt}
+                  type="button"
+                  disabled={busy}
+                  onClick={() => onDownload(fmt)}
+                  className={`${BUTTON} ${PRIMARY} min-h-12 px-5 text-[15px]`}
+                >
+                  <Download className="size-[17px]" aria-hidden="true" />
+                  {fmt === "pdf" ? t.downloadPdf : t.downloadWord}
+                </button>
+              ))}
+            </div>
+          </>
+        ) : (
+          <>
+            <span
+              aria-hidden="true"
+              className="flex size-10 shrink-0 items-center justify-center rounded-full bg-doubt font-bold text-doubt-foreground"
+            >
+              {left}
+            </span>
+            <span className="min-w-0 flex-1 font-semibold">
+              {t.barLeft(left)}
+            </span>
+            <button
+              type="button"
+              onClick={onNext}
+              className={`${BUTTON} ${PRIMARY} min-h-12 px-5 text-[15px]`}
+            >
+              {t.checkNext}
+            </button>
+          </>
+        )}
+      </div>
+    </section>
   );
 }

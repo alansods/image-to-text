@@ -146,3 +146,25 @@
     transform: translateY(50px);
   }
 }
+
+/* Barra fixa do resultado: entra subindo um pouco (parada com "reduzir movimento"). */
+@keyframes bar-rise {
+  from {
+    transform: translateY(16px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+.bar-rise {
+  animation: bar-rise 0.35s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bar-rise {
+    animation: none;
+  }
+}

@@ -146,6 +146,26 @@ function serverAt(job: { state: string; stage: string; page: number; pages: numb
   };
 }
 
+/** IntersectionObserver falso: o teste diz se o cartão do topo está na tela. */
+let setTopVisible: (visible: boolean) => void = () => undefined;
+function stubObserver() {
+  vi.stubGlobal(
+    "IntersectionObserver",
+    class {
+      constructor(callback: IntersectionObserverCallback) {
+        setTopVisible = (visible) =>
+          callback([{ isIntersecting: visible } as IntersectionObserverEntry], this as unknown as IntersectionObserver);
+      }
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+      takeRecords() {
+        return [];
+      }
+    },
+  );
+}
+
 function reducedMotion(reduce: boolean) {
   vi.stubGlobal("matchMedia", (query: string) => ({
     matches: reduce && query.includes("prefers-reduced-motion"),
@@ -534,16 +554,47 @@ describe("aviso de qualidade", () => {
     expect(actions[2].className).not.toContain("bg-primary ");
   });
 
-  it("com dúvidas, 'Converter outro' fica fora do bloco das dúvidas", async () => {
+  it("com dúvidas, 'Converter outro' não aparece", async () => {
     serverFinishing(DOUBTS);
     renderApp();
     await upload(pngFile());
     await untilResult();
 
-    const gate = screen.getAllByRole("status").find((s) => within(s).queryByText("Confira 2 palavras antes de baixar"))!;
-    expect(within(gate).queryByRole("button", { name: "Converter outro" })).toBeNull();
-    expect(screen.getByRole("button", { name: "Converter outro" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Converter outro" })).toBeNull();
     expect(screen.getByText("Quase pronto")).toBeInTheDocument();
+  });
+
+  it("com o topo na tela, não há barra fixa", async () => {
+    stubObserver();
+    serverFinishing(DOUBTS);
+    renderApp();
+    await upload(pngFile());
+    await untilResult();
+    act(() => setTopVisible(true));
+
+    expect(screen.queryByRole("region", { name: "Andamento da conferência" })).toBeNull();
+  });
+
+  it("barra fixa: quantas faltam e, ao resolver a última, 'Tudo conferido' com os downloads", async () => {
+    stubObserver();
+    serverFinishing(documentWith([word("w0", "assinado"), word("w1", "SlLVA", "uncertain", ["SlLVA", "SILVA"])]));
+    renderApp();
+    await upload(pngFile());
+    await untilResult();
+    act(() => setTopVisible(false));
+
+    let bar = screen.getByRole("region", { name: "Andamento da conferência" });
+    expect(bar).toHaveTextContent("Falta 1 palavra para conferir");
+    await userEvent.click(within(bar).getByRole("button", { name: "Conferir próxima" }));
+
+    const dialog = await screen.findByRole("dialog");
+    expect(screen.queryByRole("region", { name: "Andamento da conferência" })).toBeNull();
+    await userEvent.click(within(dialog).getByRole("button", { name: "SILVA" }));
+
+    bar = screen.getByRole("region", { name: "Andamento da conferência" });
+    expect(bar).toHaveTextContent("Tudo conferido");
+    expect(bar).toHaveTextContent("Seu documento está pronto.");
+    expect(within(bar).getAllByRole("button").map((b) => b.textContent)).toEqual(["Baixar PDF", "Baixar Word"]);
   });
 
   it("aparece em imagem ruim e não bloqueia o download", async () => {

@@ -61,7 +61,8 @@ Faixa: situação ("Quase pronto" em âmbar enquanto houver dúvidas; "✓ Tudo 
    - **Se alguma página tiver baixa qualidade**: aviso **amarelo** com ícone de alerta, "A página 5 tem baixa qualidade. Confira o texto e a formatação (negrito, itálico) com atenção." (cita as páginas; em imagem única, "A imagem tem baixa qualidade…"). Não bloqueia copiar nem baixar.
    - **Enquanto houver dúvidas**: círculo âmbar com o número + "Confira N palavras antes de baixar" / "Elas estão marcadas no texto. Escolha a forma certa de cada uma." + botão "Conferir próxima". **Não há** copiar nem baixar.
    - **Sem dúvidas**: grade 2×2 ocupando a largura — **"Baixar PDF" e "Baixar Word"** em azul (destaque) na primeira linha; "Copiar texto" (vira "Copiado") e "Converter outro" em azul-claro na segunda.
-2. **Enquanto houver dúvidas**, "Converter outro" fica **fora do cartão**, numa linha própria abaixo dele.
+2. **Enquanto houver dúvidas**, "Converter outro" **não aparece** (só depois de tudo conferido; o logotipo continua voltando ao envio).
+   **Barra fixa no pé da tela** (só quando o cartão do topo saiu da tela e o quadro de conferência está fechado): branca com o círculo âmbar, "Faltam N palavras para conferir" + "Conferir próxima"; ao resolver a última, vira azul-escura com "✓ Tudo conferido — Seu documento está pronto." + "Baixar PDF" e "Baixar Word" (entrada animada curta, parada com "reduzir movimento"). Não rola a página nem tira o foco. No celular fica colada na borda de baixo; no computador, flutuando centralizada (máx. 780 px).
 3. **Documento**: uma folha (proporção da página original) por página, com rótulo "PÁGINA N DE T" acima e o número no rodapé da folha. Texto em Source Serif, com títulos, alinhamento, negrito/itálico, listas, colunas, tabelas e imagens (logotipo, assinatura, capa) como no original.
 4. **Palavras em dúvida**: fundo âmbar + sublinhado ondulado, são botões.
 
