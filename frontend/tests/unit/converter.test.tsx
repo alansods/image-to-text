@@ -66,6 +66,7 @@ beforeEach(() => {
 afterEach(() => {
   vi.useRealTimers();
   vi.unstubAllGlobals();
+  vi.restoreAllMocks();
 });
 
 function renderApp(lang: Lang = "pt") {
@@ -260,6 +261,95 @@ describe("conferência", () => {
     const image = screen.getByRole("img", { name: "SlLVA" });
     expect(image.getAttribute("src")).toContain("/jobs/j1/words/w1/image");
     expect(screen.getByText("Confira 1 palavra antes de baixar")).toBeInTheDocument();
+  });
+
+  it("palavra corrigida continua clicável e a nova escolha substitui a anterior", async () => {
+    serverFinishing(DOUBTS);
+    renderApp();
+    await upload(pngFile());
+    await untilResult();
+
+    await userEvent.click(screen.getByRole("button", { name: "Palavra em dúvida: SlLVA" }));
+    await userEvent.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "SlLVA" }));
+    expect(screen.getByText("Confira 1 palavra antes de baixar")).toBeInTheDocument();
+
+    const fixed = screen.getByRole("button", { name: "Palavra corrigida: SlLVA — alterar" });
+    expect(document.activeElement).toBe(fixed);
+    await userEvent.click(fixed);
+    const dialog = await screen.findByRole("dialog");
+    const current = within(dialog).getByRole("button", { name: "SlLVA" });
+    expect(current).toHaveAttribute("aria-pressed", "true");
+    expect(within(dialog).getByRole("button", { name: "SILVA" })).toHaveAttribute("aria-pressed", "false");
+
+    await userEvent.click(within(dialog).getByRole("button", { name: "SILVA" }));
+
+    expect(screen.getByRole("button", { name: "Palavra corrigida: SILVA — alterar" }).className).toContain("bg-success");
+    expect(screen.getByText("Confira 1 palavra antes de baixar")).toBeInTheDocument();
+    const patches = calls.filter((c) => c.init?.method === "PATCH");
+    expect(JSON.parse(String(patches.at(-1)?.init?.body))).toEqual({ words: [{ id: "w1", text: "SILVA" }] });
+  });
+
+  it("palavra removida vira uma marca clicável, fora do texto copiado", async () => {
+    serverFinishing(documentWith([word("w0", "assinado"), word("w1", "|", "uncertain", ["|", ""])]));
+    const writeText = vi.fn(async () => undefined);
+    Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true });
+    renderApp();
+    await upload(pngFile());
+    await untilResult();
+
+    await userEvent.click(screen.getByRole("button", { name: "Palavra em dúvida: |" }));
+    await userEvent.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "(nenhuma palavra)" }));
+
+    const mark = screen.getByRole("button", { name: "Palavra removida — alterar" });
+    await userEvent.click(screen.getByRole("button", { name: "Copiar texto" }));
+    expect(writeText).toHaveBeenCalledWith("assinado");
+
+    await userEvent.click(mark);
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByRole("button", { name: "(nenhuma palavra)" })).toHaveAttribute("aria-pressed", "true");
+    await userEvent.click(within(dialog).getByRole("button", { name: "|" }));
+    expect(screen.getByRole("button", { name: "Palavra corrigida: | — alterar" })).toBeInTheDocument();
+  });
+
+  it("clicar numa palavra visível abre o quadro sem a página rolar", async () => {
+    serverFinishing(DOUBTS);
+    renderApp();
+    await upload(pngFile());
+    await untilResult();
+    const scroll = vi.spyOn(Element.prototype, "scrollIntoView");
+    const focus = vi.spyOn(HTMLElement.prototype, "focus");
+
+    await userEvent.click(screen.getByRole("button", { name: "Palavra em dúvida: SlLVA" }));
+    await screen.findByRole("dialog");
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(50);
+    });
+
+    expect(scroll).not.toHaveBeenCalled();
+    // Focar o quadro antes de ele estar no lugar faria a página pular para o topo.
+    const dialog = screen.getByRole("dialog");
+    const inDialog = focus.mock.calls.filter((_, i) => dialog.contains(focus.mock.contexts[i] as Node));
+    expect(inDialog.length).toBeGreaterThan(0);
+    expect(inDialog.every(([options]) => options?.preventScroll === true)).toBe(true);
+  });
+
+  it("'Conferir próxima' rola até a palavra quando ela está fora da tela", async () => {
+    serverFinishing(DOUBTS);
+    renderApp();
+    await upload(pngFile());
+    await untilResult();
+    const scroll = vi.spyOn(Element.prototype, "scrollIntoView");
+    vi.spyOn(Element.prototype, "getBoundingClientRect").mockReturnValue(
+      { top: 5000, bottom: 5040, left: 0, right: 100, width: 100, height: 40, x: 0, y: 5000, toJSON: () => ({}) },
+    );
+
+    await userEvent.click(screen.getByRole("button", { name: "Conferir próxima" }));
+    await screen.findByRole("dialog");
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(50);
+    });
+
+    expect(scroll).toHaveBeenCalled();
   });
 
   it("Esc fecha sem resolver", async () => {

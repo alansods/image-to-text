@@ -31,16 +31,18 @@ function sizeCqw(pt: number, page: Page): string {
 
 function Words({ words, ctx }: { words: Word[]; ctx: WordProps }) {
   const { t } = useI18n();
-  const visible = words.filter((w) => w.text !== "" || w.keep_original);
+  // Palavra corrigida para vazio continua na tela (como marca) para poder ser desfeita.
+  const visible = words.filter((w) => w.text !== "" || w.keep_original || w.status === "edited");
   return (
     <>
       {visible.map((word, index) => {
         const space = index < visible.length - 1 ? " " : "";
         const style = cn(word.bold && "font-semibold", word.italic && "italic");
-        if (word.status !== "uncertain") {
-          const edited = word.status === "edited";
-          // Corrigida: verde e sublinhado contínuo, só na tela (nunca no Word/PDF).
-          const mark = edited && "rounded-[3px] bg-success/15 px-0.5 underline decoration-success decoration-[1.5px] underline-offset-4";
+        const open = ctx.openId === word.id;
+        if (word.status === "edited") {
+          // Corrigida: verde e sublinhado contínuo, só na tela (nunca no Word/PDF), e continua
+          // clicável para trocar a escolha.
+          const removed = word.text === "" && !word.keep_original;
           const content = word.keep_original ? (
             // eslint-disable-next-line @next/next/no-img-element -- recorte do original servido pela API
             <img
@@ -48,24 +50,55 @@ function Words({ words, ctx }: { words: Word[]; ctx: WordProps }) {
               alt={word.text}
               className="inline-block h-[1.15em] w-auto align-[-0.2em]"
             />
+          ) : removed ? (
+            <span aria-hidden="true">∅</span>
           ) : (
             word.text
           );
           return (
             <span key={word.id}>
-              <span
-                id={`word-${word.id}`}
-                tabIndex={edited ? -1 : undefined}
-                aria-label={edited ? t.corrected(word.text) : undefined}
-                className={cn(style, mark)}
-              >
-                {content}
+              <span className="relative inline-block">
+                <button
+                  type="button"
+                  id={`word-${word.id}`}
+                  data-word
+                  aria-label={removed ? t.removedWord : t.corrected(word.text)}
+                  aria-expanded={open}
+                  onClick={() => ctx.onOpen(word.id)}
+                  className={cn(
+                    style,
+                    "cursor-pointer rounded-[3px] border-0 bg-success/15 px-0.5 text-inherit underline decoration-success decoration-[1.5px] underline-offset-4",
+                    removed && "text-[0.75em] text-success no-underline",
+                    open && "shadow-[0_0_0_2px_var(--success)]",
+                  )}
+                >
+                  {content}
+                </button>
+                {open && ctx.renderCheck(word)}
               </span>
               {space}
             </span>
           );
         }
-        const open = ctx.openId === word.id;
+        if (word.status !== "uncertain") {
+          return (
+            <span key={word.id}>
+              <span id={`word-${word.id}`} className={style}>
+                {word.keep_original ? (
+                  // eslint-disable-next-line @next/next/no-img-element -- recorte do original servido pela API
+                  <img
+                    src={wordImageUrl(ctx.jobId, word.id)}
+                    alt={word.text}
+                    className="inline-block h-[1.15em] w-auto align-[-0.2em]"
+                  />
+                ) : (
+                  word.text
+                )}
+              </span>
+              {space}
+            </span>
+          );
+        }
         return (
           <span key={word.id}>
             <span className="relative inline-block">

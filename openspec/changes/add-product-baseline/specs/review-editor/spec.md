@@ -55,6 +55,10 @@ Enquanto houver palavras em dúvida, o sistema SHALL mostrar, no lugar dos botõ
 ### Requirement: Conferir uma palavra
 Ao acionar uma palavra em dúvida (ou "Conferir próxima"), o sistema SHALL abrir, junto da palavra (em telas estreitas, como painel na parte de baixo da tela), um quadro com: "Na imagem:" e o recorte ampliado do original com a palavra destacada e um pouco de contexto; a pergunta "Qual está certo?"; uma opção por leitura alternativa, escrita em fonte monoespaçada, com os caracteres que diferem entre as alternativas destacados; a opção "Manter como no original"; e o campo "Ou digite a correta" com um botão de confirmar.
 
+#### Scenario: Abrir sem a página pular
+- **WHEN** o usuário aciona uma palavra em dúvida que já está visível na tela
+- **THEN** o quadro abre junto da palavra sem a página rolar; só quando a palavra está fora da tela (por exemplo, com "Conferir próxima") a página rola até ela
+
 #### Scenario: Letras parecidas
 - **WHEN** as alternativas de uma palavra são "SILVA" e "SlLVA"
 - **THEN** as duas opções aparecem em fonte monoespaçada e o segundo caractere de cada uma ("I" e "l") aparece destacado
@@ -68,7 +72,15 @@ Ao acionar uma palavra em dúvida (ou "Conferir próxima"), o sistema SHALL abri
 - **THEN** o quadro mostra o recorte, a opção "[ilegível]" e o campo "Ou digite a correta"
 
 ### Requirement: Resolver e ver a correção
-Ao escolher uma opção, confirmar um texto digitado ou escolher "Manter como no original", a palavra SHALL passar a ter essa forma com status "editada", o quadro SHALL fechar mantendo o foco na própria palavra, o contador de dúvidas MUST diminuir em 1, e a palavra SHALL aparecer marcada em verde na tela para o usuário ver como ficou; a marca verde MUST NOT aparecer na cópia nem nos documentos baixados. O sistema MUST NOT pular sozinho para a próxima dúvida: o usuário avança com "Conferir próxima", que leva à próxima palavra em dúvida na ordem de leitura do documento (atravessando páginas).
+Ao escolher uma opção, confirmar um texto digitado ou escolher "Manter como no original", a palavra SHALL passar a ter essa forma com status "editada", o quadro SHALL fechar mantendo o foco na própria palavra, o contador de dúvidas MUST diminuir em 1, e a palavra SHALL aparecer marcada em verde na tela para o usuário ver como ficou; a marca verde MUST NOT aparecer na cópia nem nos documentos baixados. O sistema MUST NOT pular sozinho para a próxima dúvida: o usuário avança com "Conferir próxima", que leva à próxima palavra em dúvida na ordem de leitura do documento (atravessando páginas). A palavra corrigida SHALL continuar acionável: acioná-la reabre o mesmo quadro, com as mesmas opções e a escolha atual indicada, e uma nova escolha substitui a anterior sem mudar o contador de dúvidas. Uma palavra corrigida para "(nenhuma palavra)" SHALL aparecer na tela como uma pequena marca verde acionável no lugar dela; essa marca MUST NOT aparecer na cópia nem nos documentos baixados.
+
+#### Scenario: Trocar a escolha
+- **WHEN** o usuário escolheu "SlLVA" por engano e aciona de novo a palavra verde
+- **THEN** o quadro reabre com "SlLVA" indicada como escolha atual; ao escolher "SILVA", a palavra passa a "SILVA", continua verde, e o contador de dúvidas não muda
+
+#### Scenario: Desfazer remoção
+- **WHEN** o usuário escolheu "(nenhuma palavra)" e depois quer a palavra de volta
+- **THEN** a marca verde no lugar dela reabre o quadro, e a cópia do texto não contém a marca
 
 #### Scenario: Escolher alternativa
 - **WHEN** há 3 dúvidas e o usuário escolhe "SILVA" na primeira

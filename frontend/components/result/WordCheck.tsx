@@ -25,10 +25,13 @@ interface Props {
 export function WordCheck({ jobId, word, saving, error, onResolve, onClose }: Props) {
   const { t } = useI18n();
   const box = useRef<HTMLDivElement>(null);
-  const [typed, setTyped] = useState("");
   const options = word.alternatives.length
     ? word.alternatives.map((a) => a.text)
     : [word.text];
+  // Palavra já conferida: a escolha atual aparece marcada (ou digitada) para poder ser trocada.
+  const edited = word.status === "edited";
+  const chosen = !edited ? null : word.keep_original ? "keep" : options.indexOf(word.text);
+  const [typed, setTyped] = useState(edited && chosen === -1 ? word.text : "");
   const diffs = charDiff(options);
   const [position, setPosition] = useState<{ top: number; left: number } | null>(null);
 
@@ -49,7 +52,11 @@ export function WordCheck({ jobId, word, saving, error, onResolve, onClose }: Pr
   }, [word.id]);
 
   useEffect(() => {
-    box.current?.querySelector<HTMLButtonElement>("button[data-option]")?.focus();
+    const current = box.current?.querySelector<HTMLButtonElement>("button[aria-pressed='true']");
+    // Sem rolar: o quadro já está junto da palavra (ou no painel inferior, no celular).
+    (current ?? box.current?.querySelector<HTMLButtonElement>("button[data-option]"))?.focus({
+      preventScroll: true,
+    });
   }, [word.id]);
 
   useEffect(() => {
@@ -90,6 +97,8 @@ export function WordCheck({ jobId, word, saving, error, onResolve, onClose }: Pr
           "fixed inset-x-0 bottom-0 rounded-t-2xl pb-6",
           // telas maiores: popover abaixo da palavra
           "sm:absolute sm:inset-x-auto sm:top-(--pop-top) sm:bottom-auto sm:left-(--pop-left) sm:w-[300px] sm:rounded-[10px] sm:pb-4",
+          // até saber onde fica a palavra, não aparece no topo da página
+          !position && "sm:invisible",
         )}
         style={
           {
@@ -124,7 +133,8 @@ export function WordCheck({ jobId, word, saving, error, onResolve, onClose }: Pr
             disabled={saving}
             onClick={() => onResolve({ text: option })}
             aria-label={option || t.noWord}
-            className="flex h-12 w-full cursor-pointer items-center rounded-lg border border-border bg-card px-3.5 font-mono text-xl font-medium tracking-[0.06em] hover:border-primary hover:bg-primary-soft disabled:opacity-60"
+            aria-pressed={edited ? chosen === index : undefined}
+            className="flex h-12 w-full cursor-pointer items-center rounded-lg border border-border bg-card px-3.5 font-mono text-xl font-medium tracking-[0.06em] hover:border-primary hover:bg-primary-soft disabled:opacity-60 aria-pressed:border-success aria-pressed:bg-success/10"
           >
             {option === "" ? (
               <span className="text-base tracking-normal text-muted-foreground">{t.noWord}</span>
@@ -142,15 +152,18 @@ export function WordCheck({ jobId, word, saving, error, onResolve, onClose }: Pr
                 </span>
               ))
             )}
+            {chosen === index && <Check className="ml-auto size-4 shrink-0 text-success" aria-hidden="true" />}
           </button>
         ))}
         <button
           type="button"
           disabled={saving}
           onClick={() => onResolve({ keep_original: true })}
-          className="flex h-11 w-full cursor-pointer items-center rounded-lg border border-dashed border-border-strong bg-card px-3.5 text-left text-[15px] font-medium hover:border-primary hover:bg-primary-soft disabled:opacity-60"
+          aria-pressed={edited ? chosen === "keep" : undefined}
+          className="flex h-11 w-full cursor-pointer items-center rounded-lg border border-dashed border-border-strong bg-card px-3.5 text-left text-[15px] font-medium hover:border-primary hover:bg-primary-soft disabled:opacity-60 aria-pressed:border-success aria-pressed:bg-success/10"
         >
           {t.keepOriginal}
+          {chosen === "keep" && <Check className="ml-auto size-4 shrink-0 text-success" aria-hidden="true" />}
         </button>
         <form
           className="flex gap-1.5"

@@ -44,18 +44,23 @@ export function ResultView({ jobId, initial, onReset }: Props) {
     setSaveError(null);
     setOpenId(wordId);
     if (wordId) {
-      requestAnimationFrame(() =>
-        document
-          .getElementById(`word-${wordId}`)
-          ?.scrollIntoView({ block: "center", behavior: "smooth" }),
-      );
+      // Só rola quando a palavra está fora da tela ("Conferir próxima"); clicada, ela já está
+      // visível e o quadro abre ali mesmo.
+      requestAnimationFrame(() => {
+        const target = document.getElementById(`word-${wordId}`);
+        if (!target) return;
+        const rect = target.getBoundingClientRect();
+        if (rect.top < 0 || rect.bottom > window.innerHeight) {
+          target.scrollIntoView({ block: "center", behavior: "smooth" });
+        }
+      });
     }
   }, []);
 
   const close = useCallback(() => {
     const current = openId;
     setOpenId(null);
-    if (current) document.getElementById(`word-${current}`)?.focus();
+    if (current) document.getElementById(`word-${current}`)?.focus({ preventScroll: true });
   }, [openId]);
 
   // Última palavra conferida: "Conferir próxima" segue dali, e o foco fica nela.
@@ -76,7 +81,9 @@ export function ResultView({ jobId, initial, onReset }: Props) {
     setCursor(word.id);
     setOpenId(null);
     // Fica na palavra corrigida para o usuário ver como ficou (spec review-editor).
-    requestAnimationFrame(() => document.getElementById(`word-${word.id}`)?.focus());
+    requestAnimationFrame(() =>
+      document.getElementById(`word-${word.id}`)?.focus({ preventScroll: true }),
+    );
   };
 
   const copy = async () => {

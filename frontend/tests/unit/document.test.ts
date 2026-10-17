@@ -102,6 +102,15 @@ describe("palavras em dúvida", () => {
     expect([found.text, found.status, found.keep_original]).toEqual(["SlLVA", "edited", true]);
   });
 
+  it("conferir de novo substitui a escolha anterior, sem mudar as dúvidas", () => {
+    const first = applyEdit(sample, "w4", { text: "SlLVA" });
+    const kept = applyEdit(first, "w4", { keep_original: true });
+    const again = applyEdit(kept, "w4", { text: "SILVA" });
+    const found = again.pages[0].blocks[0].words[1];
+    expect([found.text, found.status, found.keep_original]).toEqual(["SILVA", "edited", false]);
+    expect(uncertainWords(again).map((w) => w.id)).toEqual(["w1", "c2"]);
+  });
+
   it("conferir uma palavra a torna editada com o novo texto", () => {
     const edited = applyEdit(sample, "w4", { text: "SILVA" });
     const found = edited.pages[0].blocks[0].words[1];

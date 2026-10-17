@@ -53,6 +53,18 @@ test("enviar, conferir e baixar Word e PDF com o nome do arquivo", async ({ page
   await resolveAllDoubts(page);
   await expect(page.getByText("Tudo conferido")).toBeVisible();
 
+  // Trocar a escolha: a palavra corrigida reabre o quadro, com a escolha atual marcada. A foto
+  // de teste pode sair sem dúvidas; aí não há o que trocar (coberto nos testes de unidade).
+  const fixed = page.getByRole("button", { name: /— alterar$/ }).first();
+  if ((await fixed.count()) > 0) {
+    await fixed.click();
+    const dialog = page.getByRole("dialog", { name: "Qual está certo?" });
+    await expect(dialog.locator("button[aria-pressed='true']")).toHaveCount(1);
+    await dialog.getByRole("button", { name: "Manter como no original" }).click();
+    await expect(dialog).toBeHidden();
+    await expect(page.getByText("Tudo conferido")).toBeVisible();
+  }
+
   const word = page.waitForEvent("download");
   await page.getByRole("button", { name: "Baixar Word" }).click();
   expect((await word).suggestedFilename()).toBe("contrato.docx");
