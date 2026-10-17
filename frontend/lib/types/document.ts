@@ -70,7 +70,6 @@ export interface Word {
   alternatives: Alternative[];
   status: WordStatus;
   resolved_by: ResolvedBy | null;
-  keep_original: boolean;
 }
 /**
  * Uma leitura possível de uma palavra, mostrada na conferência.

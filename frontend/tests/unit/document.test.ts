@@ -21,7 +21,6 @@ function word(id: string, text: string, status: Word["status"] = "accepted", alt
     alternatives: alts.map((t, i) => ({ text: t, confidence: 0.9 - i * 0.1, source: "paddle" })),
     status,
     resolved_by: null,
-    keep_original: false,
   };
 }
 
@@ -96,18 +95,11 @@ describe("palavras em dúvida", () => {
     expect(nextUncertain(sample, null)?.id).toBe("w1");
   });
 
-  it("manter como no original guarda o texto lido e marca a palavra", () => {
-    const kept = applyEdit(sample, "w4", { keep_original: true });
-    const found = kept.pages[0].blocks[0].words[1];
-    expect([found.text, found.status, found.keep_original]).toEqual(["SlLVA", "edited", true]);
-  });
-
   it("conferir de novo substitui a escolha anterior, sem mudar as dúvidas", () => {
     const first = applyEdit(sample, "w4", { text: "SlLVA" });
-    const kept = applyEdit(first, "w4", { keep_original: true });
-    const again = applyEdit(kept, "w4", { text: "SILVA" });
+    const again = applyEdit(first, "w4", { text: "SILVA" });
     const found = again.pages[0].blocks[0].words[1];
-    expect([found.text, found.status, found.keep_original]).toEqual(["SILVA", "edited", false]);
+    expect([found.text, found.status]).toEqual(["SILVA", "edited"]);
     expect(uncertainWords(again).map((w) => w.id)).toEqual(["w1", "c2"]);
   });
 

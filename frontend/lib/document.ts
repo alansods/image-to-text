@@ -28,19 +28,13 @@ export function nextUncertain(doc: Document, currentId: string | null): Word | n
   return ordered.find((w) => w.status === "uncertain" && w.id !== currentId) ?? null;
 }
 
-/** Escolha feita na conferência: um texto (vazio = "não há palavra") ou manter o original. */
-export type Choice = { text: string } | { keep_original: true };
+/** Escolha feita na conferência: sempre um texto (vazio = "não há palavra aqui"). */
+export type Choice = { text: string };
 
-/** Documento com a palavra conferida (status "editada"). Manter o original guarda o texto lido
- * (para a cópia) e marca a palavra para aparecer como recorte da imagem. */
+/** Documento com a palavra conferida (status "editada"). */
 export function applyEdit(doc: Document, wordId: string, choice: Choice): Document {
-  const edit = (w: Word): Word => {
-    if (w.id !== wordId) return w;
-    const base = { ...w, status: "edited" as const, resolved_by: null };
-    return "text" in choice
-      ? { ...base, text: choice.text, keep_original: false }
-      : { ...base, keep_original: true };
-  };
+  const edit = (w: Word): Word =>
+    w.id === wordId ? { ...w, text: choice.text, status: "edited", resolved_by: null } : w;
   return {
     ...doc,
     pages: doc.pages.map((p) => ({

@@ -6,7 +6,6 @@ cada palavra mantém negrito/itálico; listas mantêm o marcador original; tabel
 figuras como imagem recortada do original, com largura proporcional.
 """
 
-import io
 from collections.abc import Sequence
 from pathlib import Path
 from statistics import median
@@ -18,7 +17,6 @@ from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_BREAK
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.shared import Pt
-from PIL import Image as PILImage
 
 from app.models.document import ILLEGIBLE, Alignment, Block, BlockType, Document, Page, Word
 
@@ -86,7 +84,6 @@ class _Writer:
         self.assets = assets
         self.scale = scale
         self.base = body_font_size(document) * scale
-        self.page_images: dict[int, PILImage.Image] = {}
         self.doc: Any = docx.Document()
         normal = self.doc.styles["Normal"]
         normal.font.name = FONT
@@ -101,49 +98,20 @@ class _Writer:
         size = block.font_pt * self.scale if block.font_pt else self.base * block.rel_size
         return round(min(max(size, MIN_SIZE), MAX_SIZE) * 2) / 2
 
-    def word_image(self, page: Page, word: Word) -> io.BytesIO:
-        """Recorte exato da palavra no original ("Manter como no original")."""
-        if page.index not in self.page_images:
-            with PILImage.open(self.assets / page.image_ref) as image:
-                self.page_images[page.index] = image.convert("RGB")
-        b = word.bbox
-        crop = self.page_images[page.index].crop(
-            (int(b.x), int(b.y), int(b.x + b.w), int(b.y + b.h))
-        )
-        buffer = io.BytesIO()
-        crop.save(buffer, "PNG")
-        buffer.seek(0)
-        return buffer
-
-    def runs(
-        self, paragraph: Any, words: Sequence[Word], size: float, page: Page | None = None
-    ) -> None:
-        """Palavras seguidas com a mesma ênfase viram um só trecho (run); palavra mantida como
-        no original entra como imagem na linha, com o tamanho que tinha na página."""
-        groups: list[tuple[bool, bool, list[str]] | Word] = []
+    def runs(self, paragraph: Any, words: Sequence[Word], size: float) -> None:
+        """Palavras seguidas com a mesma ênfase viram um só trecho (run)."""
+        groups: list[tuple[bool, bool, list[str]]] = []
         for word in words:
-            if word.keep_original and page is not None:
-                groups.append(word)
-                continue
             if not word.text:
                 continue  # palavra removida na conferência
             style = (word.bold, word.italic)
-            last = groups[-1] if groups else None
-            if isinstance(last, tuple) and last[:2] == style:
-                last[2].append(word.text)
+            if groups and groups[-1][:2] == style:
+                groups[-1][2].append(word.text)
             else:
                 groups.append((word.bold, word.italic, [word.text]))
-        for index, group in enumerate(groups):
-            space = " " if index < len(groups) - 1 else ""
-            if isinstance(group, Word):
-                assert page is not None
-                height = group.bbox.h * page.page_size.w_pt / page.width
-                paragraph.add_run().add_picture(self.word_image(page, group), height=Pt(height))
-                if space:
-                    paragraph.add_run(space).font.size = Pt(size)
-                continue
-            bold, italic, texts = group
-            run = paragraph.add_run(" ".join(texts) + space)
+        for index, (bold, italic, texts) in enumerate(groups):
+            text = " ".join(texts) + (" " if index < len(groups) - 1 else "")
+            run = paragraph.add_run(text)
             run.bold, run.italic = bold, italic
             run.font.size = Pt(size)
 
@@ -157,7 +125,7 @@ class _Writer:
                 indent = LIST_INDENT * (item.level + 1)
                 p.paragraph_format.left_indent = Pt(indent)
                 p.paragraph_format.first_line_indent = Pt(-LIST_INDENT)
-                self.runs(p, block.words[starts[index] : starts[index + 1]], size, page)
+                self.runs(p, block.words[starts[index] : starts[index + 1]], size)
                 first = first or p
             if first is not None:
                 first.paragraph_format.space_before = Pt(space_before)
@@ -165,7 +133,7 @@ class _Writer:
         p = container.add_paragraph()
         p.alignment = _ALIGN[block.align]
         p.paragraph_format.space_before = Pt(space_before)
-        self.runs(p, block.words, size, page)
+        self.runs(p, block.words, size)
         return p
 
     # ------------------------------------------------------------- tabela e figura
@@ -191,7 +159,7 @@ class _Writer:
             last = table.cell(cell.row + cell.row_span - 1, cell.col + cell.col_span - 1)
             if last is not target:
                 target = target.merge(last)
-            self.runs(target.paragraphs[0], cell.words, self.base, page)
+            self.runs(target.paragraphs[0], cell.words, self.base)
 
     @staticmethod
     def column_widths(page: Page, block: Block, cols: int, usable: float) -> list[float] | None:
@@ -261,7 +229,7 @@ class _Writer:
             for index, block in enumerate(blocks):
                 p = target if index == 0 else part.add_paragraph()
                 p.alignment = _ALIGN[_edge_align(page, block)]
-                self.runs(p, block.words, self.size(block), page)
+                self.runs(p, block.words, self.size(block))
         return section
 
     @staticmethod

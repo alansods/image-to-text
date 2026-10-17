@@ -112,8 +112,6 @@ class Word(_Model):
     alternatives: list[Alternative] = Field(default_factory=list)
     status: WordStatus
     resolved_by: ResolvedBy | None = None
-    # "Manter como no original": no Word/PDF e na tela entra o recorte da imagem no lugar do texto.
-    keep_original: bool = False
 
     @model_validator(mode="after")
     def _check_status_rules(self) -> Self:

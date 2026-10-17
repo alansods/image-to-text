@@ -194,7 +194,7 @@ O primeiro teste com um documento real (contrato de 5 páginas escaneado, com ru
 - **Cabeçalho/rodapé curto** (número da página) alinha pela posição na página; **vãos verticais** do original são mantidos até 60% da folha (Word e tela), e a conferência de paginação reduz fontes se algo transbordar.
 - **Texto × figura**: texto com ≥ 50% da área dentro de uma figura fica só na imagem; o que só encosta continua texto e é pintado de branco no recorte da figura (a página original não é alterada).
 - **Posição horizontal das imagens**: no Word/PDF e na tela, recuo = distância do início do conteúdo (a rubrica volta para a direita).
-- **Conferência** (pedido do usuário): não pula sozinha para a próxima dúvida — o quadro fecha com o foco na palavra corrigida, marcada em verde só na tela; "Conferir próxima" segue da última conferida. Opção "Manter como no original": `keep_original` na palavra; Word/PDF/tela mostram o recorte exato da palavra (`GET /jobs/{id}/words/{word_id}/image`) com a altura que ela tinha; a cópia usa o texto lido.
+- **Conferência** (pedido do usuário): não pula sozinha para a próxima dúvida — o quadro fecha com o foco na palavra corrigida, marcada em verde só na tela; "Conferir próxima" segue da última conferida. A palavra corrigida continua clicável para trocar a escolha. A opção "Manter como no original" (recorte da palavra no meio do texto) foi retirada a pedido do usuário: recorte de imagem dentro da linha não é aceitável no documento final; assinaturas e escrita à mão já viram figura na detecção de layout, e o resto se resolve digitando ou com "(nenhuma palavra)".
 
 ## Open Questions
 

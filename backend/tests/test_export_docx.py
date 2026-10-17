@@ -9,7 +9,7 @@ from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml.ns import qn
 
 from app.export.docx_export import build_docx
-from app.models.document import Alignment, BBox
+from app.models.document import Alignment, BBox, WordStatus
 from tests.export_samples import sample_document
 
 
@@ -149,16 +149,14 @@ def test_removed_words_leave_no_gap(tmp_path: Path) -> None:
     assert "O CONTRATANTE" in texts
 
 
-def test_word_kept_as_original_is_an_inline_image_in_the_line(tmp_path: Path) -> None:
-    from PIL import Image as PILImage
-
+def test_reviewed_words_are_text_never_inline_images(tmp_path: Path) -> None:
     document = sample_document(tmp_path)
-    (tmp_path / "pages").mkdir(exist_ok=True)
-    PILImage.new("RGB", (2480, 3508), "white").save(tmp_path / "pages" / "0.png")
     page = document.pages[0]
     body = next(b for b in page.blocks if b.id == "p0-b3")
     words = [
-        w.model_copy(update={"keep_original": True}) if w.text == "declara" else w
+        w.model_copy(update={"text": "—", "status": WordStatus.EDITED})
+        if w.text == "declara"
+        else w
         for w in body.words
     ]
     blocks = [b.model_copy(update={"words": words}) if b is body else b for b in page.blocks]
@@ -168,9 +166,9 @@ def test_word_kept_as_original_is_an_inline_image_in_the_line(tmp_path: Path) ->
 
     word_doc = docx.Document(str(out))
     paragraph = next(p for p in word_doc.paragraphs if p.text.startswith("O CONTRATANTE"))
-    assert "declara" not in paragraph.text
-    assert paragraph._p.xpath(".//pic:pic")  # imagem dentro do próprio parágrafo
-    assert len(word_doc.inline_shapes) == 4  # as 3 figuras + a palavra
+    assert "—" in paragraph.text
+    assert not paragraph._p.xpath(".//pic:pic")
+    assert len(word_doc.inline_shapes) == 3  # só as figuras
 
 
 def test_measured_font_size_is_used(tmp_path: Path) -> None:

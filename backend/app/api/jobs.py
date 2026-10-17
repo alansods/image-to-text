@@ -8,7 +8,7 @@ import numpy as np
 from fastapi import APIRouter, Depends, File, Query, Response, UploadFile
 from fastapi.responses import FileResponse
 from PIL import Image
-from pydantic import BaseModel, Field, StringConstraints, model_validator
+from pydantic import BaseModel, Field, StringConstraints
 
 from app.config import Settings, get_settings
 from app.crops import png_bytes, word_crop
@@ -117,23 +117,6 @@ def get_word_crop(job_id: str, word_id: str, settings: SettingsDep, store: Store
     raise ApiError(404, ErrorCode.NOT_FOUND)
 
 
-@router.get("/{job_id}/words/{word_id}/image")
-def get_word_image(job_id: str, word_id: str, settings: SettingsDep, store: StoreDep) -> Response:
-    """Recorte exato da palavra no original ("Manter como no original" na tela)."""
-    document, files = _done_document(job_id, settings, store)
-    for page in document.pages:
-        for block in page.blocks:
-            for word in block.all_words():
-                if word.id == word_id:
-                    b = word.bbox
-                    with Image.open(files.page_image(page.index)) as image:
-                        crop = image.convert("RGB").crop(
-                            (int(b.x), int(b.y), int(b.x + b.w), int(b.y + b.h))
-                        )
-                    return Response(png_bytes(np.asarray(crop)), media_type="image/png")
-    raise ApiError(404, ErrorCode.NOT_FOUND)
-
-
 @router.get("/{job_id}/images/{block_id}")
 def get_block_image(
     job_id: str, block_id: str, settings: SettingsDep, store: StoreDep
@@ -152,15 +135,7 @@ def get_block_image(
 class ReviewedWord(BaseModel):
     id: str
     # Vazio = "não há palavra aqui" (alternativa vazia escolhida na conferência).
-    text: Annotated[str, StringConstraints(strip_whitespace=True, max_length=200)] | None = None
-    # "Manter como no original": o texto lido fica (para a cópia) e o recorte vai no lugar.
-    keep_original: bool = False
-
-    @model_validator(mode="after")
-    def _text_or_original(self) -> "ReviewedWord":
-        if (self.text is None) == (not self.keep_original):
-            raise ValueError("informe o texto ou keep_original, não os dois")
-        return self
+    text: Annotated[str, StringConstraints(strip_whitespace=True, max_length=200)]
 
 
 class Review(BaseModel):
@@ -190,15 +165,13 @@ def review_words(
                 for word in words:
                     if word.id in chosen:
                         found.add(word.id)
-                        review_word = chosen[word.id]
-                        update: dict[str, Any] = {
-                            "status": WordStatus.EDITED,
-                            "resolved_by": None,
-                            "keep_original": review_word.keep_original,
-                        }
-                        if review_word.text is not None:
-                            update["text"] = review_word.text
-                        word = word.model_copy(update=update)
+                        word = word.model_copy(
+                            update={
+                                "text": chosen[word.id].text,
+                                "status": WordStatus.EDITED,
+                                "resolved_by": None,
+                            }
+                        )
                     result.append(word)
                 return result
 

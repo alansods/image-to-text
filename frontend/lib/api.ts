@@ -73,10 +73,6 @@ export async function reviewWord(id: string, wordId: string, choice: Choice): Pr
   });
 }
 
-export function wordImageUrl(id: string, wordId: string): string {
-  return `${API_URL}/jobs/${id}/words/${encodeURIComponent(wordId)}/image`;
-}
-
 export function cropUrl(id: string, wordId: string): string {
   return `${API_URL}/jobs/${id}/crops/${encodeURIComponent(wordId)}`;
 }

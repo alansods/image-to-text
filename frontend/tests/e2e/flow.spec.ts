@@ -60,7 +60,7 @@ test("enviar, conferir e baixar Word e PDF com o nome do arquivo", async ({ page
     await fixed.click();
     const dialog = page.getByRole("dialog", { name: "Qual está certo?" });
     await expect(dialog.locator("button[aria-pressed='true']")).toHaveCount(1);
-    await dialog.getByRole("button", { name: "Manter como no original" }).click();
+    await dialog.locator("button[aria-pressed='false']").first().click();
     await expect(dialog).toBeHidden();
     await expect(page.getByText("Tudo conferido")).toBeVisible();
   }

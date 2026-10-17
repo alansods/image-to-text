@@ -2,7 +2,7 @@
 
 import type { CSSProperties, ReactNode } from "react";
 
-import { imageUrl, wordImageUrl } from "@/lib/api";
+import { imageUrl } from "@/lib/api";
 import { useI18n } from "@/lib/i18n";
 import { bodyFontPt, edgeAlign, gapCqw, pageLayout, pageMargins } from "@/lib/sheet";
 import type { Block, Document, Page, Word } from "@/lib/types/document";
@@ -32,7 +32,7 @@ function sizeCqw(pt: number, page: Page): string {
 function Words({ words, ctx }: { words: Word[]; ctx: WordProps }) {
   const { t } = useI18n();
   // Palavra corrigida para vazio continua na tela (como marca) para poder ser desfeita.
-  const visible = words.filter((w) => w.text !== "" || w.keep_original || w.status === "edited");
+  const visible = words.filter((w) => w.text !== "" || w.status === "edited");
   return (
     <>
       {visible.map((word, index) => {
@@ -42,19 +42,8 @@ function Words({ words, ctx }: { words: Word[]; ctx: WordProps }) {
         if (word.status === "edited") {
           // Corrigida: verde e sublinhado contínuo, só na tela (nunca no Word/PDF), e continua
           // clicável para trocar a escolha.
-          const removed = word.text === "" && !word.keep_original;
-          const content = word.keep_original ? (
-            // eslint-disable-next-line @next/next/no-img-element -- recorte do original servido pela API
-            <img
-              src={wordImageUrl(ctx.jobId, word.id)}
-              alt={word.text}
-              className="inline-block h-[1.15em] w-auto align-[-0.2em]"
-            />
-          ) : removed ? (
-            <span aria-hidden="true">∅</span>
-          ) : (
-            word.text
-          );
+          const removed = word.text === "";
+          const content = removed ? <span aria-hidden="true">∅</span> : word.text;
           return (
             <span key={word.id}>
               <span className="relative inline-block">
@@ -84,16 +73,7 @@ function Words({ words, ctx }: { words: Word[]; ctx: WordProps }) {
           return (
             <span key={word.id}>
               <span id={`word-${word.id}`} className={style}>
-                {word.keep_original ? (
-                  // eslint-disable-next-line @next/next/no-img-element -- recorte do original servido pela API
-                  <img
-                    src={wordImageUrl(ctx.jobId, word.id)}
-                    alt={word.text}
-                    className="inline-block h-[1.15em] w-auto align-[-0.2em]"
-                  />
-                ) : (
-                  word.text
-                )}
+                {word.text}
               </span>
               {space}
             </span>

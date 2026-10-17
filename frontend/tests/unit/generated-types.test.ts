@@ -54,7 +54,6 @@ describe("tipos gerados do formato interno", () => {
                   ],
                   status: "uncertain",
                   resolved_by: null,
-                  keep_original: false,
                 },
               ],
               cells: [],

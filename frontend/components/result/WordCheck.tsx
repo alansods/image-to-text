@@ -30,7 +30,7 @@ export function WordCheck({ jobId, word, saving, error, onResolve, onClose }: Pr
     : [word.text];
   // Palavra já conferida: a escolha atual aparece marcada (ou digitada) para poder ser trocada.
   const edited = word.status === "edited";
-  const chosen = !edited ? null : word.keep_original ? "keep" : options.indexOf(word.text);
+  const chosen = edited ? options.indexOf(word.text) : null;
   const [typed, setTyped] = useState(edited && chosen === -1 ? word.text : "");
   const diffs = charDiff(options);
   const [position, setPosition] = useState<{ top: number; left: number } | null>(null);
@@ -155,16 +155,6 @@ export function WordCheck({ jobId, word, saving, error, onResolve, onClose }: Pr
             {chosen === index && <Check className="ml-auto size-4 shrink-0 text-success" aria-hidden="true" />}
           </button>
         ))}
-        <button
-          type="button"
-          disabled={saving}
-          onClick={() => onResolve({ keep_original: true })}
-          aria-pressed={edited ? chosen === "keep" : undefined}
-          className="flex h-11 w-full cursor-pointer items-center rounded-lg border border-dashed border-border-strong bg-card px-3.5 text-left text-[15px] font-medium hover:border-primary hover:bg-primary-soft disabled:opacity-60 aria-pressed:border-success aria-pressed:bg-success/10"
-        >
-          {t.keepOriginal}
-          {chosen === "keep" && <Check className="ml-auto size-4 shrink-0 text-success" aria-hidden="true" />}
-        </button>
         <form
           className="flex gap-1.5"
           onSubmit={(event) => {

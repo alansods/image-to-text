@@ -23,7 +23,7 @@ Quando as duas leituras concordam em uma palavra, o sistema SHALL aceitá-la com
 - **THEN** a palavra final é "contrato" com status "aceita"
 
 ### Requirement: Resolução de divergências
-Quando as leituras divergem, o sistema SHALL tentar resolver na ordem: (1) aceitar a leitura cuja confiança supere a outra em pelo menos 0,15 e seja ≥ 0,90; (2) reler o trecho ampliado com ambos os mecanismos e aceitar se passarem a concordar, ou aceitar a releitura do mecanismo principal quando ela repete uma das leituras originais com confiança ≥ 0,97 e o segundo mecanismo não consegue ler o trecho (confiança abaixo de 0,90); pontuação no fim da palavra colada por um sublinhado não conta nessas comparações; (3) se o árbitro estiver habilitado, consultá-lo. Uma palavra resolvida SHALL receber status "resolvida" e registrar qual etapa a resolveu.
+Quando as leituras divergem, o sistema SHALL tentar resolver na ordem: (1) aceitar a leitura cuja confiança supere a outra em pelo menos 0,15 e seja ≥ 0,90; (2) reler o trecho ampliado com ambos os mecanismos e aceitar se passarem a concordar (ou pela regra de releitura com um só leitor); (3) se o árbitro estiver habilitado, consultá-lo. Uma palavra resolvida SHALL receber status "resolvida" e registrar qual etapa a resolveu.
 
 #### Scenario: Resolvida por confiança
 - **WHEN** as leituras são "R$ 150" (0,97) e "R$ 15O" (0,71)
@@ -32,6 +32,9 @@ Quando as leituras divergem, o sistema SHALL tentar resolver na ordem: (1) aceit
 #### Scenario: Resolvida por releitura
 - **WHEN** as leituras divergem com confianças próximas e a releitura ampliada faz ambas lerem "Silva"
 - **THEN** a palavra final é "Silva" com status "resolvida" pela etapa "releitura"
+
+### Requirement: Releitura com um só leitor
+Na releitura ampliada, o sistema SHALL aceitar a leitura do mecanismo principal quando ela repete uma das leituras originais com confiança ≥ 0,97 e o segundo mecanismo não consegue ler o trecho (confiança abaixo de 0,90). Pontuação no fim da palavra colada por um sublinhado MUST NOT contar nessas comparações.
 
 #### Scenario: Segundo leitor não consegue ler
 - **WHEN** um título sublinhado é lido "QUARTA" pelo mecanismo principal e o segundo não lê nada, e na releitura ampliada o principal lê "QUARTA" com confiança 0,99 e o segundo lê "_" com confiança 0,18
