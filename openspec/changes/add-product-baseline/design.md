@@ -196,6 +196,13 @@ O primeiro teste com um documento real (contrato de 5 páginas escaneado, com ru
 - **Posição horizontal das imagens**: no Word/PDF e na tela, recuo = distância do início do conteúdo (a rubrica volta para a direita).
 - **Conferência** (pedido do usuário): não pula sozinha para a próxima dúvida — o quadro fecha com o foco na palavra corrigida, marcada em verde só na tela; "Conferir próxima" segue da última conferida. A palavra corrigida continua clicável para trocar a escolha. A opção "Manter como no original" (recorte da palavra no meio do texto) foi retirada a pedido do usuário: recorte de imagem dentro da linha não é aceitável no documento final; assinaturas e escrita à mão já viram figura na detecção de layout, e o resto se resolve digitando ou com "(nenhuma palavra)".
 
+### D19. Traço decidido pela forma (hífen × travessões × sublinhado)
+- **Problema** (contrato real): os dois leitores leem o travessão curto "–" como "-" e concordam (troca silenciosa); em títulos sublinhados, pedaços do sublinhado viram "_" ou lixo ("|}~°£"), e um leitor lê "--"/"_" onde o outro lê "-".
+- **Decisão**: trecho só de símbolos com algum traço (sem letras/algarismos) é medido na imagem (`pipeline/dashes.py`): tira as linhas horizontais mais longas que 2,5 alturas de maiúscula (sublinhado), procura um traço fino entre 15% e 85% da altura acima da linha de base e compara o comprimento com a altura das maiúsculas: < 0,58 hífen, ≤ 1,05 "–", acima "—". Sem traço → descartado; sem letras em volta para comparar → regras normais. Pedaço só de "_" colado num traço da mesma linha é descartado (é o sublinhado debaixo dele). O mesmo traço visto por dois pedaços vira uma palavra só. `resolved_by = "shape"` quando os leitores divergiam.
+- **Medidas** (contrato real + conjunto de teste): hífen 0,32–0,45; "–" 0,72–0,77; "—" 1,28–1,65 — faixas bem separadas.
+- **Fora**: hífen dentro de palavra ("mão-de-obra", CPF) já sai certo e não é medido; "______" lido pelos dois leitores (linha de preencher) continua conteúdo.
+- **Resultado no contrato**: todos os títulos com "–" (antes "-"), sem "_"/lixo, dúvidas 17 → 13.
+
 ## Open Questions
 
 - Limites da avaliação de qualidade (D13): calibrar no conjunto de teste.

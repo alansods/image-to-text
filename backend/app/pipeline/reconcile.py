@@ -18,6 +18,7 @@ from app.models.document import (
     Word,
     WordStatus,
 )
+from app.pipeline.dashes import is_dash_reading
 from app.pipeline.reading import ReadWord
 
 # Confiança (spec): a leitura vencedora precisa ser ≥ 0,90 e superar a outra em ≥ 0,15.
@@ -39,6 +40,8 @@ MIN_SPACE = 0.2
 Snippet = tuple[str, float]  # (texto, confiança) de uma releitura
 Reread = Callable[[BBox], tuple[Snippet, Snippet]]
 Arbiter = Callable[[BBox, list[str]], str | None]
+# Medida do traço na imagem (ver `dashes.dash_shape`): símbolo e onde está o traço.
+Shape = Callable[[BBox], tuple[str, BBox | None] | None]
 
 _EQUIVALENT = str.maketrans(
     {
@@ -261,6 +264,8 @@ def _decide(
     word_id: str,
     reread: Reread | None,
     arbiter: Arbiter | None,
+    shape: Shape | None = None,
+    strokes: list[BBox] | None = None,
 ) -> Word | None:
     first = _joined(unit.primary, ReadingSource.PADDLE)
     second = _joined(unit.secondary, ReadingSource.DOCTR)
@@ -279,6 +284,29 @@ def _decide(
             status=status,
             resolved_by=by,
         )
+
+    # Só traços e símbolos soltos: a forma da tinta decide o símbolo (ou que é sublinhado).
+    if shape is not None and is_dash_reading([first.text, second.text]):
+        measured = shape(bbox)
+        if measured is not None:
+            symbol, stroke = measured
+            if stroke is None:
+                return None  # só a linha do sublinhado: formatação, não palavra
+            if strokes is not None:
+                if any(_overlap(stroke, seen) >= MIN_OVERLAP for seen in strokes):
+                    return None  # o mesmo traço já virou palavra (pedaço vizinho)
+                strokes.append(stroke)
+            both = (
+                bool(first.text) and bool(second.text) and matches(first.text, second.text, blind)
+            )
+            if both:
+                return word(symbol, max(first.confidence, second.confidence), WordStatus.ACCEPTED)
+            return word(
+                symbol,
+                max(first.confidence, second.confidence),
+                WordStatus.RESOLVED,
+                ResolvedBy.SHAPE,
+            )
 
     # Só caracteres que o docTR não conhece ("—"): a leitura dele ali não tem valor.
     only_blind = bool(first.text) and all(c in blind for c in first.text if not c.isspace())
@@ -325,6 +353,7 @@ def reconcile_block(
     id_prefix: str,
     reread: Reread | None = None,
     arbiter: Arbiter | None = None,
+    shape: Shape | None = None,
 ) -> list[Word]:
     """Palavras finais de um bloco, na ordem de leitura, com status e alternativas."""
 
@@ -339,8 +368,26 @@ def reconcile_block(
             (first, first_conf), (second, second_conf) = original(box)
             return (fix_ordinal(first), first_conf), (fix_ordinal(second), second_conf)
 
+    strokes: list[BBox] = []
     decided = [
-        _decide(unit, blind, f"{id_prefix}w{index}", fixed_reread, arbiter)
+        _decide(unit, blind, f"{id_prefix}w{index}", fixed_reread, arbiter, shape, strokes)
         for index, unit in enumerate(_align(fixed(primary), fixed(secondary)))
     ]
-    return [w for w in decided if w is not None]
+    words = [w for w in decided if w is not None]
+    return [w for w in words if not _underline_under_dash(w, words)]
+
+
+def _underline_under_dash(word: Word, words: list[Word]) -> bool:
+    """Pedaço de sublinhado colado num traço da mesma linha: é a mesma marca do título (o
+    sublinhado passa logo abaixo do travessão), não outra palavra."""
+    if not word.text or set(word.text) - {"_"}:
+        return False
+    box = word.bbox
+    for other in words:
+        if other is word or not other.text or not is_dash_reading([other.text]):
+            continue
+        o = other.bbox
+        shared = min(box.x + box.w, o.x + o.w) - max(box.x, o.x)
+        if shared > 0 and shared >= MIN_OVERLAP * min(box.w, o.w) and _vertical_overlap(box, o) > 0:
+            return True
+    return False

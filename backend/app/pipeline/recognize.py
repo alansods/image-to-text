@@ -15,6 +15,7 @@ import numpy as np
 from app.models.document import ILLEGIBLE, BBox, Block, BlockType, Page, Word, WordStatus
 from app.pipeline.base import Image, PageInput, ProcessedPage
 from app.pipeline.completeness import missing_lines, orphan_regions
+from app.pipeline.dashes import dash_shape
 from app.pipeline.emphasis import mark_emphasis
 from app.pipeline.layout import (
     LayoutBlock,
@@ -119,7 +120,10 @@ def _read_words(normalized: Gray, region: BBox, word_prefix: str, readers: Reade
             )
             return judge.choose(_word_crop(normalized, box), line, options)
 
-    return reconcile_block(primary, secondary, blind, word_prefix, reread, arbiter)
+    def shape(box: BBox) -> tuple[str, BBox | None] | None:
+        return dash_shape(normalized, box)
+
+    return reconcile_block(primary, secondary, blind, word_prefix, reread, arbiter, shape)
 
 
 def _illegible(word_id: str, box: BBox) -> Word:

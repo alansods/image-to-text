@@ -57,6 +57,7 @@ class WordStatus(StrEnum):
 class ResolvedBy(StrEnum):
     CONFIDENCE = "confidence"
     REREAD = "reread"
+    SHAPE = "shape"  # traço medido na imagem (hífen ou travessões)
     ARBITER = "arbiter"
 
 

@@ -349,6 +349,7 @@
       "enum": [
         "confidence",
         "reread",
+        "shape",
         "arbiter"
       ],
       "title": "ResolvedBy",

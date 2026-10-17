@@ -9,7 +9,7 @@ export type BlockType =
 export type Alignment = "left" | "center" | "right" | "justify";
 export type ReadingSource = "paddle" | "doctr" | "arbiter";
 export type WordStatus = "accepted" | "resolved" | "uncertain" | "edited";
-export type ResolvedBy = "confidence" | "reread" | "arbiter";
+export type ResolvedBy = "confidence" | "reread" | "shape" | "arbiter";
 
 export interface Document {
   id: string;

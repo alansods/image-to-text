@@ -23,7 +23,7 @@ Quando as duas leituras concordam em uma palavra, o sistema SHALL aceitá-la com
 - **THEN** a palavra final é "contrato" com status "aceita"
 
 ### Requirement: Resolução de divergências
-Quando as leituras divergem, o sistema SHALL tentar resolver na ordem: (1) aceitar a leitura cuja confiança supere a outra em pelo menos 0,15 e seja ≥ 0,90; (2) reler o trecho ampliado com ambos os mecanismos e aceitar se passarem a concordar (ou pela regra de releitura com um só leitor); (3) se o árbitro estiver habilitado, consultá-lo. Uma palavra resolvida SHALL receber status "resolvida" e registrar qual etapa a resolveu.
+Quando as leituras divergem, o sistema SHALL tentar resolver na ordem: (1) aceitar a leitura cuja confiança supere a outra em pelo menos 0,15 e seja ≥ 0,90; (2) reler o trecho ampliado com ambos os mecanismos e aceitar se passarem a concordar (ou pela regra de releitura com um só leitor); (3) se o árbitro estiver habilitado, consultá-lo. Uma palavra resolvida SHALL receber status "resolvida" e registrar qual etapa a resolveu (confiança, releitura, forma ou árbitro).
 
 #### Scenario: Resolvida por confiança
 - **WHEN** as leituras são "R$ 150" (0,97) e "R$ 15O" (0,71)
@@ -54,6 +54,28 @@ Um trecho formado só por traços de sublinhado ("_"), lido por um único mecani
 #### Scenario: Pedaço de sublinhado
 - **WHEN** o segundo mecanismo lê "_" entre duas palavras de um título sublinhado e a releitura do principal não reconhece nada com confiança
 - **THEN** o título não ganha a palavra "_" nem uma dúvida
+
+### Requirement: Traço decidido pela forma
+Quando as leituras de um trecho são só símbolos soltos com ao menos um traço ("-", "–", "—", "_", "~", "="), sem letras nem algarismos, o sistema SHALL decidir pela forma da tinta na imagem, sem contar a linha de sublinhado. O símbolo SHALL ser escolhido pelo comprimento do traço em relação à altura das maiúsculas da linha: hífen "-" abaixo de 0,58, travessão curto "–" até 1,05 e travessão longo "—" acima disso.
+
+#### Scenario: Travessão lido como hífen
+- **WHEN** os dois leitores leem "-" num traço que mede 0,75 da altura das maiúsculas
+- **THEN** a palavra final é "–"
+
+#### Scenario: Leitores divergem num traço
+- **WHEN** um leitor lê "-" e o outro "_" num traço que mede 0,40 da altura das maiúsculas
+- **THEN** a palavra final é "-" com status "resolvida" pela etapa "forma", sem dúvida
+
+### Requirement: Sublinhado sem traço é descartado
+Um trecho de símbolos soltos sem traço na altura do meio das letras (só a linha do sublinhado) MUST ser descartado como formatação. Hífens dentro de palavras não passam pela medida de traço.
+
+#### Scenario: Pedaço de sublinhado sob o travessão
+- **WHEN** um leitor lê "|}~°£" ou "_" num trecho que só tem a linha do sublinhado
+- **THEN** o trecho é descartado, sem virar palavra nem dúvida, e o travessão vizinho aparece uma só vez
+
+#### Scenario: Hífen dentro da palavra
+- **WHEN** a palavra lida é "mão-de-obra"
+- **THEN** ela segue as regras normais de reconciliação, sem medida de traço
 
 ### Requirement: Árbitro opcional
 O sistema SHALL permitir habilitar ou desabilitar o árbitro por configuração do servidor; o árbitro recebe somente os trechos ainda divergentes, MUST escolher uma das leituras existentes ou responder "[ilegível]", e não pode introduzir texto novo.

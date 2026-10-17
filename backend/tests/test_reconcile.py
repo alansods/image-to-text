@@ -2,7 +2,7 @@
 
 from app.models.document import ILLEGIBLE, BBox, ReadingSource, ResolvedBy, WordStatus
 from app.pipeline.reading import ReadWord
-from app.pipeline.reconcile import matches, reconcile_block
+from app.pipeline.reconcile import Shape, matches, reconcile_block
 
 BLIND = frozenset("ªº—–“”")
 
@@ -375,6 +375,93 @@ class TestUnderlinedTitles:
         assert [w.text for w in words] == ["______"]
 
 
+class TestDashesByShape:
+    """Traço decidido pela forma (spec): a medida vem da imagem; aqui, de uma função falsa."""
+
+    @staticmethod
+    def stroke(char: str, x: float = 100) -> Shape:
+        return lambda box: (char, BBox(x=x, y=5, w=20, h=4))
+
+    def test_dash_both_read_as_hyphen_takes_the_measured_symbol(self) -> None:
+        [word] = reconcile_block(
+            [paddle("-", 100, w=20)],
+            [doctr("-", 100, w=20)],
+            BLIND,
+            "b0",
+            shape=self.stroke("–"),
+        )
+        assert (word.text, word.status) == ("–", WordStatus.ACCEPTED)
+
+    def test_readers_that_disagree_on_a_dash_are_resolved_by_shape(self) -> None:
+        [word] = reconcile_block(
+            [paddle("-", 100, w=20, conf=0.6)],
+            [doctr("_", 100, w=20, conf=0.7)],
+            BLIND,
+            "b0",
+            no_reread,
+            shape=self.stroke("-"),
+        )
+        assert (word.text, word.status, word.resolved_by) == (
+            "-",
+            WordStatus.RESOLVED,
+            ResolvedBy.SHAPE,
+        )
+
+    def test_symbols_without_a_stroke_are_dropped(self) -> None:
+        words = reconcile_block(
+            [paddle("SEGUNDA", 0), paddle("|}~°£", 100, w=20, conf=0.4)],
+            [doctr("SEGUNDA", 0)],
+            BLIND,
+            "b0",
+            no_reread,
+            shape=lambda box: ("", None),
+        )
+        assert [w.text for w in words] == ["SEGUNDA"]
+
+    def test_the_same_stroke_becomes_a_single_dash(self) -> None:
+        words = reconcile_block(
+            [paddle("|}~°£", 100, y=10, w=40, conf=0.4), paddle("-", 160, w=20)],
+            [doctr("-", 160, w=20)],
+            BLIND,
+            "b0",
+            no_reread,
+            shape=self.stroke("–", x=150),
+        )
+        assert [w.text for w in words] == ["–"]
+
+    def test_hyphen_inside_a_word_is_not_measured(self) -> None:
+        def fail(box: BBox) -> tuple[str, BBox | None]:
+            raise AssertionError("não deveria medir")
+
+        [word] = reconcile_block(
+            [paddle("mão-de-obra", 0)], [doctr("mão-de-obra", 0)], BLIND, "b0", shape=fail
+        )
+        assert word.text == "mão-de-obra"
+
+    def test_unmeasurable_dash_follows_the_normal_rules(self) -> None:
+        [word] = reconcile_block(
+            [paddle("-", 100, w=20)],
+            [doctr("-", 100, w=20)],
+            BLIND,
+            "b0",
+            shape=lambda box: None,
+        )
+        assert (word.text, word.status) == ("-", WordStatus.ACCEPTED)
+
+    def test_underline_piece_under_a_dash_is_dropped(self) -> None:
+        # O leitor vê o traço e, logo abaixo, um pedaço do sublinhado ("_") que a releitura
+        # ampliada "confirma" — é a mesma marca do título, não outra palavra.
+        words = reconcile_block(
+            [paddle("PRIMEIRA", 0), paddle("_", 100, y=12, w=30), paddle("-", 110, w=12)],
+            [doctr("PRIMEIRA", 0), doctr("-", 110, w=12)],
+            BLIND,
+            "b0",
+            lambda b: (("_", 0.9), ("", 0.0)),
+            shape=self.stroke("–", x=108),
+        )
+        assert [w.text for w in words] == ["PRIMEIRA", "–"]
+
+
 def test_curved_line_split_by_the_reader_is_put_back_together() -> None:
     # O leitor partiu a 1ª linha (que sobe) em dois pedaços e entregou o da direita primeiro.
     a, b = paddle("a", 0, y=130), paddle("b", 100, y=120)
@@ -401,4 +488,5 @@ def test_pieces_starting_at_the_same_height_are_read_left_to_right() -> None:
         BLIND,
         "b0",
     )
-    assert [w.text for w in words] == ["CLÁUSULA", "PRIMEIRA", "_", "-", "OBJETO"]
+    # O "_" é o sublinhado logo abaixo do traço: some (spec "Sublinhado sem traço é descartado").
+    assert [w.text for w in words] == ["CLÁUSULA", "PRIMEIRA", "-", "OBJETO"]
