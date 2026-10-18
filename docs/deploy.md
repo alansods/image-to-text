@@ -1,31 +1,35 @@
-# Deploy (task 11.1)
+# Publicação (task 11.1, não executada)
 
-Site na **Vercel** (frontend) e API no **Hugging Face Spaces** (backend: api + worker + redis num
-contêiner só). Os dois planos gratuitos bastam. Testado localmente: a imagem do Space sobe os três
-processos na porta 7860 e converte e exporta documentos.
+O projeto **não está publicado**. Este documento reúne o que foi preparado e as opções avaliadas em outubro de 2026.
 
-## 1. Backend no Hugging Face Spaces
+## O que o backend precisa
 
-1. Crie um Space em https://huggingface.co/new-space — SDK **Docker**, hardware **CPU basic (grátis)**,
-   visibilidade **pública** (o navegador precisa alcançar a API sem senha; o código do backend fica
-   visível no Space).
-2. Envie para o repositório do Space o conteúdo da pasta `backend/` (sem `.venv`, `tests` e caches),
-   com `backend/deploy/README.space.md` renomeado para `README.md` na raiz. O `Dockerfile` da raiz
-   constrói o estágio `space` (o último).
-3. Em *Settings → Variables*, crie `ITT_CORS_ORIGINS` = `["https://SEU-SITE.vercel.app"]`
-   (preencha depois do passo 2.3 se ainda não souber o endereço).
-4. O primeiro build leva ~15–25 min (baixa os modelos de OCR). Quando terminar, a API responde em
-   `https://SEU-USUARIO-NOME-DO-SPACE.hf.space/health`.
+- **Memória:** cerca de **3 GB**, medidos numa conversão real. Os leitores ocupam quase tudo: docTR ≈ 1,8 GB e PaddleOCR ≈ 1,0 GB. O pico é o mesmo para 1 ou 4 páginas.
+- **Processos:** API (FastAPI), fila (Celery) e Redis sempre ligados enquanto há uso, e arquivos guardados por até 1 hora.
+- **Processador:** x86, porque o PaddlePaddle não tem versão Linux ARM.
+- **Imagem pronta:** o estágio `space` do `backend/Dockerfile` sobe os três processos num contêiner só, na porta 7860 (`backend/deploy/supervisord.conf`). Foi testado localmente.
 
-## 2. Frontend na Vercel
+## Opções avaliadas
 
-1. Em https://vercel.com/new, importe o repositório do GitHub.
-2. **Root Directory**: `frontend`. Framework: Next.js (detectado).
-3. Variável de ambiente `NEXT_PUBLIC_API_URL` = `https://SEU-USUARIO-NOME-DO-SPACE.hf.space`.
-4. Deploy. Copie o endereço do site e coloque em `ITT_CORS_ORIGINS` no Space (passo 1.3).
+| Opção | Custo | Observações |
+|---|---|---|
+| Hugging Face Spaces (Docker) | ~US$ 9/mês (PRO) | Desde jul/2026, Spaces com Docker exigem o plano PRO. Roda a imagem `space` sem mudanças. |
+| Modal | grátis até US$ 30/mês em créditos | Contêiner único que "dorme" após até 20 min sem uso (a 1ª visita espera os modelos carregarem). Estimativa: ~1.900 visitas/mês nos créditos. |
+| VPS (Hetzner, Contabo) | ~€ 5–6/mês | Roda o `docker compose` como está. |
+| Oracle Cloud Always Free | grátis | Servidor ARM: exigiria ajustes, falta vaga com frequência, e o servidor parado pode ser recolhido. |
+| Render / Railway / Vercel | — | O grátis tem 512 MB (Render, Railway), e a Vercel não roda processos contínuos. Os planos que aguentam custam ~US$ 25–85/mês. |
 
-## Limites do plano gratuito
+Também foi medida a troca do docTR pelo Tesseract, um leitor mais leve: o pico caiu para ~2,1 GB, mas a precisão piorou sem um ajuste no pareamento das leituras. Não foi adotada.
 
-- O Space **dorme após 48 h sem uso**; a primeira visita depois disso espera ~1–2 min para acordar.
-- 2 vCPUs: uma conversão por vez (as demais esperam na fila com 0%); ~20–40 s por página.
-- Reiniciar o Space apaga tudo (como manda a spec: nada guardado).
+## Site na Vercel (vale para qualquer opção)
+
+1. Em https://vercel.com/new, importe o repositório.
+2. **Root Directory:** `frontend`. Framework: Next.js.
+3. Variável `NEXT_PUBLIC_API_URL` com o endereço público do backend.
+4. No backend, coloque o endereço do site em `ITT_CORS_ORIGINS` (`["https://SEU-SITE.vercel.app"]`).
+
+## Limites de uso
+
+- 4 páginas e 20 MB por arquivo.
+- 3 conversões ativas por endereço.
+- Uma conversão por vez no worker, e as outras esperam na fila.
