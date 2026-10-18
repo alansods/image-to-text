@@ -276,6 +276,14 @@ describe("página inicial", () => {
     expect(screen.getByText("Grátis · sem cadastro · nada fica guardado")).toBeInTheDocument();
   });
 
+  it("mostra os limites de tamanho e de páginas antes do envio", () => {
+    handler = () => undefined;
+    renderApp();
+
+    expect(screen.getAllByText(/até 4 páginas/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/até 20 MB/).length).toBeGreaterThan(0);
+  });
+
   it("o botão da chamada final abre a mesma escolha de arquivo", async () => {
     handler = () => undefined;
     renderApp();

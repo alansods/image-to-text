@@ -14,7 +14,7 @@
 
 ## 3. Conversão e fila (specs file-upload, job-processing)
 
-- [x] 3.1 `POST /jobs` com um arquivo: validação de formato por conteúdo, 20 MB, 50 páginas, PDF com senha, mais de um arquivo
+- [x] 3.1 `POST /jobs` com um arquivo: validação de formato por conteúdo, 20 MB, 4 páginas, PDF com senha, mais de um arquivo
 - [x] 3.2 Worker Celery com estados e percentual que nunca diminui; `GET /jobs/{id}`
 - [x] 3.3 `GET /jobs/{id}/result` e `GET /jobs/{id}/crops/{word_id}` quando concluída
 - [x] 3.4 `DELETE /jobs/{id}` (cancelar / converter outro) com interrupção em até 10 s e remoção de arquivos

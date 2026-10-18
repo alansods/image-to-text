@@ -53,14 +53,14 @@ class TestFormat:
 
 
 class TestPdfLimits:
-    def test_rejects_pdf_over_50_pages(self, write_file: WriteFile) -> None:
+    def test_rejects_pdf_over_4_pages(self, write_file: WriteFile) -> None:
         with pytest.raises(UploadRejectedError) as error:
-            inspect_source(write_file("grande.pdf", pdf_bytes(pages=60)))
+            inspect_source(write_file("grande.pdf", pdf_bytes(pages=6)))
 
         assert error.value.code is ErrorCode.TOO_MANY_PAGES
 
-    def test_accepts_exactly_50_pages(self, write_file: WriteFile) -> None:
-        assert inspect_source(write_file("limite.pdf", pdf_bytes(pages=50))).pages == 50
+    def test_accepts_exactly_4_pages(self, write_file: WriteFile) -> None:
+        assert inspect_source(write_file("limite.pdf", pdf_bytes(pages=4))).pages == 4
 
     def test_rejects_password_protected_pdf(self, write_file: WriteFile) -> None:
         with pytest.raises(UploadRejectedError) as error:

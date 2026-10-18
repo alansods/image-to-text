@@ -48,7 +48,7 @@ Recarregar a página volta para o Envio vazio (nada é guardado).
 
 Ao receber um arquivo válido, vai direto para **Convertendo** (sem botão "Converter", sem opções).
 
-Erros aparecem dentro do cartão, abaixo da área, em vermelho: formato não suportado, maior que 20 MB, mais de 50 páginas, PDF com senha, mais de um arquivo, falha de envio, limite de conversões simultâneas, "Não foi possível ler esse arquivo." (falha total).
+Erros aparecem dentro do cartão, abaixo da área, em vermelho: formato não suportado, maior que 20 MB, mais de 4 páginas, PDF com senha, mais de um arquivo, falha de envio, limite de conversões simultâneas, "Não foi possível ler esse arquivo." (falha total).
 
 ### 5.2 Convertendo
 

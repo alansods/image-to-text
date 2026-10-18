@@ -49,19 +49,26 @@ O sistema SHALL aceitar JPG, PNG, WEBP, HEIC e PDF, identificando o formato pelo
 - **THEN** o arquivo é recusado como formato não suportado
 
 ### Requirement: Limites de envio
-O sistema MUST recusar arquivos acima de 20 MB e PDFs com mais de 50 páginas, informando o limite excedido, e MUST recusar PDFs protegidos por senha.
+O sistema MUST recusar arquivos acima de 20 MB e PDFs com mais de 4 páginas, informando o limite excedido, e MUST recusar PDFs protegidos por senha.
 
 #### Scenario: Arquivo grande demais
 - **WHEN** o usuário envia um arquivo de 25 MB
 - **THEN** a conversão não começa e o sistema informa o limite de 20 MB
 
 #### Scenario: PDF com páginas demais
-- **WHEN** o usuário envia um PDF de 60 páginas
-- **THEN** a conversão não começa e o sistema informa o limite de 50 páginas
+- **WHEN** o usuário envia um PDF de 6 páginas
+- **THEN** a conversão não começa e o sistema informa o limite de 4 páginas
 
 #### Scenario: PDF protegido por senha
 - **WHEN** o usuário envia um PDF protegido por senha
 - **THEN** a conversão não começa e o sistema mostra "PDF protegido por senha não é suportado"
+
+### Requirement: Limites visíveis antes do envio
+A área de envio SHALL mostrar os limites de tamanho (20 MB) e de páginas (4) antes da escolha do arquivo.
+
+#### Scenario: Limites na página inicial
+- **WHEN** o usuário abre a página inicial
+- **THEN** a área de envio mostra "até 20 MB" e "até 4 páginas"
 
 ### Requirement: Falha no envio
 Se o envio do arquivo ao servidor falhar, o sistema SHALL voltar à tela de envio informando o problema, para que o usuário tente de novo.

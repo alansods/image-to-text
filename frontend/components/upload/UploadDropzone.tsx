@@ -135,7 +135,7 @@ export function UploadDropzone({ onFiles, error }: Props) {
               <kbd className="rounded-md border border-border bg-background px-1.5 py-0.5 font-mono text-xs">Ctrl+V</kbd>
             </span>
             <span className="flex flex-wrap justify-center gap-1.5" aria-label={t.limits}>
-              {[...FORMATS, t.upTo].map((label) => (
+              {[...FORMATS, t.upTo, t.pagesUpTo].map((label) => (
                 <span key={label} aria-hidden="true" className="rounded-full bg-background px-2.5 py-1 text-xs font-medium text-muted-foreground">
                   {label}
                 </span>

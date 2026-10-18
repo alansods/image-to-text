@@ -140,7 +140,7 @@ Next.js 16 App Router com uma rota (`/`) e uma máquina de estados de tela (`upl
 - [HF Spaces hiberna e o 1º acesso demora ~1 min] → a tela de progresso fica em 0% com "Lendo seu documento…".
 - [Erros correlacionados entre os dois OCRs] → completude + conferência humana cobrem; Tesseract como terceiro voto é evolução possível.
 - [Manuscrito abaixo da meta] → meta de CER só para impresso; manuscrito medido e reportado, sem bloquear.
-- [Disco cheio no plano grátis] → descarte em 1 h, limite de 50 páginas e 20 MB.
+- [Disco cheio no plano grátis] → descarte em 1 h, limite de 4 páginas e 20 MB. O limite de páginas encurta a espera (4 páginas ≈ 1 a 2 min) e a fila, mas não reduz a memória: medido, 1 imagem usa 2,55 GB no pico e 3 páginas 2,95 GB, quase tudo para carregar os leitores (docTR ≈ 1,8 GB, PaddleOCR ≈ 1,0 GB).
 - [Abuso do serviço público] → 3 conversões ativas por IP.
 
 ## Migration Plan
