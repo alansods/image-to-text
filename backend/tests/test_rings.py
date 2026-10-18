@@ -75,6 +75,7 @@ def test_without_letters_around_there_is_nothing_to_compare() -> None:
         ("abc", "abd", None),
         ("nº", "ng", None),
         ("°C", "", None),
+        ("1º", "1°", None),  # os dois no alto: a altura não separa ordinal de grau
     ],
 )
 def test_which_readings_differ_only_in_round_signs(

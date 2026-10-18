@@ -39,7 +39,8 @@ def round_slots(first: str, second: str) -> tuple[str, list[int]] | None:
     for index, (a, b) in enumerate(zip(first, second, strict=True)):
         if a == b:
             continue
-        if {a, b} & RAISED_CHARS and {a, b} <= RAISED_CHARS | BASE_CHARS and a != b:
+        # Um sinal no alto contra uma letra/algarismo; "º" contra "°" a altura não separa.
+        if len({a, b} & RAISED_CHARS) == 1 and {a, b} <= RAISED_CHARS | BASE_CHARS:
             slots.append(index)
         else:
             return None

@@ -88,6 +88,10 @@ Quando as leituras de um trecho divergem só em sinais redondos ("o", "O", "0", 
 - **WHEN** um leitor lê "25oC" e o outro "25°C", e a marca redonda está no alto da linha
 - **THEN** a palavra final é "25°C"
 
+#### Scenario: Ordinal contra grau
+- **WHEN** um leitor lê "1º" e o outro "1°" (os dois sinais ficam no alto da linha)
+- **THEN** a medida não decide entre eles e vale a leitura do leitor principal, "1º"
+
 ### Requirement: Opção parecida na dúvida
 Se a palavra continuar em dúvida e tiver um sinal redondo, as alternativas SHALL incluir a forma parecida que nenhum leitor deu: "o" quando só "°" ou "º" foi lido, e "°" quando só "o" foi lido.
 
