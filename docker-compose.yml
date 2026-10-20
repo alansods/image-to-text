@@ -42,6 +42,9 @@ services:
     image: redis:7.4-alpine
     # Sem persistência em disco: nada da conversão deve sobreviver a um reinício.
     command: ["redis-server", "--save", "", "--appendonly", "no"]
+    # Só para este computador: a API e o worker rodando fora do Docker (README, "Mais rápido no Mac").
+    ports:
+      - "127.0.0.1:6379:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s

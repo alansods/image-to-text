@@ -84,6 +84,32 @@ Abra http://localhost:3000.
 
 O PaddlePaddle só existe para Linux x86. Em Macs com chip Apple, o Docker emula esse processador e cada página leva alguns minutos. Num servidor x86 leva de 20 a 40 segundos.
 
+### Mais rápido no Mac
+
+No Mac com chip Apple, rode a API e o worker fora do Docker, sem emulação. Só o Redis fica no Docker. Requer [uv](https://docs.astral.sh/uv/).
+
+```sh
+docker compose stop api worker   # libera a porta 8000
+docker compose up -d redis
+
+cd backend
+cp .env.example .env             # só na primeira vez
+uv sync                          # só na primeira vez
+
+# Num terminal, a API:
+PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK=True uv run uvicorn app.main:app --port 8000
+
+# Em outro, o worker:
+PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK=True uv run celery -A app.worker worker -B \
+  --schedule=/tmp/celerybeat-schedule --pool=solo --loglevel=info
+```
+
+Assim cada página leva cerca de 20 segundos, em vez de alguns minutos. A primeira conversão depois de ligar o worker demora uns 40 segundos a mais para carregar os modelos de leitura, e baixa esses modelos se ainda não estiverem no computador.
+
+`--pool=solo` roda as conversões no próprio processo do worker, uma por vez, como no Docker. No Mac, o modo padrão do Celery quebra o worker. Por isso "Cancelar" só interrompe a conversão quando termina a página em andamento. "Baixar PDF" precisa do LibreOffice (`brew install --cask libreoffice` e `/Applications/LibreOffice.app/Contents/MacOS` no `PATH`); sem ele, "Baixar Word" funciona e "Baixar PDF" mostra erro.
+
+Para voltar ao Docker: pare os dois processos (Ctrl+C) e rode `docker compose up -d`.
+
 ### Testes
 
 ```sh
