@@ -323,6 +323,25 @@ class TestDelete:
     def test_delete_unknown_job_is_not_found(self, client: TestClient) -> None:
         assert client.delete("/jobs/nao-existe").status_code == 404
 
+    def test_leaving_the_page_cancels_like_the_button(
+        self, client: TestClient, queue: FakeQueue, store: JobStore, settings: Settings
+    ) -> None:
+        # Recarregar ou fechar a aba: o navegador manda um POST (sendBeacon), com corpo de texto.
+        job_id = client.post("/jobs", files={"file": ("a.png", png_bytes())}).json()["id"]
+        store.update(job_id, state=JobState.PROCESSING)
+
+        response = client.post(
+            f"/jobs/{job_id}/cancel", content=b"", headers={"content-type": "text/plain"}
+        )
+
+        assert response.status_code == 204
+        assert queue.cancelled == [f"task-{job_id}"]
+        assert not JobFiles(Path(settings.data_dir), job_id).exists()
+        assert client.get(f"/jobs/{job_id}").json()["state"] == "cancelled"
+
+    def test_leaving_the_page_for_unknown_job_is_not_found(self, client: TestClient) -> None:
+        assert client.post("/jobs/nao-existe/cancel").status_code == 404
+
 
 class TestReview:
     def test_reviewed_word_is_saved_as_edited(

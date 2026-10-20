@@ -353,6 +353,32 @@ describe("envio", () => {
     expect(calls.some((c) => c.url.endsWith("/jobs/j1") && c.init?.method === "DELETE")).toBe(true);
   });
 
+  it("recarregar ou fechar a aba durante a conversão cancela a conversão no servidor", async () => {
+    const beacon = vi.fn(() => true);
+    vi.stubGlobal("navigator", { ...navigator, sendBeacon: beacon });
+    serverFinishing(DOUBTS);
+    renderApp();
+    await upload(pngFile());
+    await screen.findByText("Lendo seu documento…");
+
+    window.dispatchEvent(new Event("pagehide"));
+
+    expect(beacon).toHaveBeenCalledWith(expect.stringMatching(/\/jobs\/j1\/cancel$/));
+  });
+
+  it("sair da página depois do resultado não cancela nada", async () => {
+    const beacon = vi.fn(() => true);
+    vi.stubGlobal("navigator", { ...navigator, sendBeacon: beacon });
+    serverFinishing(DOUBTS);
+    renderApp();
+    await upload(pngFile());
+    await untilResult();
+
+    window.dispatchEvent(new Event("pagehide"));
+
+    expect(beacon).not.toHaveBeenCalled();
+  });
+
   it("conversão que falhou volta ao envio com 'Não foi possível ler esse arquivo.'", async () => {
     handler = (url, init) => {
       if (init?.method === "POST") return { status: 201, body: { id: "j1", source_file: "x.png", created_at: "", state: "queued", progress: 0, error: null } };

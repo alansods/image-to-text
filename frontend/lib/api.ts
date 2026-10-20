@@ -65,6 +65,12 @@ export async function deleteJob(id: string): Promise<void> {
   await request(`/jobs/${id}`, { method: "DELETE" }).catch(() => undefined);
 }
 
+/** Cancela ao recarregar ou fechar a aba: o navegador entrega o aviso mesmo com a página saindo
+ * (só aceita POST, por isso a rota própria). */
+export function cancelOnLeave(id: string): void {
+  navigator.sendBeacon?.(`${API_URL}/jobs/${id}/cancel`);
+}
+
 export async function reviewWord(id: string, wordId: string, choice: Choice): Promise<void> {
   await request(`/jobs/${id}/result`, {
     method: "PATCH",

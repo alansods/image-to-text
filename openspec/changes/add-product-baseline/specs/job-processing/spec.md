@@ -88,6 +88,14 @@ O sistema MUST apagar o arquivo enviado, as imagens intermediárias, o resultado
 - **WHEN** o usuário recarrega a página durante ou depois da conversão
 - **THEN** a tela de envio aparece vazia, sem resultado anterior
 
+#### Scenario: Recarregar durante a conversão cancela
+- **WHEN** o usuário recarrega a página enquanto a conversão está na fila ou em andamento e envia outro arquivo
+- **THEN** a conversão anterior é cancelada como se ele tivesse clicado em "Cancelar", os arquivos dela deixam de existir no servidor e a nova conversão não espera por ela na fila
+
+#### Scenario: Aba fechada durante a conversão
+- **WHEN** o usuário fecha a aba enquanto a conversão está na fila ou em andamento
+- **THEN** a conversão é cancelada e os arquivos dela deixam de existir no servidor
+
 ### Requirement: Limite de uso
 O sistema SHALL limitar a 3 conversões ativas simultâneas por endereço de origem, recusando novas acima disso com a mensagem "Aguarde a conclusão de uma conversão em andamento."
 

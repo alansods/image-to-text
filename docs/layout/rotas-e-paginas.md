@@ -35,7 +35,7 @@ O diferencial visível: o sistema **marca as palavras em que tem dúvida** e só
 | `/` | As três telas, que se substituem no mesmo endereço: **Envio → Convertendo → Resultado** |
 | `*` | Faixa escura em tela cheia: "404", "Página não encontrada", "Esse endereço não existe. O site tem uma página só: a de enviar o arquivo." + botão "Voltar ao início" |
 
-Recarregar a página volta para o Envio vazio (nada é guardado).
+Recarregar a página volta para o Envio vazio (nada é guardado); se havia conversão na fila ou em andamento, ela é cancelada e apagada no servidor (o mesmo vale para fechar a aba).
 
 ## 5. Telas
 

@@ -7,7 +7,15 @@ import { ResultView } from "@/components/result/ResultView";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { UploadDropzone } from "@/components/upload/UploadDropzone";
-import { ApiFailure, createJob, deleteJob, getJob, getResult, uploadErrorFor } from "@/lib/api";
+import {
+  ApiFailure,
+  cancelOnLeave,
+  createJob,
+  deleteJob,
+  getJob,
+  getResult,
+  uploadErrorFor,
+} from "@/lib/api";
 import { MAX_BYTES, prepareFile } from "@/lib/files";
 import type { UploadError } from "@/lib/i18n";
 import type { Document } from "@/lib/types/document";
@@ -57,6 +65,15 @@ export function ConverterApp() {
   );
 
   const jobId = screen.kind === "converting" ? screen.jobId : null;
+  // Recarregar ou fechar a aba durante a conversão a cancela (spec job-processing): a próxima
+  // não fica na fila atrás de uma que ninguém vai ver.
+  useEffect(() => {
+    if (!jobId) return;
+    const leave = () => cancelOnLeave(jobId);
+    window.addEventListener("pagehide", leave);
+    return () => window.removeEventListener("pagehide", leave);
+  }, [jobId]);
+
   useEffect(() => {
     if (!jobId) return;
     let stopped = false;

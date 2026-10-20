@@ -222,6 +222,19 @@ def export_document(
 @router.delete("/{job_id}", status_code=204)
 def delete_job(job_id: str, settings: SettingsDep, store: StoreDep, queue: QueueDep) -> Response:
     """Cancelar, "Converter outro" ou clicar no logotipo: tudo da conversão é apagado."""
+    return _discard(job_id, settings, store, queue)
+
+
+@router.post("/{job_id}/cancel", status_code=204)
+def cancel_on_leave(
+    job_id: str, settings: SettingsDep, store: StoreDep, queue: QueueDep
+) -> Response:
+    """Mesmo que o DELETE, para quando a página é recarregada ou fechada: o navegador só manda
+    POST nessa hora (sendBeacon)."""
+    return _discard(job_id, settings, store, queue)
+
+
+def _discard(job_id: str, settings: Settings, store: JobStore, queue: JobQueue) -> Response:
     job = _get_job(store, job_id)
     if job.is_active():
         task_id = store.task_id(job_id)
