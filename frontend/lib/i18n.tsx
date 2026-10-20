@@ -30,9 +30,9 @@ const pt = {
   choose: "Escolher arquivo",
   takePhoto: "Tirar foto",
   orDrag: "ou arraste aqui, ou cole com",
-  limits: "JPG, PNG, WEBP, HEIC ou PDF · até 20 MB · até 4 páginas",
+  limits: "JPG, PNG, WEBP, HEIC ou PDF · até 20 MB · até 20 páginas",
   upTo: "até 20 MB",
-  pagesUpTo: "até 4 páginas",
+  pagesUpTo: "até 20 páginas",
   reading: "Lendo seu documento…",
   stage: (stage: JobStage, page: number, pages: number): string => {
     const many = pages > 1;
@@ -126,7 +126,7 @@ const pt = {
   errors: {
     unsupported_format: "Esse arquivo não é uma imagem nem PDF. Tente JPG, PNG, HEIC ou PDF.",
     file_too_large: "O arquivo passa do limite de 20 MB.",
-    too_many_pages: "O PDF passa do limite de 4 páginas.",
+    too_many_pages: "O PDF passa do limite de 20 páginas.",
     pdf_password: "PDF protegido por senha não é suportado",
     multiple_files: "Envie um arquivo por vez.",
     too_many_active_jobs: "Aguarde a conclusão de uma conversão em andamento.",
@@ -147,9 +147,9 @@ const en: Dictionary = {
   choose: "Choose file",
   takePhoto: "Take photo",
   orDrag: "or drag it here, or paste with",
-  limits: "JPG, PNG, WEBP, HEIC or PDF · up to 20 MB · up to 4 pages",
+  limits: "JPG, PNG, WEBP, HEIC or PDF · up to 20 MB · up to 20 pages",
   upTo: "up to 20 MB",
-  pagesUpTo: "up to 4 pages",
+  pagesUpTo: "up to 20 pages",
   reading: "Reading your document…",
   stage: (stage: JobStage, page: number, pages: number): string => {
     const many = pages > 1;
@@ -243,7 +243,7 @@ const en: Dictionary = {
   errors: {
     unsupported_format: "This file is not an image or PDF. Try JPG, PNG, HEIC or PDF.",
     file_too_large: "The file is over the 20 MB limit.",
-    too_many_pages: "The PDF is over the 4-page limit.",
+    too_many_pages: "The PDF is over the 20-page limit.",
     pdf_password: "Password-protected PDFs are not supported",
     multiple_files: "Send one file at a time.",
     too_many_active_jobs: "Wait for a conversion in progress to finish.",

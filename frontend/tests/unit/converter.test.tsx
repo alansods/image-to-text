@@ -280,7 +280,7 @@ describe("página inicial", () => {
     handler = () => undefined;
     renderApp();
 
-    expect(screen.getAllByText(/até 4 páginas/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/até 20 páginas/).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/até 20 MB/).length).toBeGreaterThan(0);
   });
 

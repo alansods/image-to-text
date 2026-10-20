@@ -30,6 +30,6 @@ Também foi medida a troca do docTR pelo Tesseract, um leitor mais leve: o pico 
 
 ## Limites de uso
 
-- 4 páginas e 20 MB por arquivo.
+- 20 páginas e 20 MB por arquivo.
 - 3 conversões ativas por endereço.
 - Uma conversão por vez no worker, e as outras esperam na fila.

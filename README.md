@@ -9,7 +9,7 @@ O site é gratuito, sem conta e sem opções. A pessoa escolhe o arquivo, a leit
 ## Como funciona
 
 ### 1. Envie o arquivo
-Foto, print ou PDF escaneado (JPG, PNG, WEBP, HEIC ou PDF, até 20 MB e 4 páginas). Dá para escolher, arrastar, colar com Ctrl+V ou tirar uma foto no celular.
+Foto, print ou PDF escaneado (JPG, PNG, WEBP, HEIC ou PDF, até 20 MB e 20 páginas). Dá para escolher, arrastar, colar com Ctrl+V ou tirar uma foto no celular.
 
 ![Página inicial](docs/images/01-inicio.png)
 

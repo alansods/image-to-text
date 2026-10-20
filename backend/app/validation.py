@@ -14,7 +14,7 @@ from PIL import Image, UnidentifiedImageError
 
 from app.errors import ErrorCode, UploadRejectedError
 
-MAX_PAGES = 4
+MAX_PAGES = 20
 _CHUNK = 1024 * 1024
 
 
