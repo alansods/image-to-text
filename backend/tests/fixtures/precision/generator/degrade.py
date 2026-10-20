@@ -85,3 +85,27 @@ def pdf_page_sizes(path: Path) -> list[tuple[float, float]]:
     sizes = [(round(p.get_width(), 2), round(p.get_height(), 2)) for p in pdf]
     pdf.close()
     return sizes
+
+
+def framed(sheet: Gray, rng: np.random.Generator) -> Gray:
+    """Folha escaneada no meio de uma página maior (como sai de plataforma de assinatura): o
+    contorno do papel em volta, uma borda lateral solta e uma linha de rodapé da plataforma."""
+    h, w = sheet.shape
+    left, top, bottom = 220, 260, 420
+    page = np.full((h + top + bottom, w + 2 * left), 255, dtype=np.uint8)
+    page[top : top + h, left : left + w] = sheet
+    cv2.rectangle(page, (left - 6, top - 6), (left + w + 5, top + h + 5), 90, 5)
+    x = left + w - 150  # borda lateral do papel, solta dentro da margem
+    page[top + 400 : top + 2200, x : x + 8] = 70
+    cv2.putText(
+        page,
+        "Assinado eletronicamente - Plataforma Exemplo - doc 0000-1111",
+        (60, page.shape[0] - 120),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        1.1,
+        60,
+        2,
+        cv2.LINE_AA,
+    )
+    noise = rng.normal(0, 3, size=page.shape)
+    return np.asarray(np.clip(page + noise, 0, 255), dtype=np.uint8)

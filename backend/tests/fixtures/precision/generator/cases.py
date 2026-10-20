@@ -10,7 +10,7 @@ import numpy as np
 from app.models.document import Alignment, BlockType
 from tests.fixtures.precision.generator import degrade, drawings
 from tests.fixtures.precision.generator.layout import CellSpec, Composer
-from tests.precision.truth import Truth, TruthPage
+from tests.precision.truth import Truth, TruthBlock, TruthPage
 
 A4_PORTRAIT = (595.28, 841.89)
 
@@ -100,6 +100,38 @@ def _memo(composer: Composer) -> None:
     )
     c.paragraph("Atenciosamente,", align=Alignment.LEFT, space_after=4)
     c.paragraph("Coordenação Administrativa", align=Alignment.LEFT)
+
+
+def _letterhead_contract(c: Composer) -> None:
+    c.new_page(footer="1")
+    c.margin_figure(drawings.letterhead_logo, 26, 22, 170, 58)
+    c.header("Contrato de manutenção predial")
+    c.spacer(36)
+    c.paragraph(
+        "**CONTRATO DE MANUTENÇÃO PREDIAL**",
+        align=Alignment.CENTER,
+        size=13,
+        block_type=BlockType.HEADING,
+        space_after=14,
+    )
+    c.paragraph(
+        "**CONDOMÍNIO JARDIM DAS ÁGUAS,** inscrito no CNPJ sob o nº 00.000.000/0001-00, com "
+        "sede na Avenida dos Ipês, 88, doravante denominado **CONTRATANTE,** e **LUMIAR "
+        "ARQUIVOS LTDA.,** doravante denominada **CONTRATADA,** celebram o presente contrato."
+    )
+    c.paragraph(
+        "**Cláusula 1ª** — A CONTRATADA realizará a manutenção preventiva das bombas, dos "
+        "portões e da iluminação das áreas comuns, com visitas quinzenais agendadas."
+    )
+    c.paragraph(
+        "**Cláusula 2ª** — Pelos serviços, o CONTRATANTE pagará o valor mensal de R$ 1.800,00 "
+        "(mil e oitocentos reais), até o quinto dia útil de cada mês."
+    )
+    c.paragraph(
+        "**Cláusula 3ª** — O contrato vigora por 12 (doze) meses e pode ser renovado por "
+        "acordo entre as partes, mediante aviso com 30 dias de antecedência."
+    )
+    c.margin_figure(drawings.letterhead_address, 22, 770, 150, 48)
 
 
 # ---------------------------------------------------------------- casos
@@ -431,6 +463,42 @@ def manuscrito(out: Path, rng: np.random.Generator, tmp: Path) -> Truth:
     )
 
 
+def contrato_timbrado(out: Path, rng: np.random.Generator, tmp: Path) -> Truth:
+    c = Composer(tmp / "vetor.pdf")
+    _letterhead_contract(c)
+    pages = c.save()
+    scans = [degrade.scan(p, rng) for p in degrade.render(tmp / "vetor.pdf")]
+    degrade.save_scanned_pdf(scans, out / "input.pdf")
+    return Truth(
+        case="contrato_timbrado",
+        input="input.pdf",
+        description="Contrato em papel timbrado: logotipo de letras e endereço com arco nas "
+        "margens (imagens), cabeçalho e número da página dentro das margens (texto).",
+        handwriting=False,
+        pages=_with_page_sizes(pages, degrade.pdf_page_sizes(out / "input.pdf")),
+    )
+
+
+def contrato_timbrado_moldura(out: Path, rng: np.random.Generator, tmp: Path) -> Truth:
+    c = Composer(tmp / "vetor.pdf")
+    _letterhead_contract(c)
+    pages = c.save()
+    sheet = degrade.scan(degrade.render(tmp / "vetor.pdf")[0], rng)
+    degrade.save_scanned_pdf([degrade.framed(sheet, rng)], out / "input.pdf")
+    # Linha da plataforma e borda lateral solta: figuras (spec layout-detection e
+    # completeness-check); o contorno do papel não é conteúdo.
+    page = pages[0].model_copy(deep=True)
+    page.blocks += [TruthBlock(type=BlockType.FIGURE), TruthBlock(type=BlockType.FIGURE)]
+    return Truth(
+        case="contrato_timbrado_moldura",
+        input="input.pdf",
+        description="O contrato em papel timbrado escaneado no meio de uma página maior: contorno "
+        "do papel, borda lateral solta e linha de rodapé de plataforma de assinatura.",
+        handwriting=False,
+        pages=_with_page_sizes([page], degrade.pdf_page_sizes(out / "input.pdf")),
+    )
+
+
 CaseFn = Callable[[Path, np.random.Generator, Path], Truth]
 
 CASES: dict[str, CaseFn] = {
@@ -445,6 +513,8 @@ CASES: dict[str, CaseFn] = {
         cabeca_para_baixo,
         enfase_mista,
         manuscrito,
+        contrato_timbrado,
+        contrato_timbrado_moldura,
     ]
 }
 

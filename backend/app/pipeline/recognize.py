@@ -14,7 +14,8 @@ import numpy as np
 
 from app.models.document import ILLEGIBLE, BBox, Block, BlockType, Page, Word, WordStatus
 from app.pipeline.base import Image, PageInput, ProcessedPage
-from app.pipeline.completeness import missing_lines, orphan_regions
+from app.pipeline.completeness import BLOCK_MARGIN as ORPHAN_MARGIN
+from app.pipeline.completeness import missing_lines, orphan_regions, stray_strokes
 from app.pipeline.dashes import dash_shape
 from app.pipeline.emphasis import mark_emphasis
 from app.pipeline.layout import (
@@ -272,13 +273,26 @@ def _fill_missing_lines(
 def _orphan_blocks(
     pre: Preprocessed, blocks: list[Block], char_height: float, id_prefix: str, readers: Readers
 ) -> tuple[list[Block], dict[str, Image]]:
-    """Tinta fora de todos os blocos vira bloco novo, lido ou como figura (7.1)."""
+    """Tinta fora de todos os blocos vira bloco novo, lido ou como figura (7.1). Traços soltos
+    compridos (borda do papel) entram como figura sem leitura."""
     found: list[Block] = []
     crops: dict[str, Image] = {}
-    regions = orphan_regions(pre.normalized, [b.bbox for b in blocks], char_height)
+    known = [b.bbox for b in blocks]
+    # A região órfã pode abraçar blocos já lidos (o contorno do papel liga tudo): eles saem da
+    # imagem lida e de qualquer palavra que caia neles, para nada ser lido duas vezes.
+    unread = pre.normalized.copy()
+    for b in known:
+        top, left = max(0, int(b.y) - ORPHAN_MARGIN), max(0, int(b.x) - ORPHAN_MARGIN)
+        unread[top : int(b.y + b.h) + ORPHAN_MARGIN, left : int(b.x + b.w) + ORPHAN_MARGIN] = 255
+
+    def already_read(word: Word) -> bool:
+        cx, cy = word.bbox.x + word.bbox.w / 2, word.bbox.y + word.bbox.h / 2
+        return any(b.x <= cx <= b.x + b.w and b.y <= cy <= b.y + b.h for b in known)
+
+    regions = orphan_regions(pre.normalized, known, char_height)
     for index, region in enumerate(regions):
         block_id = f"{id_prefix}o{index}"
-        words = _read_words(pre.normalized, region, block_id, readers)
+        words = [w for w in _read_words(unread, region, block_id, readers) if not already_read(w)]
         if words:
             crop, _origin = _block_crop(pre.normalized, region)
             text = " ".join(w.text for w in words)
@@ -306,6 +320,19 @@ def _orphan_blocks(
                     confidence=0,
                 )
             )
+    for index, r in enumerate(stray_strokes(pre.normalized, known, char_height)):
+        block_id = f"{id_prefix}s{index}"
+        crops[block_id] = _crop(pre.aligned, r.x, r.y, r.x + r.w, r.y + r.h)
+        found.append(
+            Block(
+                id=block_id,
+                type=BlockType.FIGURE,
+                bbox=r,
+                order=0,
+                image_ref=f"crops/{block_id}.png",
+                confidence=0,
+            )
+        )
     return found, crops
 
 

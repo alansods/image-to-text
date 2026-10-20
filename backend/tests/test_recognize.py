@@ -276,3 +276,37 @@ def test_text_inside_a_signature_image_is_not_repeated_and_touching_text_is_eras
     assert (crop[0:30, 0:150] == 255).all()  # pedaço da data apagado da imagem
     assert (crop[100:200, 100:200] == 0).all()  # o resto da assinatura intacto
     assert (result.aligned == 0).all()  # a página original não é alterada
+
+
+def test_orphan_region_does_not_reread_text_already_read(monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    # Contorno do papel ligou tudo numa região órfã do tamanho da página.
+    import app.pipeline.recognize as recognize
+
+    monkeypatch.setattr(recognize, "orphan_regions", lambda *_: [BBox(x=0, y=0, w=800, h=1000)])
+    monkeypatch.setattr(recognize, "stray_strokes", lambda *_: [])
+    layout = PageLayout([block(BlockType.PARAGRAPH, 0, 100, 100)], columns=1)
+    words = [("contrato", 110, 110, 0.97), ("nota", 110, 700, 0.97)]
+
+    result = recognize_page(preprocessed(), layout, page_input(), "p2-", readers(words, words))
+
+    texts = [w.text for b in result.page.blocks for w in b.words]
+    assert texts.count("contrato") == 1
+    assert "nota" in texts
+
+
+def test_stray_stroke_becomes_a_figure_without_words(monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    import app.pipeline.recognize as recognize
+
+    edge = BBox(x=780, y=50, w=6, h=900)
+    monkeypatch.setattr(recognize, "orphan_regions", lambda *_: [])
+    monkeypatch.setattr(recognize, "stray_strokes", lambda *_: [edge])
+    layout = PageLayout([block(BlockType.PARAGRAPH, 0, 100, 100)], columns=1)
+    words = [("contrato", 110, 110, 0.97), ("borda", 781, 100, 0.5)]
+
+    result = recognize_page(preprocessed(), layout, page_input(), "p2-", readers(words, words))
+
+    [figure] = [b for b in result.page.blocks if b.bbox == edge]
+    assert figure.type is BlockType.FIGURE
+    assert figure.words == []
+    assert figure.id in result.crops
+    assert "borda" not in [w.text for b in result.page.blocks for w in b.words]

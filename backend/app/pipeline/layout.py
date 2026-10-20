@@ -44,6 +44,8 @@ _LABELS: dict[str, BlockType] = {
     "chart": BlockType.FIGURE,
     "seal": BlockType.FIGURE,
     "formula": BlockType.FORMULA,
+    # Nosso: logotipo/endereço do papel timbrado (mark_letterhead).
+    "letterhead": BlockType.FIGURE,
 }
 # Rótulos de texto que podem esconder um desenho (assinatura, logotipo).
 _TEXTUAL = {"text", "doc_title", "paragraph_title", "header", "footer", "abstract", "content"}
@@ -289,6 +291,105 @@ def _split_disguised_text(
     ]
 
 
+# ------------------------------------------------------------------ papel timbrado
+
+# Corpo do texto: parágrafos com ao menos esta fração da largura do mais largo. O endereço do
+# timbrado é estreito e fica de fora, assim como linhas soltas.
+LETTERHEAD_BODY_WIDTH = 0.5
+# Quanto o bloco precisa passar da margem do texto, em alturas de letra.
+LETTERHEAD_OUTSIDE = 2.0
+# Parágrafos mínimos para a margem do texto ser confiável (capa não tem margem de corpo).
+LETTERHEAD_MIN_BODY = 2
+# Distância, em alturas de letra, para um bloco encostado entrar no timbrado: maior na vertical
+# (subtítulo sob o logotipo) que na horizontal. No contrato real, o cabeçalho ao lado do
+# logotipo fica a 3,6 alturas de letra e continua texto.
+LETTERHEAD_JOIN_X = 2.0
+LETTERHEAD_JOIN_Y = 3.0
+LETTERHEAD = "letterhead"
+# Rótulos do detector que podem ser o timbrado: texto, ou imagem de cabeçalho/rodapé.
+_LETTERHEAD_SEEDS = _TEXTUAL | {"header_image", "footer_image"}
+# O que pode se juntar a ele: texto e desenhos (o arco ao lado do endereço).
+_LETTERHEAD_JOINS = _LETTERHEAD_SEEDS | {"image", "chart", "seal"}
+
+
+def _union(a: BBox, b: BBox) -> BBox:
+    x1, y1 = min(a.x, b.x), min(a.y, b.y)
+    x2, y2 = max(a.x + a.w, b.x + b.w), max(a.y + a.h, b.y + b.h)
+    return BBox(x=x1, y=y1, w=x2 - x1, h=y2 - y1)
+
+
+def _near(a: BBox, b: BBox, gap_x: float, gap_y: float) -> bool:
+    return (
+        a.x - gap_x <= b.x + b.w
+        and b.x - gap_x <= a.x + a.w
+        and a.y - gap_y <= b.y + b.h
+        and b.y - gap_y <= a.y + a.h
+    )
+
+
+def mark_letterhead(candidates: Sequence[Candidate], char_height: float) -> list[Candidate]:
+    """Logotipo e endereço do papel timbrado viram imagem: blocos acima do primeiro ou abaixo
+    do último parágrafo do texto que saem das margens dele. Blocos da mesma faixa encostados
+    neles (o subtítulo do logotipo, o arco ao lado do endereço) entram na mesma imagem.
+
+    As faixas vêm do corpo do texto, não da página: num PDF a folha escaneada pode ocupar só o
+    meio da página, com uma moldura em volta."""
+    texts = [c.bbox for c in candidates if c.label == "text"]
+    widest = max((b.w for b in texts), default=0.0)
+    body = [b for b in texts if b.w >= LETTERHEAD_BODY_WIDTH * widest]
+    if len(body) < LETTERHEAD_MIN_BODY:
+        return list(candidates)
+    left, right = min(b.x for b in body), max(b.x + b.w for b in body)
+    top, bottom = min(b.y for b in body), max(b.y + b.h for b in body)
+    slack = LETTERHEAD_OUTSIDE * char_height
+
+    def in_band(b: BBox) -> bool:
+        return b.y + b.h <= top or b.y >= bottom
+
+    def is_letterhead(c: Candidate) -> bool:
+        b = c.bbox
+        outside = b.x < left - slack or b.x + b.w > right + slack
+        return c.label in _LETTERHEAD_SEEDS and in_band(b) and outside
+
+    groups = [Candidate(LETTERHEAD, c.score, c.bbox) for c in candidates if is_letterhead(c)]
+    if not groups:
+        return list(candidates)
+    kept = [c for c in candidates if not is_letterhead(c)]
+    join_x, join_y = LETTERHEAD_JOIN_X * char_height, LETTERHEAD_JOIN_Y * char_height
+
+    def near(a: Candidate, b: Candidate) -> bool:
+        return _near(a.bbox, b.bbox, join_x, join_y)
+
+    def joined(a: Candidate, b: Candidate) -> Candidate:
+        return Candidate(LETTERHEAD, max(a.score, b.score), _union(a.bbox, b.bbox))
+
+    # Junta o que se encosta (timbrado com timbrado, ou com o que está na faixa) até estabilizar.
+    changed = True
+    while changed:
+        changed = False
+        for c in [c for c in kept if c.label in _LETTERHEAD_JOINS and in_band(c.bbox)]:
+            index = next((k for k, g in enumerate(groups) if near(g, c)), None)
+            if index is not None:
+                groups[index] = joined(groups[index], c)
+                kept.remove(c)
+                changed = True
+        pair = next(
+            (
+                (i, j)
+                for i in range(len(groups))
+                for j in range(i + 1, len(groups))
+                if near(groups[i], groups[j])
+            ),
+            None,
+        )
+        if pair is not None:
+            i, j = pair
+            groups[i] = joined(groups[i], groups[j])
+            del groups[j]
+            changed = True
+    return kept + groups
+
+
 # ------------------------------------------------------------------ escrita à mão (D18)
 
 # Fração mínima da tinta em manchas do tamanho de uma letra para ser texto impresso. Medido num
@@ -488,8 +589,13 @@ def analyze_layout(aligned: Image, normalized: Gray) -> PageLayout:
     original = np.asarray(
         aligned if aligned.ndim == 2 else cv2.cvtColor(aligned, cv2.COLOR_RGB2GRAY), dtype=np.uint8
     )
+    # Antes das correções abaixo, que devolveriam ao texto as letras do timbrado.
+    detected = mark_letterhead(detect_blocks(aligned), char_height)
     candidates = []
-    for candidate in detect_blocks(aligned):
+    for candidate in detected:
+        if candidate.label == LETTERHEAD:
+            candidates.append(candidate)
+            continue
         if candidate.label in _TEXTUAL and looks_like_image(
             _crop(original, candidate.bbox), char_height
         ):

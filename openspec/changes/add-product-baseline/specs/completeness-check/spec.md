@@ -15,6 +15,10 @@ O sistema SHALL detectar regiões da página com conteúdo visível (texto, tra�
 - **WHEN** uma região órfã é apenas uma mancha menor que o menor caractere da página
 - **THEN** nenhum bloco é criado para ela
 
+#### Scenario: Borda do papel escaneado
+- **WHEN** a página tem a borda e a sombra do papel escaneado em volta do texto já lido
+- **THEN** nenhum texto já lido é lido de novo nem aparece duplicado, o contorno do papel em volta da página é ignorado (não é conteúdo do documento) e traços soltos compridos (borda lateral, régua, dobra) entram como figura, sem gerar palavras nem dúvidas
+
 ### Requirement: Linhas por bloco
 O sistema SHALL comparar o número de linhas de texto visíveis em cada bloco com o número de linhas transcritas e, havendo diferença, reler o bloco; persistindo a diferença, cada linha não transcrita MUST entrar no resultado como um trecho "[ilegível]" em dúvida, na posição da linha, com o recorte da linha original para o usuário conferir.
 

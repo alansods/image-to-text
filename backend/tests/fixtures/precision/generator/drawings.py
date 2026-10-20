@@ -92,3 +92,24 @@ def stamp(c: Canvas, x: float, y: float, w: float, h: float) -> None:
     c.setFillColor(HexColor("#8E2C2C"))
     c.setFont("Helvetica-Bold", r * 0.28)
     c.drawCentredString(x + w / 2, y + h / 2 - r * 0.1, "PAGO")
+
+
+def letterhead_logo(c: Canvas, x: float, y: float, w: float, h: float) -> None:
+    """Logotipo de papel timbrado só de letras: nome grande e fino, com subtítulo espaçado."""
+    c.setFillColor(HexColor("#7A7A7A"))
+    c.setFont("Helvetica", h * 0.62)
+    c.drawString(x, y + h * 0.38, "lumiar")
+    c.setFont("Helvetica", h * 0.2)
+    c.drawString(x + w * 0.42, y, "A R Q U I V O S")
+
+
+def letterhead_address(c: Canvas, x: float, y: float, w: float, h: float) -> None:
+    """Endereço no pé do timbrado, em cinza claro, com um arco decorativo à esquerda."""
+    c.setStrokeColor(HexColor("#9A9A9A"))
+    c.setLineWidth(3)
+    c.arc(x, y, x + h * 0.7, y + h, startAng=100, extent=160)
+    c.setFillColor(HexColor("#8A8A8A"))
+    c.setFont("Times-Roman", 6.5)
+    lines = ["Rua das Palmeiras, 410", "Sala 12, Centro", "Vila Serena - MG", "www.lumiar.exemplo"]
+    for i, line in enumerate(lines):
+        c.drawString(x + h * 0.5, y + h - 9 * (i + 1), line)

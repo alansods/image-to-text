@@ -3,7 +3,7 @@
 import numpy as np
 
 from app.models.document import ILLEGIBLE, Alignment, BBox, BlockType, ReadingSource, WordStatus
-from app.pipeline.completeness import missing_lines, orphan_regions
+from app.pipeline.completeness import missing_lines, orphan_regions, stray_strokes
 from app.pipeline.layout import LayoutBlock, PageLayout
 from app.pipeline.preprocess import Preprocessed
 from app.pipeline.recognize import Readers, recognize_page
@@ -55,6 +55,43 @@ class TestOrphans:
         image[60:72, 1500:1505] = 0  # risco fino do scanner (5 por 12 px), menor que uma letra
 
         assert orphan_regions(image, [everything], 30) == []
+
+
+class TestPaperEdges:
+    """Borda do papel escaneado: contorno em volta da página e traços soltos compridos."""
+
+    def test_outline_of_the_sheet_is_ignored(self) -> None:
+        image, boxes = page()
+        everything = union([b for line in boxes for b in line])
+        image = image.copy()
+        h, w = image.shape
+        image[4:8, 4 : w - 4] = 0  # contorno de 4 px em volta de tudo
+        image[h - 8 : h - 4, 4 : w - 4] = 0
+        image[4 : h - 4, 4:8] = 0
+        image[4 : h - 4, w - 8 : w - 4] = 0
+
+        assert orphan_regions(image, [everything], 30) == []
+        assert stray_strokes(image, [everything], 30) == []
+
+    def test_long_thin_stroke_is_a_figure_not_text(self) -> None:
+        image, boxes = page()
+        everything = union([b for line in boxes for b in line])
+        image = image.copy()
+        image[60:460, 2250:2256] = 0  # borda lateral do papel: 6 x 400 px
+
+        assert orphan_regions(image, [everything], 30) == []
+        [stroke] = stray_strokes(image, [everything], 30)
+        assert (stroke.x, stroke.y, stroke.w, stroke.h) == (2250, 60, 6, 400)
+
+    def test_note_next_to_a_stroke_is_still_found(self) -> None:
+        image, boxes = page()
+        paragraph = union([b for line in boxes[:3] for b in line])
+        image = image.copy()
+        image[60:460, 2250:2256] = 0
+
+        [orphan] = orphan_regions(image, [paragraph], 30)
+
+        assert contains(union(boxes[3]), orphan)
 
 
 class TestMissingLines:

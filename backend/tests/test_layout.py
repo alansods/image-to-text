@@ -3,6 +3,7 @@ tamanho relativo, elementos não-texto e listas."""
 
 from functools import cache
 from pathlib import Path
+from typing import ClassVar
 
 import cv2
 import numpy as np
@@ -23,6 +24,7 @@ from app.pipeline.layout import (
     analyze_layout,
     group_lists,
     map_label,
+    mark_letterhead,
     merge_passes,
     reading_order,
     size_for_text,
@@ -126,6 +128,83 @@ class TestReadingOrder:
         _, columns = reading_order([text, *signatures])
 
         assert columns == 1
+
+
+class TestLetterhead:
+    """Papel timbrado: letra de 40 px, texto entre x=500 e x=2700, de y=1000 a y=2100."""
+
+    CHAR = 40.0
+    BODY: ClassVar = [
+        cand(500, 1000, 2200, 300),
+        cand(510, 1400, 2190, 300),
+        cand(500, 1800, 2200, 300),
+    ]
+
+    def marked(self, *extra: Candidate) -> list[Candidate]:
+        return mark_letterhead([*self.BODY, *extra], self.CHAR)
+
+    def test_logo_of_letters_left_of_the_margin_becomes_an_image(self) -> None:
+        logo = cand(150, 170, 1160, 390, "doc_title")
+
+        result = self.marked(logo)
+
+        assert Candidate("letterhead", logo.score, logo.bbox) in result
+        assert logo not in result
+
+    def test_address_and_decorative_stroke_become_one_image(self) -> None:
+        stroke = cand(150, 4030, 135, 380, "footer")
+        address = cand(300, 4100, 750, 230)
+
+        images = [c for c in self.marked(stroke, address) if c.label == "letterhead"]
+
+        assert images == [Candidate("letterhead", 0.9, box(150, 4030, 900, 380))]
+
+    def test_logo_subtitle_inside_the_margin_joins_the_logo(self) -> None:
+        logo = cand(150, 170, 1160, 300, "doc_title")
+        subtitle = cand(700, 500, 400, 50)
+        header = cand(1430, 250, 1270, 60, "header")
+
+        result = self.marked(logo, subtitle, header)
+
+        assert Candidate("letterhead", 0.9, box(150, 170, 1160, 380)) in result
+        assert subtitle not in result
+        assert header in result
+
+    def test_header_and_page_number_inside_the_margins_stay_text(self) -> None:
+        header = cand(1430, 250, 1270, 60, "header")
+        number = cand(1600, 3960, 30, 50, "number")
+        title = cand(730, 670, 1780, 70, "paragraph_title")
+
+        result = self.marked(header, number, title)
+
+        assert result == [*self.BODY, header, number, title]
+
+    def test_body_paragraph_outside_the_bands_is_untouched(self) -> None:
+        wide = cand(150, 2400, 2700, 300)
+
+        assert wide in self.marked(wide)
+
+    def test_sheet_inside_a_larger_page_still_has_its_letterhead_found(self) -> None:
+        # Folha escaneada no meio de uma página maior (5560 px de altura), com moldura em volta.
+        body = [cand(1270, 990, 1765, 72), *(cand(1050, y, 2200, 300) for y in (1350, 2000, 3800))]
+        logo = cand(700, 490, 1150, 390, "doc_title")  # acaba em 16% da página
+        header = cand(1960, 575, 1265, 63, "header")
+        stroke = cand(700, 4310, 140, 380, "image")  # arco, já visto como imagem
+        address = cand(850, 4385, 750, 235)  # começa em 79% da página
+        number = cand(2136, 4243, 33, 55, "number")
+
+        result = mark_letterhead([*body, logo, header, stroke, address, number], 32.0)
+
+        letterheads = [c for c in result if c.label == "letterhead"]
+        assert [c.bbox for c in letterheads] == [logo.bbox, box(700, 4310, 900, 380)]
+        assert header in result
+        assert number in result
+        assert all(c in result for c in body)
+
+    def test_page_without_body_paragraphs_is_untouched(self) -> None:
+        cover = [cand(150, 170, 1160, 390, "doc_title"), cand(800, 2000, 1600, 100, "doc_title")]
+
+        assert mark_letterhead(cover, self.CHAR) == cover
 
 
 def word(word_id: str, text: str, x: float = 0) -> Word:
@@ -293,6 +372,7 @@ class TestOtherDocuments:
             "cabeca_para_baixo",
             "enfase_mista",
             "manuscrito",
+            "contrato_timbrado",
         ],
     )
     def test_figure_count_matches_truth_on_every_non_blank_page(self, case: str) -> None:
@@ -302,6 +382,31 @@ class TestOtherDocuments:
                 continue
             found = [b for b in layout_of(case, page.index).blocks if b.type is BlockType.FIGURE]
             assert len(found) == expected.figure_counts()[page.index], (case, page.index)
+
+
+class TestLetterheadContract:
+    def test_logo_and_address_are_images_header_and_number_stay_text(self) -> None:
+        layout = layout_of("contrato_timbrado")
+        height = max(b.bbox.y + b.bbox.h for b in layout.blocks)
+        figures = sorted(
+            (b for b in layout.blocks if b.type is BlockType.FIGURE), key=lambda b: b.bbox.y
+        )
+        types = [b.type for b in layout.blocks]
+
+        assert len(figures) == 2
+        assert figures[0].bbox.y < 0.1 * height  # logotipo
+        assert figures[1].bbox.y > 0.85 * height  # endereço com o arco
+        assert types.count(BlockType.HEADER) == 1
+        assert types.count(BlockType.FOOTER) == 1
+
+    def test_sheet_inside_a_larger_page_keeps_letterhead_and_platform_line_as_images(self) -> None:
+        layout = layout_of("contrato_timbrado_moldura")
+        letterheads = [b for b in layout.blocks if b.label == "letterhead"]
+        types = [b.type for b in layout.blocks]
+
+        assert len(letterheads) == 3  # logotipo, endereço com o arco e linha da plataforma
+        assert types.count(BlockType.HEADER) == 1
+        assert types.count(BlockType.FOOTER) == 1
 
 
 def test_layout_coordinates_match_the_page_image() -> None:

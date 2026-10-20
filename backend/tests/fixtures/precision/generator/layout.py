@@ -363,6 +363,16 @@ class Composer:
             TruthBlock(type=BlockType.FIGURE, align=align, column=0 if full_width else self._column)
         )
 
+    def margin_figure(
+        self, draw: DrawFn, x: float, top: float, width: float, height: float
+    ) -> None:
+        """Figura em posição fixa, fora do fluxo do texto (ex.: timbrado nas margens).
+        `top` é a distância do alto da página."""
+        self.canvas.saveState()
+        draw(self.canvas, x, self.height - top - height, width, height)
+        self.canvas.restoreState()
+        self._record(TruthBlock(type=BlockType.FIGURE, align=Alignment.LEFT))
+
     # ---------- fim ----------
 
     def _finish_page(self) -> None:

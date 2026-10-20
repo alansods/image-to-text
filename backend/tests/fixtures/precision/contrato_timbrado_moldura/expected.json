@@ -1,0 +1,439 @@
+{
+  "case": "contrato_timbrado_moldura",
+  "input": "input.pdf",
+  "description": "O contrato em papel timbrado escaneado no meio de uma página maior: contorno do papel, borda lateral solta e linha de rodapé de plataforma de assinatura.",
+  "handwriting": false,
+  "pages": [
+    {
+      "index": 0,
+      "w_pt": 701.04,
+      "h_pt": 1005.12,
+      "blocks": [
+        {
+          "type": "figure"
+        },
+        {
+          "type": "header",
+          "align": "right",
+          "rel_size": 0.73,
+          "words": [
+            {
+              "text": "Contrato"
+            },
+            {
+              "text": "de"
+            },
+            {
+              "text": "manutenção"
+            },
+            {
+              "text": "predial"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "align": "center",
+          "rel_size": 1.18,
+          "words": [
+            {
+              "text": "CONTRATO",
+              "bold": true
+            },
+            {
+              "text": "DE",
+              "bold": true
+            },
+            {
+              "text": "MANUTENÇÃO",
+              "bold": true
+            },
+            {
+              "text": "PREDIAL",
+              "bold": true
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "align": "justify",
+          "words": [
+            {
+              "text": "CONDOMÍNIO",
+              "bold": true
+            },
+            {
+              "text": "JARDIM",
+              "bold": true
+            },
+            {
+              "text": "DAS",
+              "bold": true
+            },
+            {
+              "text": "ÁGUAS,",
+              "bold": true
+            },
+            {
+              "text": "inscrito"
+            },
+            {
+              "text": "no"
+            },
+            {
+              "text": "CNPJ"
+            },
+            {
+              "text": "sob"
+            },
+            {
+              "text": "o"
+            },
+            {
+              "text": "nº"
+            },
+            {
+              "text": "00.000.000/0001-00,"
+            },
+            {
+              "text": "com"
+            },
+            {
+              "text": "sede"
+            },
+            {
+              "text": "na"
+            },
+            {
+              "text": "Avenida"
+            },
+            {
+              "text": "dos"
+            },
+            {
+              "text": "Ipês,"
+            },
+            {
+              "text": "88,"
+            },
+            {
+              "text": "doravante"
+            },
+            {
+              "text": "denominado"
+            },
+            {
+              "text": "CONTRATANTE,",
+              "bold": true
+            },
+            {
+              "text": "e"
+            },
+            {
+              "text": "LUMIAR",
+              "bold": true
+            },
+            {
+              "text": "ARQUIVOS",
+              "bold": true
+            },
+            {
+              "text": "LTDA.,",
+              "bold": true
+            },
+            {
+              "text": "doravante"
+            },
+            {
+              "text": "denominada"
+            },
+            {
+              "text": "CONTRATADA,",
+              "bold": true
+            },
+            {
+              "text": "celebram"
+            },
+            {
+              "text": "o"
+            },
+            {
+              "text": "presente"
+            },
+            {
+              "text": "contrato."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "align": "justify",
+          "words": [
+            {
+              "text": "Cláusula",
+              "bold": true
+            },
+            {
+              "text": "1ª",
+              "bold": true
+            },
+            {
+              "text": "—"
+            },
+            {
+              "text": "A"
+            },
+            {
+              "text": "CONTRATADA"
+            },
+            {
+              "text": "realizará"
+            },
+            {
+              "text": "a"
+            },
+            {
+              "text": "manutenção"
+            },
+            {
+              "text": "preventiva"
+            },
+            {
+              "text": "das"
+            },
+            {
+              "text": "bombas,"
+            },
+            {
+              "text": "dos"
+            },
+            {
+              "text": "portões"
+            },
+            {
+              "text": "e"
+            },
+            {
+              "text": "da"
+            },
+            {
+              "text": "iluminação"
+            },
+            {
+              "text": "das"
+            },
+            {
+              "text": "áreas"
+            },
+            {
+              "text": "comuns,"
+            },
+            {
+              "text": "com"
+            },
+            {
+              "text": "visitas"
+            },
+            {
+              "text": "quinzenais"
+            },
+            {
+              "text": "agendadas."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "align": "justify",
+          "words": [
+            {
+              "text": "Cláusula",
+              "bold": true
+            },
+            {
+              "text": "2ª",
+              "bold": true
+            },
+            {
+              "text": "—"
+            },
+            {
+              "text": "Pelos"
+            },
+            {
+              "text": "serviços,"
+            },
+            {
+              "text": "o"
+            },
+            {
+              "text": "CONTRATANTE"
+            },
+            {
+              "text": "pagará"
+            },
+            {
+              "text": "o"
+            },
+            {
+              "text": "valor"
+            },
+            {
+              "text": "mensal"
+            },
+            {
+              "text": "de"
+            },
+            {
+              "text": "R$"
+            },
+            {
+              "text": "1.800,00"
+            },
+            {
+              "text": "(mil"
+            },
+            {
+              "text": "e"
+            },
+            {
+              "text": "oitocentos"
+            },
+            {
+              "text": "reais),"
+            },
+            {
+              "text": "até"
+            },
+            {
+              "text": "o"
+            },
+            {
+              "text": "quinto"
+            },
+            {
+              "text": "dia"
+            },
+            {
+              "text": "útil"
+            },
+            {
+              "text": "de"
+            },
+            {
+              "text": "cada"
+            },
+            {
+              "text": "mês."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "align": "justify",
+          "words": [
+            {
+              "text": "Cláusula",
+              "bold": true
+            },
+            {
+              "text": "3ª",
+              "bold": true
+            },
+            {
+              "text": "—"
+            },
+            {
+              "text": "O"
+            },
+            {
+              "text": "contrato"
+            },
+            {
+              "text": "vigora"
+            },
+            {
+              "text": "por"
+            },
+            {
+              "text": "12"
+            },
+            {
+              "text": "(doze)"
+            },
+            {
+              "text": "meses"
+            },
+            {
+              "text": "e"
+            },
+            {
+              "text": "pode"
+            },
+            {
+              "text": "ser"
+            },
+            {
+              "text": "renovado"
+            },
+            {
+              "text": "por"
+            },
+            {
+              "text": "acordo"
+            },
+            {
+              "text": "entre"
+            },
+            {
+              "text": "as"
+            },
+            {
+              "text": "partes,"
+            },
+            {
+              "text": "mediante"
+            },
+            {
+              "text": "aviso"
+            },
+            {
+              "text": "com"
+            },
+            {
+              "text": "30"
+            },
+            {
+              "text": "dias"
+            },
+            {
+              "text": "de"
+            },
+            {
+              "text": "antecedência."
+            }
+          ]
+        },
+        {
+          "type": "figure"
+        },
+        {
+          "type": "footer",
+          "align": "center",
+          "rel_size": 0.82,
+          "words": [
+            {
+              "text": "1"
+            }
+          ]
+        },
+        {
+          "type": "figure"
+        },
+        {
+          "type": "figure"
+        }
+      ]
+    }
+  ]
+}

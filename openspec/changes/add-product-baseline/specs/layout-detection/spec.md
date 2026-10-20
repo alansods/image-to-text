@@ -52,8 +52,27 @@ O sistema MUST classificar capas, figuras, fotos, logotipos, ilustrações, grá
 - **WHEN** uma figura possui legenda em texto abaixo dela
 - **THEN** a figura vira um bloco "figura" e a legenda vira um bloco de texto separado, logo após a figura na ordem de leitura
 
+### Requirement: Papel timbrado como imagem
+Logotipos e blocos de endereço do papel timbrado — impressos acima do primeiro ou abaixo do último parágrafo do texto, fora das margens do texto do documento — SHALL entrar como blocos "figura" com o recorte do original, sem gerar palavras nem dúvidas, mesmo quando são formados por letras. Cabeçalhos e rodapés dentro das margens do texto (título corrido, número de página) MUST continuar sendo lidos como texto.
+
+#### Scenario: Logotipo de letras no canto superior
+- **WHEN** uma página tem, no alto e à esquerda da margem do texto, um logotipo formado pelo nome da empresa em letras grandes, com um subtítulo em letras espaçadas logo abaixo que já fica dentro da margem
+- **THEN** o logotipo e o subtítulo entram juntos como um único bloco "figura" com o recorte do original e não geram palavras nem dúvidas
+
+#### Scenario: Endereço no rodapé do timbrado
+- **WHEN** o pé da página tem, à esquerda da margem do texto, um bloco de endereço em letra pequena com um traço decorativo ao lado
+- **THEN** o endereço e o traço entram juntos como um único bloco "figura" com o recorte do original, sem palavras nem dúvidas
+
+#### Scenario: Folha escaneada dentro de uma página maior
+- **WHEN** a folha escaneada ocupa só o meio da página do PDF, com uma moldura em volta e uma linha de rodapé da plataforma de assinatura embaixo
+- **THEN** o logotipo e o endereço do timbrado entram como blocos "figura", como numa folha sem moldura, e a linha da plataforma, fora das margens do texto, também entra como "figura"
+
+#### Scenario: Cabeçalho dentro das margens continua texto
+- **WHEN** a mesma página tem no cabeçalho uma frase dentro das margens do texto e, no rodapé, o número da página
+- **THEN** a frase entra como bloco "cabeçalho" e o número como bloco "rodapé", ambos lidos como texto
+
 ### Requirement: Texto não vira imagem
-O sistema MUST NOT entregar como figura ou fórmula uma região que contém linhas de texto corrido: quando um bloco detectado como figura ou fórmula contém linhas de texto, essas linhas SHALL ser lidas como texto.
+O sistema MUST NOT entregar como figura ou fórmula uma região que contém linhas de texto corrido: quando um bloco detectado como figura ou fórmula contém linhas de texto, essas linhas SHALL ser lidas como texto. A exceção é o papel timbrado (requisito "Papel timbrado como imagem").
 
 #### Scenario: Foto levemente desfocada
 - **WHEN** uma foto de contrato levemente desfocada é processada e o detector classifica a página inteira como uma única figura ou fórmula
